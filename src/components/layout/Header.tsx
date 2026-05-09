@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { MESES_FULL } from "../../constants";
 import styles from "./Header.module.css";
 
@@ -7,9 +8,18 @@ interface Props {
   onChangeMes: (mes: number, ano: number) => void;
   onOpenBackup: () => void;
   onToggleTaxBar: () => void;
+  /** Optional extra slot rendered to the right of the actions row (e.g. SyncStatus). */
+  extraActions?: ReactNode;
 }
 
-export function Header({ mes, ano, onChangeMes, onOpenBackup, onToggleTaxBar }: Props) {
+export function Header({
+  mes,
+  ano,
+  onChangeMes,
+  onOpenBackup,
+  onToggleTaxBar,
+  extraActions,
+}: Props) {
   const prev = () => {
     let m = mes - 1;
     let y = ano;
@@ -59,6 +69,7 @@ export function Header({ mes, ano, onChangeMes, onOpenBackup, onToggleTaxBar }: 
         </div>
 
         <div className={styles.actions}>
+          {extraActions}
           <button className={styles.actionBtn} onClick={onToggleTaxBar}>
             % <span>Taxas</span>
           </button>

@@ -10,9 +10,23 @@ export function useStorage() {
     saveState(state);
   }, [state]);
 
-  const setRows = useCallback((updater: (rows: Row[]) => Row[]) => {
-    setState((prev) => ({ ...prev, rows: updater(prev.rows) }));
-  }, []);
+  /** Internal: any mutation bumps lastModified so sync can see freshness. */
+  const mutate = useCallback(
+    (apply: (prev: AppState) => AppState) => {
+      setState((prev) => {
+        const next = apply(prev);
+        return { ...next, lastModified: new Date().toISOString() };
+      });
+    },
+    [],
+  );
+
+  const setRows = useCallback(
+    (updater: (rows: Row[]) => Row[]) => {
+      mutate((prev) => ({ ...prev, rows: updater(prev.rows) }));
+    },
+    [mutate],
+  );
 
   const addRow = useCallback(
     (init: Partial<Row> = {}) => {
@@ -84,5 +98,20 @@ export function useStorage() {
     [setRows],
   );
 
-  return { state, setRows, addRow, updateRow, deleteRow, replaceAllRows, mergeRows };
+  /** Used by the sync layer: replace the whole document, preserving the
+   *  remote `lastModified` so the next push doesn't bounce-back. */
+  const replaceState = useCallback((next: AppState) => {
+    setState(next);
+  }, []);
+
+  return {
+    state,
+    setRows,
+    addRow,
+    updateRow,
+    deleteRow,
+    replaceAllRows,
+    mergeRows,
+    replaceState,
+  };
 }

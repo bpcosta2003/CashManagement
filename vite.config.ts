@@ -3,6 +3,17 @@ import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig({
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: (id) => {
+          if (id.includes("node_modules/@supabase")) return "supabase";
+          if (id.includes("node_modules/xlsx")) return "excel";
+          if (id.includes("node_modules/react")) return "react";
+        },
+      },
+    },
+  },
   plugins: [
     react(),
     VitePWA({
