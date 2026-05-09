@@ -1,0 +1,40 @@
+:root {
+  /* Cores principais */
+  --color-bg: #f1f5f9;
+  --color-white: #ffffff;
+  --color-header: #0f172a;
+  --color-text: #0f172a;
+  --color-muted: #64748b;
+  --color-border: #e2e8f0;
+  --color-border-lt: #f1f5f9;
+
+  /* Forma de pagamento */
+  --color-dinheiro: #16a34a;
+  --color-pix: #0284c7;
+  --color-debito: #7c3aed;
+  --color-credito: #b45309;
+  --color-desconto: #92400e;
+
+  /* Semântica financeira */
+  --color-positive: #16a34a;
+  --color-negative: #dc2626;
+  --color-warning: #d97706;
+  --color-neutral: #7c3aed;
+
+  /* Tipografia */
+  --font-ui: "DM Sans", system-ui, sans-serif;
+  --font-display: "Syne", sans-serif;
+  --font-mono: "DM Mono", monospace;
+
+  /* Sombras */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.15);
+
+  /* Raios */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+}

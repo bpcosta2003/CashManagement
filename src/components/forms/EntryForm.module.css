@@ -1,0 +1,165 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.input,
+.select {
+  appearance: none;
+  -webkit-appearance: none;
+  border: 1px solid var(--color-border);
+  background: var(--color-white);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+}
+
+.input:focus,
+.select:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.formaGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.formaBtn {
+  border: 1px solid var(--color-border);
+  background: var(--color-white);
+  padding: 10px 6px;
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+}
+
+.formaBtn[data-active="true"] {
+  border-width: 2px;
+}
+
+.statusGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.statusBtn {
+  border: 1px solid var(--color-border);
+  background: var(--color-white);
+  padding: 10px;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.statusPago[data-active="true"] {
+  background: #dcfce7;
+  border-color: #bbf7d0;
+  color: var(--color-positive);
+}
+
+.statusPend[data-active="true"] {
+  background: #fef3c7;
+  border-color: #fde68a;
+  color: var(--color-warning);
+}
+
+.preview {
+  background: #f8fafc;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.previewRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+}
+
+.previewLabel {
+  color: var(--color-muted);
+}
+
+.previewValue {
+  font-family: var(--font-mono);
+  font-weight: 600;
+}
+
+.previewLiq {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 18px;
+  color: var(--color-positive);
+}
+
+.previewLiqNeg {
+  color: var(--color-negative);
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  position: sticky;
+  bottom: 0;
+  background: linear-gradient(180deg, transparent, var(--color-white) 30%);
+  padding-top: 8px;
+}
+
+.btnSecondary,
+.btnDanger,
+.btnPrimary {
+  flex: 1;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 14px;
+  border: 1px solid transparent;
+}
+
+.btnSecondary {
+  background: var(--color-white);
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+
+.btnDanger {
+  background: #fff;
+  border-color: #fecaca;
+  color: var(--color-negative);
+}
+
+.btnPrimary {
+  background: var(--color-header);
+  color: #fff;
+}
