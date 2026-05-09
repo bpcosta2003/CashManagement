@@ -50,7 +50,11 @@ upsert_env() {
   local key="$1" value="$2"
   for target in production preview development; do
     "${VC[@]}" "${TOKEN_ARG[@]}" env rm "$key" "$target" --yes >/dev/null 2>&1 || true
-    printf '%s' "$value" | "${VC[@]}" "${TOKEN_ARG[@]}" env add "$key" "$target" >/dev/null
+    # Two newlines: first answers the value prompt, second answers the
+    # "Add to which Git branch?" prompt that only appears for `preview`
+    # (empty = all preview branches). The extra newline is ignored on
+    # production/development where there is no second prompt.
+    printf '%s\n\n' "$value" | "${VC[@]}" "${TOKEN_ARG[@]}" env add "$key" "$target" >/dev/null
     echo "    set $key for $target"
   done
 }
