@@ -1,0 +1,44 @@
+.wrap {
+  position: fixed;
+  bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+  z-index: 70;
+  padding: 0 16px;
+}
+
+@media (min-width: 721px) {
+  .wrap {
+    bottom: 24px;
+  }
+}
+
+.toast {
+  background: rgba(15, 23, 42, 0.94);
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  box-shadow: var(--shadow-lg);
+  max-width: 92vw;
+  text-align: center;
+  animation: slideUp 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+  pointer-events: auto;
+  font-weight: 500;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

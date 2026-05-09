@@ -1,0 +1,44 @@
+.banner {
+  background: linear-gradient(90deg, #0284c7, #2563eb);
+  color: #fff;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  box-shadow: var(--shadow-sm);
+}
+
+.icon {
+  font-size: 18px;
+}
+
+.text {
+  flex: 1;
+  font-weight: 500;
+}
+
+.actions {
+  display: flex;
+  gap: 6px;
+}
+
+.btn {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.btnGhost {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.4);
+}
