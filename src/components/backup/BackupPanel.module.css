@@ -1,8 +1,8 @@
 .modalBackdrop {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.55);
-  z-index: 60;
+  background: rgba(40, 25, 30, 0.45);
+  z-index: var(--z-overlay);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -11,19 +11,19 @@
 }
 
 .panel {
-  background: var(--color-white);
-  border-radius: var(--radius-xl);
+  background: var(--surface);
+  border-radius: var(--radius-md);
   width: 100%;
   max-width: 480px;
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-overlay);
   overflow: hidden;
   display: flex;
   flex-direction: column;
 }
 
 .header {
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--color-border);
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border-soft);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -31,30 +31,34 @@
 
 .title {
   font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 18px;
+  font-weight: 600;
+  font-size: var(--t-h3);
+  color: var(--text);
+  letter-spacing: -0.01em;
 }
 
 .close {
   background: transparent;
   border: none;
   font-size: 22px;
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-full);
-  color: var(--color-muted);
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-pill);
+  color: var(--text-muted);
   cursor: pointer;
+  transition: background 0.12s, color 0.12s;
 }
 
 .close:hover {
-  background: var(--color-bg);
+  background: var(--surface-2);
+  color: var(--text);
 }
 
 .body {
-  padding: 20px;
+  padding: 20px 22px 22px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
   overflow-y: auto;
   max-height: 70vh;
 }
@@ -62,56 +66,61 @@
 .action {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  padding: 12px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-white);
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
   text-align: left;
   cursor: pointer;
   transition: background 0.12s, border-color 0.12s;
 }
 
 .action:hover {
-  background: #f8fafc;
-  border-color: #cbd5e1;
+  background: var(--surface-2);
+  border-color: var(--border);
 }
 
 .actionIcon {
-  font-size: 20px;
-  width: 32px;
-  height: 32px;
+  font-size: 18px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  background: var(--color-bg);
-  border-radius: var(--radius-md);
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-radius: var(--radius-sm);
+  font-weight: 700;
 }
 
 .actionTitle {
-  font-weight: 700;
-  font-size: 14px;
+  font-weight: 600;
+  font-size: var(--t-body);
+  color: var(--text);
 }
 
 .actionDesc {
-  font-size: 12px;
-  color: var(--color-muted);
-  margin-top: 2px;
+  font-size: var(--t-caption);
+  color: var(--text-muted);
+  margin-top: 4px;
+  line-height: 1.4;
 }
 
 .meta {
-  font-size: 12px;
-  color: var(--color-muted);
+  font-size: var(--t-meta);
+  color: var(--text-muted);
   display: flex;
   justify-content: space-between;
-  padding: 8px 12px;
-  background: var(--color-bg);
-  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+  font-variant-numeric: tabular-nums;
 }
 
 .danger {
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid var(--border-soft);
   margin-top: 8px;
   padding-top: 14px;
   display: flex;
@@ -120,32 +129,34 @@
 }
 
 .dangerLabel {
-  font-size: 11px;
+  font-size: var(--t-eyebrow);
   font-weight: 700;
-  color: var(--color-negative);
-  letter-spacing: 0.06em;
+  color: var(--negative);
+  letter-spacing: 0.18em;
   text-transform: uppercase;
 }
 
 .dangerBtn {
-  background: #fff;
-  color: var(--color-negative);
-  border: 1px solid #fecaca;
-  border-radius: var(--radius-md);
-  padding: 10px 12px;
+  background: var(--surface);
+  color: var(--negative);
+  border: 1px solid rgba(168, 51, 77, 0.3);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
   font-weight: 600;
-  font-size: 13px;
+  font-size: var(--t-meta);
   cursor: pointer;
   text-align: left;
+  transition: background 0.12s, border-color 0.12s;
 }
 
 .dangerBtn:hover {
-  background: #fee2e2;
+  background: rgba(168, 51, 77, 0.08);
+  border-color: var(--negative);
 }
 
 /* Preview modal */
 .preview {
-  padding: 16px 20px;
+  padding: 18px 22px;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -153,22 +164,23 @@
 
 .previewName {
   font-weight: 600;
-  font-size: 13px;
+  font-size: var(--t-body);
   word-break: break-all;
+  color: var(--text);
 }
 
 .previewStat {
-  font-size: 12px;
-  color: var(--color-muted);
+  font-size: var(--t-meta);
+  color: var(--text-muted);
 }
 
 .previewErrors {
-  background: #fef2f2;
-  border: 1px solid #fecaca;
+  background: rgba(168, 51, 77, 0.08);
+  border: 1px solid rgba(168, 51, 77, 0.2);
   border-radius: var(--radius-sm);
-  padding: 8px 10px;
-  font-size: 11px;
-  color: #991b1b;
+  padding: 10px 12px;
+  font-size: var(--t-caption);
+  color: var(--negative);
   max-height: 100px;
   overflow-y: auto;
 }
@@ -176,44 +188,47 @@
 .previewActions {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 0 20px 20px;
+  gap: 8px;
+  padding: 0 22px 22px;
 }
 
 .previewBtn {
-  border: 1px solid var(--color-border);
-  background: var(--color-white);
-  border-radius: var(--radius-md);
-  padding: 10px 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
   font-weight: 600;
-  font-size: 13px;
+  font-size: var(--t-meta);
   cursor: pointer;
   text-align: left;
+  color: var(--text);
+  transition: background 0.12s;
 }
 
 .previewBtn:hover {
-  background: var(--color-bg);
+  background: var(--surface-2);
 }
 
 .previewBtnPrimary {
-  background: var(--color-header);
+  background: var(--accent);
   color: #fff;
-  border-color: var(--color-header);
+  border-color: var(--accent);
 }
 
 .previewBtnPrimary:hover {
-  filter: brightness(1.15);
-  background: var(--color-header);
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
 }
 
 .previewBtnDanger {
-  background: var(--color-negative);
+  background: var(--negative);
   color: #fff;
-  border-color: var(--color-negative);
+  border-color: var(--negative);
 }
 
 .previewBtnDanger:hover {
-  background: #b91c1c;
+  background: #8a2a3f;
+  border-color: #8a2a3f;
 }
 
 @keyframes fadeIn {

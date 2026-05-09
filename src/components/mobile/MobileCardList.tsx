@@ -12,9 +12,8 @@ export function MobileCardList({ rows, onSelect }: Props) {
     <div className={styles.list}>
       {rows.length === 0 ? (
         <div className={styles.empty}>
-          Nenhum lançamento neste mês.
-          <br />
-          Toque no <strong>+</strong> para adicionar.
+          <strong>Nenhum lançamento ainda</strong>
+          Toque no botão + para começar.
         </div>
       ) : (
         rows.map((r) => (

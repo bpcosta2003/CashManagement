@@ -4,36 +4,63 @@
   left: 0;
   right: 0;
   display: flex;
-  background: var(--color-white);
-  border-top: 1px solid var(--color-border);
+  background: var(--surface);
+  border-top: 1px solid var(--border-soft);
   z-index: 35;
-  padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
-  box-shadow: 0 -1px 8px rgba(15, 23, 42, 0.04);
+  padding: 4px 4px calc(4px + env(safe-area-inset-bottom, 0px));
+  box-shadow: 0 -1px 12px rgba(80, 50, 60, 0.06);
 }
 
 .btn {
   flex: 1;
+  position: relative;
   background: transparent;
   border: none;
-  padding: 8px 4px;
+  padding: 10px 4px 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  font-size: 11px;
-  color: var(--color-muted);
+  gap: 3px;
+  font-size: var(--t-caption);
+  font-weight: 500;
+  color: var(--text-dim);
   cursor: pointer;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
+  transition: color 0.12s;
+  min-height: 56px;
+}
+
+.btn::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 32px;
+  height: 3px;
+  background: transparent;
+  border-radius: 0 0 3px 3px;
+  transition: background 0.18s;
 }
 
 .btn[data-active="true"] {
-  color: var(--color-text);
-  font-weight: 700;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.btn[data-active="true"]::before {
+  background: var(--accent);
+}
+
+.btn[data-active="true"] .icon {
+  color: var(--accent);
 }
 
 .icon {
   font-size: 18px;
   line-height: 1;
+  color: var(--text-dim);
+  transition: color 0.12s;
 }
 
 @media (min-width: 721px) {

@@ -1,26 +1,37 @@
 .form {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
 }
 
 .row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 12px;
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .label {
-  font-size: 11px;
+  font-size: var(--t-eyebrow);
   font-weight: 600;
-  color: var(--color-muted);
+  color: var(--text-muted);
   text-transform: uppercase;
+  letter-spacing: 0.14em;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.labelHint {
+  font-size: var(--t-eyebrow);
+  font-weight: 500;
+  color: var(--champagne);
+  text-transform: none;
   letter-spacing: 0.04em;
 }
 
@@ -28,19 +39,27 @@
 .select {
   appearance: none;
   -webkit-appearance: none;
-  border: 1px solid var(--color-border);
-  background: var(--color-white);
-  border-radius: var(--radius-md);
-  padding: 10px 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
   font: inherit;
+  font-size: 16px;
+  color: var(--text);
   font-variant-numeric: tabular-nums;
+  min-height: var(--hit);
+  transition: border-color 0.12s, box-shadow 0.12s;
+}
+
+.input::placeholder {
+  color: var(--text-dim);
 }
 
 .input:focus,
 .select:focus {
   outline: none;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
 .formaGrid {
@@ -50,116 +69,209 @@
 }
 
 .formaBtn {
-  border: 1px solid var(--color-border);
-  background: var(--color-white);
-  padding: 10px 6px;
-  border-radius: var(--radius-md);
-  font-size: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  padding: 12px 6px;
+  border-radius: var(--radius-sm);
+  font-size: var(--t-meta);
   font-weight: 600;
   text-align: center;
   cursor: pointer;
+  color: var(--text-muted);
+  min-height: var(--hit);
+  transition: all 0.12s;
+}
+
+.formaBtn:hover {
+  border-color: var(--text-muted);
+  color: var(--text);
 }
 
 .formaBtn[data-active="true"] {
-  border-width: 2px;
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
 }
 
 .statusGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 6px;
+  gap: 8px;
 }
 
 .statusBtn {
-  border: 1px solid var(--color-border);
-  background: var(--color-white);
-  padding: 10px;
-  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  padding: 12px;
+  border-radius: var(--radius-sm);
   font-weight: 600;
-  font-size: 13px;
+  font-size: var(--t-body);
+  color: var(--text-muted);
+  min-height: var(--hit);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.12s;
+}
+
+.statusGlyph {
+  font-size: 14px;
+  line-height: 1;
 }
 
 .statusPago[data-active="true"] {
-  background: #dcfce7;
-  border-color: #bbf7d0;
-  color: var(--color-positive);
+  background: rgba(93, 139, 90, 0.12);
+  border-color: var(--positive);
+  color: var(--positive);
 }
 
 .statusPend[data-active="true"] {
-  background: #fef3c7;
-  border-color: #fde68a;
-  color: var(--color-warning);
+  background: rgba(200, 134, 42, 0.12);
+  border-color: var(--warning);
+  color: var(--warning);
 }
 
+/* ─── Preview computado ─── */
 .preview {
-  background: #f8fafc;
-  border: 1px solid var(--color-border);
+  position: relative;
+  background: var(--surface-2);
   border-radius: var(--radius-md);
-  padding: 12px;
+  padding: 18px 18px 16px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.previewHairline {
+  position: absolute;
+  top: 0;
+  left: 18px;
+  right: 18px;
+  height: 1px;
+  background: var(--champagne);
 }
 
 .previewRow {
   display: flex;
   justify-content: space-between;
-  font-size: 12px;
+  align-items: baseline;
+  font-size: var(--t-body);
 }
 
 .previewLabel {
-  color: var(--color-muted);
+  color: var(--text-muted);
+  font-size: var(--t-meta);
 }
 
 .previewValue {
   font-family: var(--font-mono);
-  font-weight: 600;
+  font-weight: 500;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.previewDivider {
+  height: 1px;
+  background: var(--border-soft);
+  margin: 4px 0;
+}
+
+.previewTotal .previewLabel {
+  font-size: var(--t-eyebrow);
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: var(--text);
+  text-transform: uppercase;
 }
 
 .previewLiq {
   font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 18px;
-  color: var(--color-positive);
+  font-weight: 600;
+  font-size: 24px;
+  color: var(--positive);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
 }
 
 .previewLiqNeg {
-  color: var(--color-negative);
+  color: var(--negative);
 }
 
+.previewMargin {
+  font-size: var(--t-meta);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  margin-top: -4px;
+}
+
+.previewMargin strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* ─── Ações ─── */
 .actions {
   display: flex;
   gap: 8px;
   position: sticky;
   bottom: 0;
-  background: linear-gradient(180deg, transparent, var(--color-white) 30%);
-  padding-top: 8px;
+  background: linear-gradient(180deg, transparent, var(--surface) 30%);
+  padding-top: 12px;
+  margin-top: 4px;
 }
 
 .btnSecondary,
 .btnDanger,
 .btnPrimary {
   flex: 1;
-  padding: 12px;
-  border-radius: var(--radius-md);
+  padding: 14px;
+  border-radius: var(--radius-pill);
   font-weight: 600;
-  font-size: 14px;
+  font-size: var(--t-body);
   border: 1px solid transparent;
+  min-height: 56px;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
 }
 
 .btnSecondary {
-  background: var(--color-white);
-  border-color: var(--color-border);
-  color: var(--color-text);
+  background: transparent;
+  border-color: var(--border);
+  color: var(--text-muted);
+}
+
+.btnSecondary:hover {
+  border-color: var(--text-muted);
+  color: var(--text);
 }
 
 .btnDanger {
-  background: #fff;
-  border-color: #fecaca;
-  color: var(--color-negative);
+  background: transparent;
+  border-color: rgba(168, 51, 77, 0.3);
+  color: var(--negative);
+  flex: 0 0 auto;
+  padding-left: 18px;
+  padding-right: 18px;
+}
+
+.btnDanger:hover {
+  background: rgba(168, 51, 77, 0.08);
+  border-color: var(--negative);
 }
 
 .btnPrimary {
-  background: var(--color-header);
+  background: var(--accent);
   color: #fff;
+  flex: 1.5;
+}
+
+.btnPrimary:hover {
+  background: var(--accent-strong);
+}
+
+.btnPrimary:active {
+  transform: scale(0.98);
 }

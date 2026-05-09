@@ -1,12 +1,23 @@
 .banner {
-  background: linear-gradient(90deg, #0284c7, #2563eb);
+  background: var(--accent);
   color: #fff;
-  padding: 10px 14px;
+  padding: 12px 20px;
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-size: 13px;
-  box-shadow: var(--shadow-sm);
+  gap: 14px;
+  font-size: var(--t-meta);
+  position: relative;
+}
+
+.banner::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 20px;
+  right: 20px;
+  height: 1px;
+  background: var(--champagne);
+  opacity: 0.5;
 }
 
 .icon {
@@ -20,18 +31,19 @@
 
 .actions {
   display: flex;
-  gap: 6px;
+  gap: 8px;
 }
 
 .btn {
   background: rgba(255, 255, 255, 0.18);
   color: #fff;
   border: 1px solid rgba(255, 255, 255, 0.25);
-  padding: 6px 12px;
-  border-radius: var(--radius-full);
-  font-size: 12px;
+  padding: 7px 14px;
+  border-radius: var(--radius-pill);
+  font-size: var(--t-caption);
   font-weight: 600;
   cursor: pointer;
+  transition: background 0.12s;
 }
 
 .btn:hover {

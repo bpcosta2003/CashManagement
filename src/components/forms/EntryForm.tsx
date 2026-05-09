@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import type { FormaPagamento, Row, StatusPagamento } from "../../types";
 import {
-  FORMA_COLORS,
   FORMAS_PAGAMENTO,
   STATUS_OPTIONS,
 } from "../../constants";
@@ -17,9 +16,11 @@ interface Props {
 
 export function EntryForm({ initial, onSave, onDelete, onCancel }: Props) {
   const [draft, setDraft] = useState<Row>(initial);
+  const [taxaTouched, setTaxaTouched] = useState(false);
 
   useEffect(() => {
     setDraft(initial);
+    setTaxaTouched(false);
   }, [initial]);
 
   const update = <K extends keyof Row>(field: K, value: Row[K]) => {
@@ -28,15 +29,21 @@ export function EntryForm({ initial, onSave, onDelete, onCancel }: Props) {
       if (field === "forma") {
         next.taxa = autoTaxa(value as string, next.parc);
         if (value !== "Crédito") next.parc = 1;
+        setTaxaTouched(false);
       }
       if (field === "parc") {
         next.taxa = autoTaxa(next.forma, value as number);
+        setTaxaTouched(false);
+      }
+      if (field === "taxa") {
+        setTaxaTouched(true);
       }
       return next;
     });
   };
 
   const calc = calcRow(draft);
+  const isAutoTaxa = !taxaTouched && draft.taxa === autoTaxa(draft.forma, draft.parc);
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave(draft);
@@ -44,26 +51,28 @@ export function EntryForm({ initial, onSave, onDelete, onCancel }: Props) {
 
   return (
     <form className={styles.form} onSubmit={submit}>
+      <div className={styles.field}>
+        <label className={styles.label}>Cliente</label>
+        <input
+          className={styles.input}
+          value={draft.cliente}
+          onChange={(e) => update("cliente", e.target.value)}
+          placeholder="Nome do cliente"
+          autoFocus
+        />
+      </div>
+
+      <div className={styles.field}>
+        <label className={styles.label}>Serviço</label>
+        <input
+          className={styles.input}
+          value={draft.servico}
+          onChange={(e) => update("servico", e.target.value)}
+          placeholder="Ex: Corte + escova"
+        />
+      </div>
+
       <div className={styles.row}>
-        <div className={styles.field} style={{ gridColumn: "1 / -1" }}>
-          <label className={styles.label}>Cliente</label>
-          <input
-            className={styles.input}
-            value={draft.cliente}
-            onChange={(e) => update("cliente", e.target.value)}
-            placeholder="Nome do cliente"
-            autoFocus
-          />
-        </div>
-        <div className={styles.field} style={{ gridColumn: "1 / -1" }}>
-          <label className={styles.label}>Serviço</label>
-          <input
-            className={styles.input}
-            value={draft.servico}
-            onChange={(e) => update("servico", e.target.value)}
-            placeholder="Ex: Corte + escova"
-          />
-        </div>
         <div className={styles.field}>
           <label className={styles.label}>Valor</label>
           <input
@@ -98,7 +107,6 @@ export function EntryForm({ initial, onSave, onDelete, onCancel }: Props) {
         <label className={styles.label}>Forma de pagamento</label>
         <div className={styles.formaGrid}>
           {FORMAS_PAGAMENTO.map((f) => {
-            const c = FORMA_COLORS[f];
             const active = draft.forma === f;
             return (
               <button
@@ -107,15 +115,6 @@ export function EntryForm({ initial, onSave, onDelete, onCancel }: Props) {
                 data-active={active}
                 className={styles.formaBtn}
                 onClick={() => update("forma", f as FormaPagamento)}
-                style={
-                  active
-                    ? {
-                        background: c.bg,
-                        borderColor: c.c,
-                        color: c.c,
-                      }
-                    : undefined
-                }
               >
                 {f}
               </button>
@@ -139,7 +138,12 @@ export function EntryForm({ initial, onSave, onDelete, onCancel }: Props) {
             />
           </div>
           <div className={styles.field}>
-            <label className={styles.label}>Taxa %</label>
+            <label className={styles.label}>
+              Taxa %
+              {isAutoTaxa && (
+                <span className={styles.labelHint}>· automática</span>
+              )}
+            </label>
             <input
               className={styles.input}
               type="number"
@@ -167,9 +171,14 @@ export function EntryForm({ initial, onSave, onDelete, onCancel }: Props) {
             placeholder="0,00"
           />
         </div>
-        {draft.forma !== "Crédito" && draft.forma !== "Pix" && draft.forma !== "Dinheiro" && (
+        {draft.forma === "Débito" && (
           <div className={styles.field}>
-            <label className={styles.label}>Taxa %</label>
+            <label className={styles.label}>
+              Taxa %
+              {isAutoTaxa && (
+                <span className={styles.labelHint}>· automática</span>
+              )}
+            </label>
             <input
               className={styles.input}
               type="number"
@@ -187,8 +196,8 @@ export function EntryForm({ initial, onSave, onDelete, onCancel }: Props) {
         <div className={styles.statusGrid}>
           {STATUS_OPTIONS.map((s) => {
             const active = draft.status === s;
-            const cls =
-              s === "Pago" ? styles.statusPago : styles.statusPend;
+            const cls = s === "Pago" ? styles.statusPago : styles.statusPend;
+            const glyph = s === "Pago" ? "✓" : "○";
             return (
               <button
                 type="button"
@@ -197,6 +206,7 @@ export function EntryForm({ initial, onSave, onDelete, onCancel }: Props) {
                 className={`${styles.statusBtn} ${cls}`}
                 onClick={() => update("status", s as StatusPagamento)}
               >
+                <span className={styles.statusGlyph}>{glyph}</span>
                 {s}
               </button>
             );
@@ -204,7 +214,8 @@ export function EntryForm({ initial, onSave, onDelete, onCancel }: Props) {
         </div>
       </div>
 
-      <div className={styles.preview}>
+      <div className={styles.preview} role="status" aria-live="polite">
+        <span className={styles.previewHairline} aria-hidden="true" />
         <div className={styles.previewRow}>
           <span className={styles.previewLabel}>Valor efetivo</span>
           <span className={styles.previewValue}>{fmtBRL(calc.vef)}</span>
@@ -217,18 +228,19 @@ export function EntryForm({ initial, onSave, onDelete, onCancel }: Props) {
           <span className={styles.previewLabel}>Custo</span>
           <span className={styles.previewValue}>− {fmtBRL(calc.custoVal)}</span>
         </div>
-        <div
-          className={styles.previewRow}
-          style={{ marginTop: 6, alignItems: "baseline" }}
-        >
-          <span className={styles.previewLabel}>Líquido / margem</span>
+        <div className={styles.previewDivider} aria-hidden="true" />
+        <div className={`${styles.previewRow} ${styles.previewTotal}`}>
+          <span className={styles.previewLabel}>LÍQUIDO</span>
           <span
             className={`${styles.previewLiq} ${
               calc.liq < 0 ? styles.previewLiqNeg : ""
             }`}
           >
-            {fmtBRL(calc.liq)} <small>· {fmtPct(calc.mar)}</small>
+            {fmtBRL(calc.liq)}
           </span>
+        </div>
+        <div className={styles.previewMargin}>
+          Margem <strong>{fmtPct(calc.mar)}</strong>
         </div>
       </div>
 
@@ -250,7 +262,7 @@ export function EntryForm({ initial, onSave, onDelete, onCancel }: Props) {
           </button>
         )}
         <button type="submit" className={styles.btnPrimary}>
-          Salvar
+          Salvar lançamento
         </button>
       </div>
     </form>

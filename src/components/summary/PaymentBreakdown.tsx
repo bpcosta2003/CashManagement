@@ -1,44 +1,77 @@
-import { FORMA_COLORS, FORMAS_PAGAMENTO } from "../../constants";
-import { fmtBRL } from "../../lib/calc";
-import styles from "./SummaryCards.module.css";
+import { FORMAS_PAGAMENTO } from "../../constants";
+import { fmtBRL, fmtPct } from "../../lib/calc";
+import styles from "./PaymentBreakdown.module.css";
 
 interface Props {
   breakdown: Record<string, { count: number; bruto: number; liq: number }>;
 }
 
+const SEGMENT_VAR: Record<string, string> = {
+  Dinheiro: "var(--pay-dinheiro)",
+  Pix: "var(--pay-pix)",
+  Débito: "var(--pay-debito)",
+  Crédito: "var(--pay-credito)",
+};
+
 export function PaymentBreakdown({ breakdown }: Props) {
+  const total = FORMAS_PAGAMENTO.reduce((s, f) => s + (breakdown[f]?.bruto || 0), 0);
+  const hasData = total > 0;
+
   return (
-    <div className={styles.breakdownRow}>
-      <div className={styles.breakdownGrid}>
+    <section className={styles.section} aria-label="Composição por forma de pagamento">
+      <div className={styles.head}>
+        <span className={styles.eyebrow}>Composição</span>
+        <span className={styles.totalChip}>
+          {hasData ? fmtBRL(total) : "Sem lançamentos"}
+        </span>
+      </div>
+
+      <div className={styles.bar} role="img" aria-label="Distribuição percentual">
+        {hasData ? (
+          FORMAS_PAGAMENTO.map((forma) => {
+            const value = breakdown[forma]?.bruto || 0;
+            const pct = total > 0 ? (value / total) * 100 : 0;
+            if (pct === 0) return null;
+            return (
+              <span
+                key={forma}
+                className={styles.segment}
+                style={{
+                  width: `${pct}%`,
+                  background: SEGMENT_VAR[forma],
+                }}
+                title={`${forma}: ${fmtPct(pct)}`}
+              />
+            );
+          })
+        ) : (
+          <span className={styles.segmentEmpty} />
+        )}
+      </div>
+
+      <div className={styles.legend}>
         {FORMAS_PAGAMENTO.map((forma) => {
-          const data = breakdown[forma];
-          const c = FORMA_COLORS[forma];
+          const data = breakdown[forma] || { count: 0, bruto: 0, liq: 0 };
+          const pct = total > 0 ? (data.bruto / total) * 100 : 0;
           return (
-            <div
-              key={forma}
-              className={styles.bd}
-              style={{ borderColor: c.border, background: c.bg }}
-            >
+            <div key={forma} className={styles.legendItem}>
               <span
-                className={styles.bdLabel}
-                style={{ color: c.c }}
-              >
-                {forma}
-              </span>
-              <span
-                className={styles.bdValue}
-                style={{ color: c.c }}
-              >
-                {fmtBRL(data.bruto)}
-              </span>
-              <span className={styles.bdMuted}>
-                {data.count} {data.count === 1 ? "lançamento" : "lançamentos"} ·
-                líquido {fmtBRL(data.liq)}
-              </span>
+                className={styles.swatch}
+                style={{ background: SEGMENT_VAR[forma] }}
+                aria-hidden="true"
+              />
+              <div className={styles.legendText}>
+                <span className={styles.legendName}>{forma}</span>
+                <span className={styles.legendValue}>
+                  <strong>{fmtPct(pct)}</strong>
+                  <span className={styles.legendSep}>·</span>
+                  {fmtBRL(data.bruto)}
+                </span>
+              </div>
             </div>
           );
         })}
       </div>
-    </div>
+    </section>
   );
 }

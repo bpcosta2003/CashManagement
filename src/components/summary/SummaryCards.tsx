@@ -7,62 +7,60 @@ interface Props {
 }
 
 export function SummaryCards({ summary }: Props) {
-  const { bruto, descontos, taxas, custos, liq, margem, estesMes, futuro } = summary;
-  const liqColor = liq >= 0 ? "var(--color-positive)" : "var(--color-negative)";
+  const { bruto, taxas, custos, liq, margem, estesMes, futuro } = summary;
+  const liqPositive = liq >= 0;
 
   return (
-    <div
-      className={styles.grid}
+    <section
+      className={styles.section}
       role="region"
       aria-label="Resumo do mês"
     >
-      <div
-        className={styles.card}
-        style={{ ["--accent" as string]: "var(--color-pix)" }}
-      >
-        <span className={styles.label}>Faturamento bruto</span>
-        <span className={styles.value}>{fmtBRL(bruto)}</span>
-        <span className={styles.sub}>
-          Descontos: <strong>{fmtBRL(descontos)}</strong>
-        </span>
-      </div>
-
-      <div
-        className={styles.card}
-        style={{ ["--accent" as string]: "var(--color-warning)" }}
-      >
-        <span className={styles.label}>Custos + Taxas</span>
-        <span className={styles.value}>{fmtBRL(taxas + custos)}</span>
-        <span className={styles.sub}>
-          Taxas {fmtBRL(taxas)} · Custos {fmtBRL(custos)}
-        </span>
-      </div>
-
-      <div
-        className={styles.card}
-        style={{ ["--accent" as string]: liqColor }}
-      >
-        <span className={styles.label}>Lucro líquido</span>
-        <span className={styles.value}>{fmtBRL(liq)}</span>
+      {/* HERO — Lucro líquido domina visualmente */}
+      <div className={styles.hero}>
+        <span className={styles.heroEyebrow}>Lucro líquido</span>
         <span
-          className={`${styles.sub} ${
-            margem >= 0 ? styles.subPositive : styles.subNegative
-          }`}
+          className={`${styles.heroValue} ${liqPositive ? styles.heroPos : styles.heroNeg}`}
         >
-          Margem {fmtPct(margem)}
+          {fmtBRL(liq)}
+        </span>
+        <span className={styles.heroHairline} aria-hidden="true" />
+        <span className={styles.heroMeta}>
+          Margem <strong>{fmtPct(margem)}</strong>
+          <span className={styles.heroSep}>·</span>
+          {bruto > 0 ? `de ${fmtBRL(bruto)} bruto` : "nenhum lançamento ainda"}
         </span>
       </div>
 
-      <div
-        className={styles.card}
-        style={{ ["--accent" as string]: "var(--color-neutral)" }}
-      >
-        <span className={styles.label}>Recebível este mês</span>
-        <span className={styles.value}>{fmtBRL(estesMes)}</span>
-        <span className={styles.sub}>
-          Crédito futuro: <strong>{fmtBRL(futuro)}</strong>
-        </span>
+      {/* GRID 2×2 fixo (sem scroll horizontal no mobile) */}
+      <div className={styles.grid}>
+        <div className={styles.kpi}>
+          <span className={styles.kpiLabel}>Faturamento bruto</span>
+          <span className={styles.kpiValue}>{fmtBRL(bruto)}</span>
+        </div>
+
+        <div className={styles.kpi}>
+          <span className={styles.kpiLabel}>A receber</span>
+          <span className={styles.kpiValue}>{fmtBRL(futuro)}</span>
+          <span className={styles.kpiSub}>parcelas futuras</span>
+        </div>
+
+        <div className={styles.kpi}>
+          <span className={styles.kpiLabel}>Custos + Taxas</span>
+          <span className={styles.kpiValue}>{fmtBRL(taxas + custos)}</span>
+          <span className={styles.kpiSub}>
+            {fmtBRL(taxas)} taxas · {fmtBRL(custos)} custos
+          </span>
+        </div>
+
+        <div className={styles.kpi}>
+          <span className={styles.kpiLabel}>Recebido este mês</span>
+          <span className={styles.kpiValue}>{fmtBRL(estesMes)}</span>
+          <span className={styles.kpiSub}>
+            {bruto > 0 ? `${fmtPct((estesMes / bruto) * 100)} do bruto` : "—"}
+          </span>
+        </div>
       </div>
-    </div>
+    </section>
   );
 }

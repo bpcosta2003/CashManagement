@@ -2,47 +2,52 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #fff;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
   padding: 6px 12px;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-pill);
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
+  transition: background 0.12s, border-color 0.12s;
+  min-height: 32px;
 }
 
 .pill:hover {
-  background: rgba(255, 255, 255, 0.16);
+  background: var(--accent-soft);
+  border-color: var(--accent-soft);
+  color: var(--accent-strong);
 }
 
 .dot {
   width: 8px;
   height: 8px;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-pill);
   flex-shrink: 0;
 }
 
 .synced {
-  background: #4ade80;
+  background: var(--positive);
+  box-shadow: 0 0 0 3px rgba(93, 139, 90, 0.18);
 }
 
 .syncing {
-  background: #fbbf24;
+  background: var(--warning);
   animation: pulse 1.2s infinite ease-in-out;
 }
 
 .offline {
-  background: #94a3b8;
+  background: var(--text-dim);
 }
 
 .error {
-  background: #f87171;
+  background: var(--negative);
 }
 
 .disabled {
-  background: #475569;
+  background: var(--text-dim);
 }
 
 .label {

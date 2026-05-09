@@ -1,0 +1,55 @@
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.mark {
+  flex-shrink: 0;
+  display: block;
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: -0.025em;
+  line-height: 1;
+  color: var(--text);
+}
+
+.dot {
+  color: var(--accent);
+}
+
+.tag {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-top: 4px;
+  white-space: nowrap;
+}
+
+.brand[data-size="md"] .name {
+  font-size: 24px;
+}
+
+.brand[data-size="md"] .tag {
+  font-size: 10px;
+  margin-top: 5px;
+}
+
+@media (max-width: 720px) {
+  .brand[data-size="md"] .name {
+    font-size: 20px;
+  }
+}

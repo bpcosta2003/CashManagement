@@ -2,27 +2,28 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 16px;
-  font-size: 13px;
-  border-bottom: 1px solid var(--color-border);
-  background: #fef9c3;
-  color: #713f12;
+  padding: 12px 20px;
+  font-size: var(--t-meta);
+  border-bottom: 1px solid var(--champagne);
+  background: var(--champagne-soft);
+  color: #6a4f1d;
 }
 
 .banner.urgent {
-  background: #fee2e2;
-  color: #7f1d1d;
-  border-bottom-color: #fecaca;
+  background: rgba(168, 51, 77, 0.1);
+  color: #6a1d2c;
+  border-bottom-color: rgba(168, 51, 77, 0.25);
 }
 
 .icon {
   font-size: 16px;
   line-height: 1;
+  flex-shrink: 0;
 }
 
 .text {
   flex: 1;
-  line-height: 1.35;
+  line-height: 1.4;
 }
 
 .text strong {
@@ -31,24 +32,25 @@
 
 .actions {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   flex-shrink: 0;
 }
 
 .btn {
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--surface);
   border: 1px solid currentColor;
   color: inherit;
-  padding: 6px 12px;
-  border-radius: var(--radius-full);
-  font-size: 12px;
+  padding: 7px 14px;
+  border-radius: var(--radius-pill);
+  font-size: var(--t-caption);
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
+  transition: background 0.12s;
 }
 
 .btn:hover {
-  background: #fff;
+  background: var(--bg);
 }
 
 .btnGhost {
@@ -58,9 +60,8 @@
 
 @media (max-width: 720px) {
   .banner {
-    padding: 8px 12px;
-    font-size: 12px;
-    gap: 8px;
+    padding: 10px 16px;
+    gap: 10px;
   }
   .actions {
     flex-direction: column;

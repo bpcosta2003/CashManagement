@@ -1,8 +1,8 @@
 .backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.55);
-  z-index: 50;
+  background: rgba(40, 25, 30, 0.45);
+  z-index: var(--z-sheet);
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -10,63 +10,87 @@
 }
 
 .sheet {
-  background: var(--color-white);
+  background: var(--surface);
   width: 100%;
   max-width: 540px;
-  border-radius: 18px 18px 0 0;
-  box-shadow: var(--shadow-lg);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  box-shadow: var(--shadow-overlay);
   display: flex;
   flex-direction: column;
   max-height: 92vh;
   overflow: hidden;
-  animation: slideUp 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+  animation: slideUp 0.24s cubic-bezier(0.2, 0.8, 0.2, 1);
   padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+@media (min-width: 721px) {
+  .backdrop {
+    align-items: center;
+    padding: 32px;
+  }
+  .sheet {
+    border-radius: var(--radius-lg);
+    max-width: 480px;
+    animation: pop 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+}
+
+@media (min-width: 1024px) {
+  .sheet {
+    max-width: 560px;
+  }
 }
 
 .handleWrap {
   display: flex;
   justify-content: center;
-  padding: 8px 0 4px;
+  padding: 10px 0 4px;
 }
 
 .handle {
   width: 44px;
   height: 4px;
-  border-radius: var(--radius-full);
-  background: var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--border);
 }
 
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 18px 12px;
-  border-bottom: 1px solid var(--color-border);
+  padding: 4px 22px 14px;
+  border-bottom: 1px solid var(--border-soft);
 }
 
 .title {
   font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 17px;
+  font-weight: 600;
+  font-size: var(--t-h3);
+  color: var(--text);
+  letter-spacing: -0.01em;
 }
 
 .close {
   background: transparent;
   border: none;
   font-size: 22px;
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-full);
-  color: var(--color-muted);
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-pill);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
 }
 
 .close:hover {
-  background: var(--color-bg);
+  background: var(--surface-2);
+  color: var(--text);
 }
 
 .body {
   overflow-y: auto;
-  padding: 16px 18px 24px;
+  padding: 20px 22px 24px;
+  background: var(--surface);
 }
 
 @keyframes slideUp {
@@ -75,6 +99,17 @@
   }
   to {
     transform: translateY(0);
+  }
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 

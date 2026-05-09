@@ -1,76 +1,81 @@
 .section {
   max-width: 1280px;
-  margin: 18px auto 0;
-  padding: 0 20px 60px;
+  margin: 24px auto 0;
+  padding: 0 20px 80px;
 }
 
 .title {
   font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 16px;
-  margin: 0 0 12px;
+  font-weight: 600;
+  font-size: var(--t-h3);
+  margin: 0 0 16px;
   display: flex;
   align-items: baseline;
-  gap: 8px;
+  gap: 10px;
+  color: var(--text);
+  letter-spacing: -0.01em;
 }
 
 .titleHint {
-  font-family: var(--font-ui);
-  font-weight: 400;
-  font-size: 12px;
-  color: var(--color-muted);
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: var(--t-meta);
+  color: var(--text-muted);
 }
 
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 12px;
+  gap: 14px;
 }
 
 .card {
-  background: var(--color-white);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .cardHeader {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  border-bottom: 1px dashed var(--color-border);
-  padding-bottom: 8px;
+  border-bottom: 1px solid var(--champagne);
+  padding-bottom: 10px;
   margin-bottom: 4px;
 }
 
 .month {
   font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 15px;
+  font-weight: 600;
+  font-size: var(--t-body-lg);
   text-transform: capitalize;
+  letter-spacing: -0.01em;
+  color: var(--text);
 }
 
 .totals {
   font-family: var(--font-mono);
-  font-size: 13px;
-  color: var(--color-positive);
+  font-size: var(--t-body);
+  color: var(--positive);
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
 .bruto {
-  font-size: 11px;
-  color: var(--color-muted);
+  font-size: var(--t-caption);
+  color: var(--text-muted);
 }
 
 .item {
   display: flex;
   justify-content: space-between;
-  font-size: 12px;
-  gap: 8px;
+  font-size: var(--t-meta);
+  gap: 12px;
+  padding: 4px 0;
 }
 
 .itemMain {
@@ -80,15 +85,16 @@
 }
 
 .cliente {
-  font-weight: 600;
+  font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: var(--text);
 }
 
 .servico {
-  color: var(--color-muted);
-  font-size: 11px;
+  color: var(--text-muted);
+  font-size: var(--t-caption);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -96,22 +102,30 @@
 
 .itemValue {
   font-family: var(--font-mono);
-  font-weight: 600;
+  font-weight: 500;
   white-space: nowrap;
   text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
 }
 
 .itemLabel {
-  font-size: 11px;
-  color: var(--color-muted);
+  font-size: var(--t-caption);
+  color: var(--text-dim);
 }
 
 .empty {
-  background: var(--color-white);
-  border: 1px dashed var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: 24px;
+  background: var(--surface);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-md);
+  padding: 40px 24px;
   text-align: center;
-  color: var(--color-muted);
-  font-size: 13px;
+  color: var(--text-muted);
+  font-size: var(--t-body);
+}
+
+@media (min-width: 1024px) {
+  .section {
+    padding: 0 40px 80px;
+  }
 }

@@ -10,14 +10,14 @@ export function ProjectionSection({ projecao }: Props) {
   return (
     <section className={styles.section}>
       <h2 className={styles.title}>
-        Projeção de recebimentos
+        A receber
         <span className={styles.titleHint}>
-          parcelas de crédito a cair nos próximos meses
+          parcelas de crédito que ainda vão cair
         </span>
       </h2>
       {projecao.length === 0 ? (
         <div className={styles.empty}>
-          Nenhuma parcela de crédito agendada para os próximos meses.
+          Nenhuma parcela de crédito a receber nos próximos meses.
         </div>
       ) : (
         <div className={styles.grid}>

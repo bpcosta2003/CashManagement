@@ -1,40 +1,100 @@
 :root {
-  /* Cores principais */
-  --color-bg: #f1f5f9;
-  --color-white: #ffffff;
-  --color-header: #0f172a;
-  --color-text: #0f172a;
-  --color-muted: #64748b;
-  --color-border: #e2e8f0;
-  --color-border-lt: #f1f5f9;
+  /* — Cores (Boutique Modern: Bordô + Champagne) — */
+  --bg:           #f4ede1;           /* creme quente */
+  --surface:      #ffffff;
+  --surface-2:    #faf2e4;
+  --border:       #e3d5be;
+  --border-soft:  #ede2cc;
 
-  /* Forma de pagamento */
-  --color-dinheiro: #16a34a;
-  --color-pix: #0284c7;
-  --color-debito: #7c3aed;
-  --color-credito: #b45309;
-  --color-desconto: #92400e;
+  --text:         #2a2225;           /* graphite com calor */
+  --text-muted:   #7a6b6f;
+  --text-dim:     #a89aa0;
 
-  /* Semântica financeira */
-  --color-positive: #16a34a;
-  --color-negative: #dc2626;
-  --color-warning: #d97706;
-  --color-neutral: #7c3aed;
+  --accent:        #7a3b54;          /* bordô principal */
+  --accent-strong: #5e2b40;          /* hover/pressed */
+  --accent-soft:   #f0e0e6;          /* fundo discreto com tinta bordô */
 
-  /* Tipografia */
-  --font-ui: "DM Sans", system-ui, sans-serif;
-  --font-display: "Syne", sans-serif;
-  --font-mono: "DM Mono", monospace;
+  --champagne:      #c8a96a;         /* ouro champagne — secundário */
+  --champagne-soft: #f4ead5;
 
-  /* Sombras */
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.15);
+  --positive: #5d8b5a;               /* verde sálvia */
+  --negative: #a8334d;               /* aliado ao bordô */
+  --warning:  #c8862a;               /* âmbar */
 
-  /* Raios */
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
-  --radius-full: 9999px;
+  /* Cores das formas de pagamento (composição) */
+  --pay-dinheiro: #9bb89a;
+  --pay-pix:      #7a9bbd;
+  --pay-debito:   var(--champagne);
+  --pay-credito:  var(--accent);
+
+  /* — Tipografia — */
+  --font-display: "Bricolage Grotesque", "Manrope", system-ui, sans-serif;
+  --font-sans:    "Bricolage Grotesque", "Manrope", system-ui, sans-serif;
+  --font-mono:    "JetBrains Mono", monospace;
+
+  /* — Forma — */
+  --radius-sm:   8px;
+  --radius-md:  16px;
+  --radius-lg:  24px;
+  --radius-pill: 999px;
+
+  /* — Sombra — */
+  --shadow-card: 0 1px 2px rgba(80, 50, 60, 0.04), 0 8px 24px rgba(80, 50, 60, 0.06);
+  --shadow-fab:  0 8px 24px rgba(122, 59, 84, 0.32);
+  --shadow-overlay: 0 24px 64px rgba(40, 25, 30, 0.24);
+
+  /* — Espaçamento — */
+  --sp-1:  4px;  --sp-2:  8px;  --sp-3: 12px; --sp-4: 16px;
+  --sp-5: 20px;  --sp-6: 24px;  --sp-8: 32px; --sp-10: 40px; --sp-12: 48px;
+
+  /* — Type scale — */
+  --t-eyebrow:    10px;
+  --t-caption:    11px;
+  --t-meta:       12px;
+  --t-body:       14px;
+  --t-body-lg:    16px;
+  --t-h3:         18px;
+  --t-h2:         22px;
+  --t-h1:         28px;
+  --t-display:    56px;
+  --t-display-lg: 88px;
+
+  /* — Touch — */
+  --hit:    44px;
+  --hit-lg: 48px;
+
+  /* — Z — */
+  --z-fab: 40; --z-sheet: 50; --z-overlay: 60;
+
+  /* ─────────────────────────────────────────────
+     Aliases de compatibilidade com tokens antigos
+     (mantém os Module CSS legados funcionando)
+     ───────────────────────────────────────────── */
+  --color-bg:        var(--bg);
+  --color-white:     var(--surface);
+  --color-header:    var(--accent);
+  --color-text:      var(--text);
+  --color-muted:     var(--text-muted);
+  --color-border:    var(--border);
+  --color-border-lt: var(--border-soft);
+
+  --color-dinheiro: var(--pay-dinheiro);
+  --color-pix:      var(--pay-pix);
+  --color-debito:   var(--pay-debito);
+  --color-credito:  var(--pay-credito);
+  --color-desconto: var(--warning);
+
+  --color-positive: var(--positive);
+  --color-negative: var(--negative);
+  --color-warning:  var(--warning);
+  --color-neutral:  var(--accent);
+
+  --font-ui: var(--font-sans);
+
+  --shadow-sm: 0 1px 2px rgba(80, 50, 60, 0.04);
+  --shadow-md: var(--shadow-card);
+  --shadow-lg: var(--shadow-overlay);
+
+  --radius-xl:   24px;
+  --radius-full: 999px;
 }

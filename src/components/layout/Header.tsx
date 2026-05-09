@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { MESES_FULL } from "../../constants";
+import { MESES_SHORT } from "../../constants";
+import { Brand } from "./Brand";
 import styles from "./Header.module.css";
 
 interface Props {
@@ -8,7 +9,7 @@ interface Props {
   onChangeMes: (mes: number, ano: number) => void;
   onOpenBackup: () => void;
   onToggleTaxBar: () => void;
-  /** Optional extra slot rendered to the right of the actions row (e.g. SyncStatus). */
+  /** Slot opcional à direita (ex.: SyncStatus). */
   extraActions?: ReactNode;
 }
 
@@ -40,15 +41,14 @@ export function Header({
     onChangeMes(m, y);
   };
 
+  const yearShort = String(ano).slice(2);
+
   return (
     <header className={styles.header}>
       <div className={styles.row}>
-        <div className={styles.brand}>
-          <span className={styles.brandDot} />
-          Controle de Caixa
-        </div>
+        <Brand size="sm" />
 
-        <div className={styles.monthNav}>
+        <div className={styles.monthChip}>
           <button
             className={styles.monthBtn}
             aria-label="Mês anterior"
@@ -56,9 +56,9 @@ export function Header({
           >
             ‹
           </button>
-          <div className={styles.monthLabel}>
-            {MESES_FULL[mes]} {ano}
-          </div>
+          <span className={styles.monthLabel}>
+            {MESES_SHORT[mes]}<span className={styles.monthDot}>·</span>{yearShort}
+          </span>
           <button
             className={styles.monthBtn}
             aria-label="Próximo mês"
@@ -70,11 +70,21 @@ export function Header({
 
         <div className={styles.actions}>
           {extraActions}
-          <button className={styles.actionBtn} onClick={onToggleTaxBar}>
-            % <span>Taxas</span>
+          <button
+            className={styles.actionBtn}
+            onClick={onToggleTaxBar}
+            aria-label="Ver taxas"
+          >
+            <span className={styles.actionGlyph}>%</span>
+            <span className={styles.actionLabel}>Taxas</span>
           </button>
-          <button className={styles.actionBtn} onClick={onOpenBackup}>
-            ⬇ <span>Backup</span>
+          <button
+            className={styles.actionBtn}
+            onClick={onOpenBackup}
+            aria-label="Backup"
+          >
+            <span className={styles.actionGlyph}>↧</span>
+            <span className={styles.actionLabel}>Backup</span>
           </button>
         </div>
       </div>

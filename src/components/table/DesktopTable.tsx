@@ -59,7 +59,7 @@ export function DesktopTable({ rows, summary, onAdd, onUpdate, onDelete }: Props
           <button className={styles.addBtn} onClick={onAdd}>
             + Novo lançamento
           </button>
-        </div>
+        </div>{/* tabela só no desktop */}
         <div className={styles.scroll}>
           <table className={styles.table} ref={tableRef}>
             <thead>
@@ -74,7 +74,7 @@ export function DesktopTable({ rows, summary, onAdd, onUpdate, onDelete }: Props
               {rows.length === 0 ? (
                 <tr>
                   <td colSpan={HEADERS.length + 1} className={styles.empty}>
-                    Nenhum lançamento neste mês. Clique em{" "}
+                    Nenhum lançamento neste mês ainda. Clique em{" "}
                     <strong>+ Novo lançamento</strong> para começar.
                   </td>
                 </tr>
