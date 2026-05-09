@@ -1,6 +1,6 @@
 .banner {
   background: var(--accent);
-  color: #fff;
+  color: var(--accent-on);
   padding: 12px 20px;
   display: flex;
   align-items: center;
@@ -17,11 +17,11 @@
   right: 20px;
   height: 1px;
   background: var(--champagne);
-  opacity: 0.5;
+  opacity: 0.4;
 }
 
 .icon {
-  font-size: 18px;
+  font-size: 16px;
 }
 
 .text {
@@ -35,22 +35,22 @@
 }
 
 .btn {
-  background: rgba(255, 255, 255, 0.18);
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.16);
+  color: var(--accent-on);
+  border: 1px solid rgba(255, 255, 255, 0.22);
   padding: 7px 14px;
   border-radius: var(--radius-pill);
   font-size: var(--t-caption);
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.12s;
+  transition: background 0.18s var(--ease);
 }
 
 .btn:hover {
-  background: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.26);
 }
 
 .btnGhost {
   background: transparent;
-  border-color: rgba(255, 255, 255, 0.4);
+  border-color: rgba(255, 255, 255, 0.36);
 }

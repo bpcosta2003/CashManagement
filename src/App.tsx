@@ -4,10 +4,12 @@ import { useCalc } from "./hooks/useCalc";
 import { useBreakpoint } from "./hooks/useBreakpoint";
 import { useAuth } from "./hooks/useAuth";
 import { useSync } from "./hooks/useSync";
+import { useTheme } from "./hooks/useTheme";
 import { Header } from "./components/layout/Header";
 import { TaxBar } from "./components/layout/TaxBar";
 import { BottomNav, type MobileTab } from "./components/layout/BottomNav";
 import { InstallBanner } from "./components/layout/InstallBanner";
+import { ThemeToggle } from "./components/layout/ThemeToggle";
 import { SummaryCards } from "./components/summary/SummaryCards";
 import { PaymentBreakdown } from "./components/summary/PaymentBreakdown";
 import { DesktopTable } from "./components/table/DesktopTable";
@@ -39,6 +41,7 @@ export default function App() {
     replaceState,
   } = useStorage();
   const { isMobile } = useBreakpoint();
+  const { theme, toggle: toggleTheme } = useTheme();
   const auth = useAuth();
   const { toasts, push: pushToast } = useToast();
   const sync = useSync({
@@ -58,7 +61,7 @@ export default function App() {
   const [loginOpen, setLoginOpen] = useState(false);
   const [firstUseOpen, setFirstUseOpen] = useState(() => !getFirstUseAcked());
 
-  const { monthRows, summary, paymentBreakdown, projecao } = useCalc(
+  const { monthRows, summary, paymentBreakdown, projecao, liqDelta, prevMonthLabel, sparkline } = useCalc(
     state.rows,
     mes,
     ano,
@@ -137,12 +140,15 @@ export default function App() {
         onOpenBackup={() => setBackupOpen(true)}
         onToggleTaxBar={() => setTaxBarOpen((v) => !v)}
         extraActions={
-          <SyncStatus
-            configured={auth.configured}
-            signedIn={!!auth.user}
-            status={sync.status}
-            onClick={() => setLoginOpen(true)}
-          />
+          <>
+            <SyncStatus
+              configured={auth.configured}
+              signedIn={!!auth.user}
+              status={sync.status}
+              onClick={() => setLoginOpen(true)}
+            />
+            <ThemeToggle theme={theme} onToggle={toggleTheme} />
+          </>
         }
       />
       <InstallBanner />
@@ -151,7 +157,13 @@ export default function App() {
 
       {(!isMobile || tab === "lancamentos") && (
         <>
-          <SummaryCards summary={summary} />
+          <SummaryCards
+            summary={summary}
+            mes={mes}
+            liqDelta={liqDelta}
+            prevMonthLabel={prevMonthLabel}
+            sparkline={sparkline}
+          />
           <PaymentBreakdown breakdown={paymentBreakdown} />
           <DesktopTable
             rows={monthRows}

@@ -1,18 +1,25 @@
 .backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(40, 25, 30, 0.55);
+  background: rgba(20, 12, 14, 0.6);
   z-index: 80;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 16px;
-  animation: fadeIn 0.18s ease;
+  animation: fadeIn 0.2s var(--ease);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+:root[data-theme="dark"] .backdrop {
+  background: rgba(0, 0, 0, 0.7);
 }
 
 .panel {
   background: var(--surface);
-  border-radius: var(--radius-md);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
   width: 100%;
   max-width: 460px;
   max-height: 90vh;
@@ -20,13 +27,13 @@
   display: flex;
   flex-direction: column;
   box-shadow: var(--shadow-overlay);
-  animation: pop 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+  animation: pop 0.24s var(--ease);
 }
 
 .header {
-  background: var(--accent);
-  color: #fff;
-  padding: 28px 24px 24px;
+  background: var(--hero-bg);
+  color: var(--hero-fg);
+  padding: 32px 26px 24px;
   text-align: center;
   position: relative;
   overflow: hidden;
@@ -36,25 +43,31 @@
   content: "";
   position: absolute;
   bottom: 0;
-  left: 24px;
-  right: 24px;
+  left: 26px;
+  right: 26px;
   height: 1px;
-  background: var(--champagne);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--champagne) 50%,
+    transparent
+  );
+  opacity: 0.5;
 }
 
 .emoji {
-  font-size: 32px;
+  font-size: 30px;
   display: block;
-  margin-bottom: 10px;
-  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.2));
+  margin-bottom: 12px;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.25));
 }
 
 .title {
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: 700;
   font-size: var(--t-h2);
   margin: 0;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
 }
 
 .body {
@@ -80,10 +93,10 @@
 }
 
 .bulletIcon {
-  font-size: 14px;
+  font-size: 13px;
   flex-shrink: 0;
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -97,6 +110,7 @@
   flex: 1;
   font-size: var(--t-meta);
   color: var(--text);
+  line-height: 1.5;
 }
 
 .bulletText strong {
@@ -130,15 +144,15 @@
 .cta {
   width: 100%;
   background: var(--accent);
-  color: #fff;
+  color: var(--accent-on);
   border: none;
   padding: 14px;
   border-radius: var(--radius-pill);
   font-weight: 600;
   font-size: var(--t-body);
   cursor: pointer;
-  min-height: 56px;
-  transition: background 0.12s;
+  min-height: 52px;
+  transition: background 0.18s var(--ease);
 }
 
 .cta:hover {
@@ -157,7 +171,7 @@
 @keyframes pop {
   from {
     opacity: 0;
-    transform: scale(0.94);
+    transform: scale(0.96);
   }
   to {
     opacity: 1;

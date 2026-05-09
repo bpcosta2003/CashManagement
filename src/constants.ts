@@ -45,9 +45,14 @@ export const TAXA_PADRAO = {
  * Paleta Boutique Modern (bordô + champagne).
  * Cada forma usa uma cor harmonizada com a paleta principal.
  */
+/**
+ * Tints suaves para badges/pills das formas de pagamento.
+ * O `c` (cor de texto) e o `bg` (fundo) funcionam tanto no light
+ * quanto no dark mode porque o `bg` usa rgba com baixa opacidade.
+ */
 export const FORMA_COLORS: Record<string, { c: string; bg: string; border: string }> = {
-  Dinheiro: { c: "#3f5a3e", bg: "#e7eee5", border: "#c6d6c4" },
-  Pix:      { c: "#3a5a78", bg: "#e2ecf3", border: "#c0d4e3" },
-  Débito:   { c: "#8a6f31", bg: "#f4ead5", border: "#e0cda0" },
-  Crédito:  { c: "#7a3b54", bg: "#f0e0e6", border: "#e0c4cf" },
+  Dinheiro: { c: "#5a8062", bg: "rgba(135, 184, 144, 0.14)", border: "transparent" },
+  Pix:      { c: "#587b9c", bg: "rgba(125, 155, 191, 0.14)", border: "transparent" },
+  Débito:   { c: "#967a3d", bg: "rgba(184, 154, 99, 0.16)",  border: "transparent" },
+  Crédito:  { c: "#8a4862", bg: "rgba(90, 46, 63, 0.10)",    border: "transparent" },
 };

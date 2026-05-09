@@ -215,7 +215,7 @@ export function EntryForm({ initial, onSave, onDelete, onCancel }: Props) {
       </div>
 
       <div className={styles.preview} role="status" aria-live="polite">
-        <span className={styles.previewHairline} aria-hidden="true" />
+        <span className={styles["previewLabel-eyebrow"]}>Resultado</span>
         <div className={styles.previewRow}>
           <span className={styles.previewLabel}>Valor efetivo</span>
           <span className={styles.previewValue}>{fmtBRL(calc.vef)}</span>

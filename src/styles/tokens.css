@@ -1,47 +1,74 @@
+/* ─────────────────────────────────────────────────────────────
+   Caixa. — Boutique Premium SaaS palette
+   Light mode (default) + dark mode via :root[data-theme="dark"]
+   ───────────────────────────────────────────────────────────── */
+
 :root {
-  /* — Cores (Boutique Modern: Bordô + Champagne) — */
-  --bg:           #f4ede1;           /* creme quente */
-  --surface:      #ffffff;
-  --surface-2:    #faf2e4;
-  --border:       #e3d5be;
-  --border-soft:  #ede2cc;
+  color-scheme: light;
 
-  --text:         #2a2225;           /* graphite com calor */
-  --text-muted:   #7a6b6f;
-  --text-dim:     #a89aa0;
+  /* — Bases — */
+  --bg:               #f5f0e8;
+  --surface:          #fffdfc;
+  --surface-2:        #f9f3ea;       /* hover sutil */
+  --surface-elevated: #ffffff;
+  --border:           #e7ded2;
+  --border-soft:      #efe6da;
 
-  --accent:        #7a3b54;          /* bordô principal */
-  --accent-strong: #5e2b40;          /* hover/pressed */
-  --accent-soft:   #f0e0e6;          /* fundo discreto com tinta bordô */
+  /* — Texto — */
+  --text:        #2e2623;            /* strong */
+  --text-muted:  #6b625d;            /* medium */
+  --text-dim:    #9a928c;            /* soft */
 
-  --champagne:      #c8a96a;         /* ouro champagne — secundário */
-  --champagne-soft: #f4ead5;
+  /* — Primária (bordô profundo) — */
+  --accent:        #5a2e3f;
+  --accent-strong: #4a2433;          /* hover/pressed */
+  --accent-soft:   #e7d5dc;
+  --accent-on:     #ffffff;
 
-  --positive: #5d8b5a;               /* verde sálvia */
-  --negative: #a8334d;               /* aliado ao bordô */
-  --warning:  #c8862a;               /* âmbar */
+  /* — Secundária (terracota) — */
+  --secondary:      #c98b6b;
+  --secondary-soft: #f1ded4;
 
-  /* Cores das formas de pagamento (composição) */
-  --pay-dinheiro: #9bb89a;
-  --pay-pix:      #7a9bbd;
-  --pay-debito:   var(--champagne);
-  --pay-credito:  var(--accent);
+  /* — Ouro / champagne — */
+  --champagne:      #b89a63;
+  --champagne-soft: #efe5cf;
+
+  /* — Status — */
+  --positive: #6a9c78;
+  --warning:  #d4a45b;
+  --negative: #c96b6b;
+
+  /* — Hero (dark card sobre creme) — */
+  --hero-bg:    #2e2623;             /* graphite quente quase preto */
+  --hero-fg:    #f5efe7;
+  --hero-muted: #b8aca3;
+  --hero-line:  rgba(255, 255, 255, 0.06);
+
+  /* Cores das formas (composition bar) */
+  --pay-dinheiro: #87b890;
+  --pay-pix:      #7d9bbf;
+  --pay-debito:   #b89a63;
+  --pay-credito:  #5a2e3f;
 
   /* — Tipografia — */
-  --font-display: "Bricolage Grotesque", "Manrope", system-ui, sans-serif;
-  --font-sans:    "Bricolage Grotesque", "Manrope", system-ui, sans-serif;
-  --font-mono:    "JetBrains Mono", monospace;
+  --font-display: "Inter", "Manrope", system-ui, sans-serif;
+  --font-sans:    "Inter", "Manrope", system-ui, sans-serif;
+  --font-mono:    "JetBrains Mono", ui-monospace, monospace;
 
-  /* — Forma — */
-  --radius-sm:   8px;
-  --radius-md:  16px;
+  /* — Forma (radius generoso, premium) — */
+  --radius-xs:   8px;
+  --radius-sm:  12px;
+  --radius-md:  18px;
   --radius-lg:  24px;
+  --radius-xl:  28px;
   --radius-pill: 999px;
 
-  /* — Sombra — */
-  --shadow-card: 0 1px 2px rgba(80, 50, 60, 0.04), 0 8px 24px rgba(80, 50, 60, 0.06);
-  --shadow-fab:  0 8px 24px rgba(122, 59, 84, 0.32);
-  --shadow-overlay: 0 24px 64px rgba(40, 25, 30, 0.24);
+  /* — Sombras (difusas, premium) — */
+  --shadow-card:    0 1px 2px rgba(70, 45, 50, 0.03), 0 6px 18px rgba(70, 45, 50, 0.06);
+  --shadow-card-hi: 0 2px 4px rgba(70, 45, 50, 0.04), 0 12px 32px rgba(70, 45, 50, 0.08);
+  --shadow-fab:     0 6px 20px rgba(90, 46, 63, 0.32);
+  --shadow-overlay: 0 24px 64px rgba(40, 25, 30, 0.18);
+  --shadow-hero:    0 1px 2px rgba(46, 38, 35, 0.10), 0 18px 48px rgba(46, 38, 35, 0.18);
 
   /* — Espaçamento — */
   --sp-1:  4px;  --sp-2:  8px;  --sp-3: 12px; --sp-4: 16px;
@@ -56,8 +83,8 @@
   --t-h3:         18px;
   --t-h2:         22px;
   --t-h1:         28px;
-  --t-display:    56px;
-  --t-display-lg: 88px;
+  --t-display:    52px;
+  --t-display-lg: 80px;
 
   /* — Touch — */
   --hit:    44px;
@@ -66,10 +93,69 @@
   /* — Z — */
   --z-fab: 40; --z-sheet: 50; --z-overlay: 60;
 
-  /* ─────────────────────────────────────────────
-     Aliases de compatibilidade com tokens antigos
-     (mantém os Module CSS legados funcionando)
-     ───────────────────────────────────────────── */
+  /* — Easing premium — */
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* — Inputs — */
+  --input-bg:     var(--surface);
+  --input-border: var(--border);
+  --input-focus:  var(--accent);
+}
+
+/* ─────── Dark mode ─────── */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg:               #050505;
+  --surface:          #0f0b0b;
+  --surface-2:        #151010;
+  --surface-elevated: #1a1414;
+  --border:           rgba(255, 255, 255, 0.06);
+  --border-soft:      rgba(255, 255, 255, 0.04);
+
+  --text:        #f5efe7;
+  --text-muted:  #b8aca3;
+  --text-dim:    #7e746d;
+
+  /* Primária = ouro (no dark, o ouro é o protagonista) */
+  --accent:        #c7a46a;
+  --accent-strong: #b38f57;
+  --accent-soft:   rgba(199, 164, 106, 0.12);
+  --accent-on:     #1a1207;
+
+  --secondary:      #c98b6b;
+  --secondary-soft: rgba(201, 139, 107, 0.12);
+
+  --champagne:      #c9a86a;
+  --champagne-soft: rgba(201, 168, 106, 0.10);
+
+  --positive: #7fb07f;
+  --warning:  #d4a45b;
+  --negative: #b96a6a;
+
+  --hero-bg:    #0f0b0b;
+  --hero-fg:    #f5efe7;
+  --hero-muted: #b8aca3;
+  --hero-line:  rgba(255, 255, 255, 0.06);
+
+  --pay-dinheiro: #7fb07f;
+  --pay-pix:      #7d9bbf;
+  --pay-debito:   #c9a86a;
+  --pay-credito:  #c7a46a;
+
+  --shadow-card:    0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.35);
+  --shadow-card-hi: 0 4px 8px rgba(0, 0, 0, 0.5), 0 16px 40px rgba(0, 0, 0, 0.45);
+  --shadow-fab:     0 6px 20px rgba(199, 164, 106, 0.28);
+  --shadow-overlay: 0 24px 64px rgba(0, 0, 0, 0.6);
+  --shadow-hero:    0 10px 30px rgba(0, 0, 0, 0.45);
+
+  --input-bg:     #120e0e;
+  --input-border: rgba(255, 255, 255, 0.05);
+  --input-focus:  var(--accent);
+}
+
+/* ─────── Aliases de compat (módulos legados) ─────── */
+:root {
   --color-bg:        var(--bg);
   --color-white:     var(--surface);
   --color-header:    var(--accent);
@@ -91,10 +177,9 @@
 
   --font-ui: var(--font-sans);
 
-  --shadow-sm: 0 1px 2px rgba(80, 50, 60, 0.04);
-  --shadow-md: var(--shadow-card);
+  --shadow-sm: var(--shadow-card);
+  --shadow-md: var(--shadow-card-hi);
   --shadow-lg: var(--shadow-overlay);
 
-  --radius-xl:   24px;
   --radius-full: 999px;
 }
