@@ -12,3 +12,4 @@ dist-ssr
 !.vscode/extensions.json
 .idea
 *.log
+.vercel
