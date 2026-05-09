@@ -1,0 +1,66 @@
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.pill:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+.synced {
+  background: #4ade80;
+}
+
+.syncing {
+  background: #fbbf24;
+  animation: pulse 1.2s infinite ease-in-out;
+}
+
+.offline {
+  background: #94a3b8;
+}
+
+.error {
+  background: #f87171;
+}
+
+.disabled {
+  background: #475569;
+}
+
+.label {
+  white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+  .label {
+    display: none;
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}

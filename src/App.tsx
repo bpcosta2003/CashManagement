@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from "react";
 import { useStorage } from "./hooks/useStorage";
 import { useCalc } from "./hooks/useCalc";
 import { useBreakpoint } from "./hooks/useBreakpoint";
+import { useAuth } from "./hooks/useAuth";
+import { useSync } from "./hooks/useSync";
 import { Header } from "./components/layout/Header";
 import { TaxBar } from "./components/layout/TaxBar";
 import { BottomNav, type MobileTab } from "./components/layout/BottomNav";
@@ -16,12 +18,36 @@ import { Sheet } from "./components/forms/Sheet";
 import { EntryForm } from "./components/forms/EntryForm";
 import { BackupPanel } from "./components/backup/BackupPanel";
 import { Toaster, useToast } from "./components/feedback/Toaster";
+import { BackupReminder } from "./components/feedback/BackupReminder";
+import { FirstUseModal } from "./components/onboarding/FirstUseModal";
+import { LoginPanel } from "./components/auth/LoginPanel";
+import { SyncStatus } from "./components/auth/SyncStatus";
+import {
+  getFirstUseAcked,
+  requestPersistentStorage,
+} from "./lib/storage";
 import type { Row } from "./types";
 
 export default function App() {
-  const { state, addRow, updateRow, deleteRow, replaceAllRows, mergeRows } =
-    useStorage();
+  const {
+    state,
+    addRow,
+    updateRow,
+    deleteRow,
+    replaceAllRows,
+    mergeRows,
+    replaceState,
+  } = useStorage();
   const { isMobile } = useBreakpoint();
+  const auth = useAuth();
+  const { toasts, push: pushToast } = useToast();
+  const sync = useSync({
+    user: auth.user,
+    state,
+    replaceState,
+    onError: pushToast,
+  });
+
   const today = new Date();
   const [mes, setMes] = useState(today.getMonth());
   const [ano, setAno] = useState(today.getFullYear());
@@ -29,7 +55,8 @@ export default function App() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [tab, setTab] = useState<MobileTab>("lancamentos");
   const [backupOpen, setBackupOpen] = useState(false);
-  const { toasts, push: pushToast } = useToast();
+  const [loginOpen, setLoginOpen] = useState(false);
+  const [firstUseOpen, setFirstUseOpen] = useState(() => !getFirstUseAcked());
 
   const { monthRows, summary, paymentBreakdown, projecao } = useCalc(
     state.rows,
@@ -37,7 +64,17 @@ export default function App() {
     ano,
   );
 
-  // Mobile backup tab opens the panel
+  // Ask the browser to keep our data even under disk pressure.
+  useEffect(() => {
+    requestPersistentStorage().then(({ supported, persisted }) => {
+      if (supported && !persisted) {
+        // Browser declined now; PWA install often promotes data to persistent.
+        console.info("Storage não-persistente. Instale o app para proteger.");
+      }
+    });
+  }, []);
+
+  // Mobile "backup" tab opens the panel
   useEffect(() => {
     if (isMobile && tab === "backup") {
       setBackupOpen(true);
@@ -99,8 +136,17 @@ export default function App() {
         onChangeMes={handleChangeMes}
         onOpenBackup={() => setBackupOpen(true)}
         onToggleTaxBar={() => setTaxBarOpen((v) => !v)}
+        extraActions={
+          <SyncStatus
+            configured={auth.configured}
+            signedIn={!!auth.user}
+            status={sync.status}
+            onClick={() => setLoginOpen(true)}
+          />
+        }
       />
       <InstallBanner />
+      <BackupReminder rows={state.rows} onToast={pushToast} />
       <TaxBar visible={taxBarOpen} />
 
       {(!isMobile || tab === "lancamentos") && (
@@ -148,6 +194,23 @@ export default function App() {
         onImportReplace={replaceAllRows}
         onClearAll={() => replaceAllRows([])}
         onToast={pushToast}
+      />
+
+      <LoginPanel
+        open={loginOpen}
+        user={auth.user}
+        syncStatus={sync.status}
+        lastSyncAt={sync.lastSyncAt}
+        onClose={() => setLoginOpen(false)}
+        onSignIn={auth.signInWithEmail}
+        onSignOut={auth.signOut}
+      />
+
+      <FirstUseModal
+        open={firstUseOpen}
+        cloudAvailable={auth.configured}
+        onClose={() => setFirstUseOpen(false)}
+        onWantsCloud={() => setLoginOpen(true)}
       />
 
       <Toaster toasts={toasts} />

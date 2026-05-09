@@ -1,7 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import type { Row } from "../../types";
 import type { ImportResult } from "../../lib/excel";
-import { clearState, getStorageSize } from "../../lib/storage";
+import {
+  clearState,
+  daysSince,
+  getLastBackup,
+  getStorageSize,
+  isStoragePersisted,
+  setLastBackup,
+} from "../../lib/storage";
 import styles from "./BackupPanel.module.css";
 
 const loadExcel = () => import("../../lib/excel");
@@ -33,20 +40,27 @@ export function BackupPanel({
   const fileRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<PreviewState | null>(null);
   const [confirmReplace, setConfirmReplace] = useState(false);
+  const [persisted, setPersisted] = useState(false);
 
   useEffect(() => {
     if (!open) {
       setPreview(null);
       setConfirmReplace(false);
+      return;
     }
+    isStoragePersisted().then(setPersisted);
   }, [open]);
 
   if (!open) return null;
+
+  const lastBackup = getLastBackup();
+  const lastBackupDays = daysSince(lastBackup);
 
   const handleExport = async () => {
     try {
       const { exportToExcel } = await loadExcel();
       exportToExcel(rows);
+      setLastBackup();
       onToast?.("Backup exportado com sucesso");
     } catch (e) {
       console.error(e);
@@ -123,9 +137,29 @@ export function BackupPanel({
               hidden
             />
 
-            <div className={styles.meta}>
-              <span>{rows.length} lançamentos no app</span>
-              <span>{getStorageSize()} KB usados</span>
+            <div
+              className={styles.meta}
+              style={{ flexDirection: "column", alignItems: "stretch", gap: 4 }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span>{rows.length} lançamentos</span>
+                <span>{getStorageSize()} KB usados</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span>
+                  Último backup:{" "}
+                  {lastBackupDays === null
+                    ? "nunca"
+                    : lastBackupDays === 0
+                      ? "hoje"
+                      : `há ${lastBackupDays} dia${lastBackupDays === 1 ? "" : "s"}`}
+                </span>
+                <span>
+                  {persisted
+                    ? "🔒 Armazenamento protegido"
+                    : "⚠ Não persistente"}
+                </span>
+              </div>
             </div>
 
             <div className={styles.danger}>
