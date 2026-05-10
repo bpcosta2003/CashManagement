@@ -19,6 +19,10 @@ export function addMes(m: number, y: number, n: number) {
     nm -= 12;
     ny++;
   }
+  while (nm < 0) {
+    nm += 12;
+    ny--;
+  }
   return { m: nm, y: ny };
 }
 
