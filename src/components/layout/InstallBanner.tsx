@@ -24,9 +24,13 @@ function isStandalone(): boolean {
 export function InstallBanner() {
   const [prompt, setPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showIos, setShowIos] = useState(false);
-  const [dismissed, setDismissed] = useState(
-    () => localStorage.getItem(DISMISS_KEY) === "1",
-  );
+  const [dismissed, setDismissed] = useState(() => {
+    try {
+      return localStorage.getItem(DISMISS_KEY) === "1";
+    } catch {
+      return false;
+    }
+  });
 
   useEffect(() => {
     if (dismissed || isStandalone()) return;
@@ -51,13 +55,21 @@ export function InstallBanner() {
     const { outcome } = await prompt.userChoice;
     setPrompt(null);
     if (outcome === "accepted") {
-      localStorage.setItem(DISMISS_KEY, "1");
+      try {
+        localStorage.setItem(DISMISS_KEY, "1");
+      } catch {
+        /* ignore */
+      }
       setDismissed(true);
     }
   };
 
   const handleDismiss = () => {
-    localStorage.setItem(DISMISS_KEY, "1");
+    try {
+      localStorage.setItem(DISMISS_KEY, "1");
+    } catch {
+      /* ignore */
+    }
     setDismissed(true);
   };
 

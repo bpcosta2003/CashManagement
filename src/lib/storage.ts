@@ -86,11 +86,19 @@ export async function isStoragePersisted(): Promise<boolean> {
  * fresh import).
  * ──────────────────────────────────────────────────────────────────── */
 export function getLastBackup(): string | null {
-  return localStorage.getItem(LAST_BACKUP_KEY);
+  try {
+    return localStorage.getItem(LAST_BACKUP_KEY);
+  } catch {
+    return null;
+  }
 }
 
 export function setLastBackup(iso = new Date().toISOString()): void {
-  localStorage.setItem(LAST_BACKUP_KEY, iso);
+  try {
+    localStorage.setItem(LAST_BACKUP_KEY, iso);
+  } catch {
+    /* ignore */
+  }
 }
 
 export function daysSince(iso: string | null): number | null {
@@ -104,9 +112,17 @@ export function daysSince(iso: string | null): number | null {
  * First-use onboarding flag.
  * ──────────────────────────────────────────────────────────────────── */
 export function getFirstUseAcked(): boolean {
-  return localStorage.getItem(FIRST_USE_KEY) === "1";
+  try {
+    return localStorage.getItem(FIRST_USE_KEY) === "1";
+  } catch {
+    return false;
+  }
 }
 
 export function setFirstUseAcked(): void {
-  localStorage.setItem(FIRST_USE_KEY, "1");
+  try {
+    localStorage.setItem(FIRST_USE_KEY, "1");
+  } catch {
+    /* ignore */
+  }
 }

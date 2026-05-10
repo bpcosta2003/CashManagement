@@ -20,9 +20,13 @@ interface Props {
 
 export function BackupReminder({ rows, onToast }: Props) {
   const [tick, setTick] = useState(0);
-  const [dismissedAt, setDismissedAt] = useState<string | null>(() =>
-    sessionStorage.getItem(DISMISS_FLAG),
-  );
+  const [dismissedAt, setDismissedAt] = useState<string | null>(() => {
+    try {
+      return sessionStorage.getItem(DISMISS_FLAG);
+    } catch {
+      return null;
+    }
+  });
 
   // Refresh state once per minute so the "X dias" stays current.
   useEffect(() => {
