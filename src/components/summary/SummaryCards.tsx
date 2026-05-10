@@ -1,65 +1,103 @@
 import type { Summary } from "../../types";
 import { fmtBRL, fmtPct } from "../../lib/calc";
+import { Sparkline } from "./Sparkline";
+import { MESES_SHORT } from "../../constants";
 import styles from "./SummaryCards.module.css";
+
+interface SparkPoint {
+  liq: number;
+  label: string;
+}
 
 interface Props {
   summary: Summary;
+  mes: number;
+  liqDelta: number | null;
+  prevMonthLabel: string;
+  sparkline: SparkPoint[];
 }
 
-export function SummaryCards({ summary }: Props) {
-  const { bruto, taxas, custos, liq, margem, estesMes, futuro } = summary;
+export function SummaryCards({
+  summary,
+  mes,
+  liqDelta,
+  prevMonthLabel,
+  sparkline,
+}: Props) {
+  const { bruto, descontos, taxas, custos, liq, margem, futuro } = summary;
   const liqPositive = liq >= 0;
+  const monthLabel = MESES_SHORT[mes];
+
+  const deltaUp = liqDelta !== null && liqDelta >= 0;
+  const deltaGlyph = liqDelta === null ? "—" : deltaUp ? "↑" : "↓";
+  const deltaText =
+    liqDelta === null
+      ? `vs. ${prevMonthLabel} sem dados`
+      : `${deltaGlyph} ${Math.abs(liqDelta).toFixed(1).replace(".", ",")}% vs. ${prevMonthLabel}`;
 
   return (
-    <section
-      className={styles.section}
-      role="region"
-      aria-label="Resumo do mês"
-    >
-      {/* HERO — Lucro líquido domina visualmente */}
+    <section className={styles.section} aria-label="Resumo do mês">
+      {/* HERO — dark card sobre creme */}
       <div className={styles.hero}>
-        <span className={styles.heroEyebrow}>Lucro líquido</span>
-        <span
-          className={`${styles.heroValue} ${liqPositive ? styles.heroPos : styles.heroNeg}`}
-        >
-          {fmtBRL(liq)}
-        </span>
-        <span className={styles.heroHairline} aria-hidden="true" />
-        <span className={styles.heroMeta}>
-          Margem <strong>{fmtPct(margem)}</strong>
-          <span className={styles.heroSep}>·</span>
-          {bruto > 0 ? `de ${fmtBRL(bruto)} bruto` : "nenhum lançamento ainda"}
-        </span>
+        <div className={styles.heroHead}>
+          <span className={styles.heroEyebrow}>
+            Lucro líquido <span className={styles.heroEyebrowDot}>·</span> {monthLabel}
+          </span>
+        </div>
+        <div className={styles.heroBody}>
+          <span
+            className={`${styles.heroValue} ${liqPositive ? "" : styles.heroNeg}`}
+          >
+            {fmtBRL(liq)}
+          </span>
+          <Sparkline
+            data={sparkline}
+            color="var(--champagne)"
+            width={108}
+            height={32}
+            ariaLabel="Tendência dos últimos 6 meses"
+          />
+        </div>
+        <div className={styles.heroFoot}>
+          <span
+            className={`${styles.heroDelta} ${
+              liqDelta === null
+                ? styles.heroDeltaNeutral
+                : deltaUp
+                  ? styles.heroDeltaUp
+                  : styles.heroDeltaDown
+            }`}
+          >
+            {deltaText}
+          </span>
+        </div>
       </div>
 
-      {/* GRID 2×2 fixo (sem scroll horizontal no mobile) */}
+      {/* GRID 3 KPIs */}
       <div className={styles.grid}>
-        <div className={styles.kpi}>
-          <span className={styles.kpiLabel}>Faturamento bruto</span>
+        <article className={styles.kpi}>
+          <span className={styles.kpiLabel}>Bruto</span>
           <span className={styles.kpiValue}>{fmtBRL(bruto)}</span>
-        </div>
+          <span className={styles.kpiSub}>
+            Descontos {fmtBRL(descontos)}
+          </span>
+        </article>
 
-        <div className={styles.kpi}>
+        <article className={styles.kpi}>
           <span className={styles.kpiLabel}>A receber</span>
           <span className={styles.kpiValue}>{fmtBRL(futuro)}</span>
           <span className={styles.kpiSub}>parcelas futuras</span>
-        </div>
+        </article>
 
-        <div className={styles.kpi}>
-          <span className={styles.kpiLabel}>Custos + Taxas</span>
-          <span className={styles.kpiValue}>{fmtBRL(taxas + custos)}</span>
-          <span className={styles.kpiSub}>
-            {fmtBRL(taxas)} taxas · {fmtBRL(custos)} custos
+        <article className={styles.kpi}>
+          <span className={styles.kpiLabel}>Margem</span>
+          <span className={`${styles.kpiValue} ${styles.kpiValueAccent}`}>
+            {fmtPct(margem)}
           </span>
-        </div>
-
-        <div className={styles.kpi}>
-          <span className={styles.kpiLabel}>Recebido este mês</span>
-          <span className={styles.kpiValue}>{fmtBRL(estesMes)}</span>
           <span className={styles.kpiSub}>
-            {bruto > 0 ? `${fmtPct((estesMes / bruto) * 100)} do bruto` : "—"}
+            Taxas + custos {fmtBRL(taxas + custos)}
           </span>
-        </div>
+        </article>
       </div>
     </section>
   );

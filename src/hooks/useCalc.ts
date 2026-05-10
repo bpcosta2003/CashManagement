@@ -1,7 +1,15 @@
 import { useMemo } from "react";
 import type { CalculatedRow, ProjecaoMes, Row, Summary } from "../types";
 import { addMes, calcRow } from "../lib/calc";
-import { MESES_FULL } from "../constants";
+import { MESES_FULL, MESES_SHORT } from "../constants";
+
+interface MonthLiq {
+  m: number;
+  y: number;
+  label: string;
+  liq: number;
+  bruto: number;
+}
 
 export function useCalc(rows: Row[], mes: number, ano: number) {
   const allCalc = useMemo<CalculatedRow[]>(() => rows.map(calcRow), [rows]);
@@ -33,6 +41,53 @@ export function useCalc(rows: Row[], mes: number, ano: number) {
     return { bruto, descontos, taxas, custos, liq, margem, estesMes, futuro };
   }, [monthRows]);
 
+  /** Líquido do mês anterior — base para a comparação "vs <mês>". */
+  const prevMonthLiq = useMemo(() => {
+    let pm = mes - 1;
+    let py = ano;
+    if (pm < 0) {
+      pm = 11;
+      py -= 1;
+    }
+    return allCalc
+      .filter((r) => r.mes === pm && r.ano === py && r.v > 0)
+      .reduce((s, r) => s + r.liq, 0);
+  }, [allCalc, mes, ano]);
+
+  const prevMonthLabel = useMemo(() => {
+    let pm = mes - 1;
+    if (pm < 0) pm = 11;
+    return MESES_SHORT[pm].toLowerCase();
+  }, [mes]);
+
+  /** Variação % do líquido vs mês anterior (null quando não há base). */
+  const liqDelta = useMemo<number | null>(() => {
+    if (Math.abs(prevMonthLiq) < 0.01) return null;
+    return ((summary.liq - prevMonthLiq) / Math.abs(prevMonthLiq)) * 100;
+  }, [prevMonthLiq, summary.liq]);
+
+  /** Líquido dos últimos 6 meses até o mês corrente — base do sparkline. */
+  const sparkline = useMemo<MonthLiq[]>(() => {
+    const series: MonthLiq[] = [];
+    for (let offset = -5; offset <= 0; offset++) {
+      const { m, y } = addMes(mes, ano, offset);
+      const monthLiq = allCalc
+        .filter((r) => r.mes === m && r.ano === y && r.v > 0)
+        .reduce((s, r) => s + r.liq, 0);
+      const monthBruto = allCalc
+        .filter((r) => r.mes === m && r.ano === y && r.v > 0)
+        .reduce((s, r) => s + r.v, 0);
+      series.push({
+        m,
+        y,
+        label: MESES_SHORT[m].toLowerCase(),
+        liq: monthLiq,
+        bruto: monthBruto,
+      });
+    }
+    return series;
+  }, [allCalc, mes, ano]);
+
   const paymentBreakdown = useMemo(() => {
     const map: Record<string, { count: number; bruto: number; liq: number }> = {
       Dinheiro: { count: 0, bruto: 0, liq: 0 },
@@ -50,7 +105,6 @@ export function useCalc(rows: Row[], mes: number, ano: number) {
     return map;
   }, [monthRows]);
 
-  // Projeção: somar parcelas futuras geradas a partir de TODAS as linhas de crédito
   const projecao = useMemo<ProjecaoMes[]>(() => {
     const buckets: Record<string, ProjecaoMes> = {};
 
@@ -60,9 +114,7 @@ export function useCalc(rows: Row[], mes: number, ano: number) {
         const n = Math.max(1, r.parc || 1);
         for (let i = 1; i <= n; i++) {
           const { m, y } = addMes(r.mes, r.ano, i);
-          // Apenas projeções >= mês corrente
           if (y < ano || (y === ano && m < mes)) continue;
-          // E pula o mês corrente (mostramos isso no card "este mês")
           if (y === ano && m === mes) continue;
           const key = `${y}-${String(m).padStart(2, "0")}`;
           if (!buckets[key]) {
@@ -98,5 +150,15 @@ export function useCalc(rows: Row[], mes: number, ano: number) {
     });
   }, [allCalc, mes, ano]);
 
-  return { allCalc, monthRows, summary, paymentBreakdown, projecao };
+  return {
+    allCalc,
+    monthRows,
+    summary,
+    paymentBreakdown,
+    projecao,
+    prevMonthLiq,
+    prevMonthLabel,
+    liqDelta,
+    sparkline,
+  };
 }

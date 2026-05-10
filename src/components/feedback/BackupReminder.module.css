@@ -4,15 +4,15 @@
   gap: 12px;
   padding: 12px 20px;
   font-size: var(--t-meta);
-  border-bottom: 1px solid var(--champagne);
   background: var(--champagne-soft);
-  color: #6a4f1d;
+  color: var(--text);
+  border-bottom: 1px solid var(--border-soft);
 }
 
 .banner.urgent {
-  background: rgba(168, 51, 77, 0.1);
-  color: #6a1d2c;
-  border-bottom-color: rgba(168, 51, 77, 0.25);
+  background: rgba(201, 107, 107, 0.10);
+  color: var(--text);
+  border-bottom-color: rgba(201, 107, 107, 0.18);
 }
 
 .icon {
@@ -38,24 +38,33 @@
 
 .btn {
   background: var(--surface);
-  border: 1px solid currentColor;
-  color: inherit;
+  border: 1px solid var(--border);
+  color: var(--text);
   padding: 7px 14px;
   border-radius: var(--radius-pill);
   font-size: var(--t-caption);
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
-  transition: background 0.12s;
+  transition: background 0.18s var(--ease), border-color 0.18s var(--ease),
+    color 0.18s var(--ease);
 }
 
 .btn:hover {
-  background: var(--bg);
+  background: var(--accent-soft);
+  border-color: transparent;
+  color: var(--accent);
 }
 
 .btnGhost {
   background: transparent;
-  border-color: rgba(0, 0, 0, 0.15);
+  border-color: var(--border-soft);
+  color: var(--text-muted);
+}
+
+.btnGhost:hover {
+  background: var(--surface);
+  color: var(--text);
 }
 
 @media (max-width: 720px) {

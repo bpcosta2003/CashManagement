@@ -121,12 +121,12 @@ export function DesktopTable({ rows, summary, onAdd, onUpdate, onDelete }: Props
                           style={{
                             color:
                               r.status === "Pago"
-                                ? "var(--color-positive)"
-                                : "var(--color-warning)",
+                                ? "var(--positive)"
+                                : "var(--warning)",
                             background:
-                              r.status === "Pago" ? "#dcfce7" : "#fef3c7",
-                            borderColor:
-                              r.status === "Pago" ? "#bbf7d0" : "#fde68a",
+                              r.status === "Pago"
+                                ? "rgba(106, 156, 120, 0.10)"
+                                : "rgba(212, 164, 91, 0.12)",
                           }}
                         >
                           {STATUS_OPTIONS.map((s) => (
@@ -185,7 +185,6 @@ export function DesktopTable({ rows, summary, onAdd, onUpdate, onDelete }: Props
                           style={{
                             color: formaColor.c,
                             background: formaColor.bg,
-                            borderColor: formaColor.border,
                           }}
                         >
                           {FORMAS_PAGAMENTO.map((f) => (

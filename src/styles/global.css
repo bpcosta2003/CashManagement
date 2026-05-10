@@ -13,16 +13,19 @@ body {
   background: var(--bg);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  font-feature-settings: "ss01", "ss02";
+  font-feature-settings: "cv11", "ss01", "ss03";
+  text-rendering: optimizeLegibility;
 }
 
 body {
   min-height: 100vh;
+  transition: background 0.24s var(--ease), color 0.24s var(--ease);
 }
 
 button {
   font-family: inherit;
   cursor: pointer;
+  font-feature-settings: inherit;
 }
 
 input,
@@ -47,6 +50,10 @@ textarea {
 ::selection {
   background: var(--accent-soft);
   color: var(--accent-strong);
+}
+
+:root[data-theme="dark"] ::selection {
+  color: var(--accent);
 }
 
 :focus-visible {

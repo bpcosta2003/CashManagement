@@ -1,7 +1,7 @@
 .wrap {
   max-width: 1280px;
-  margin: 24px auto 0;
-  padding: 0 40px 24px;
+  margin: 18px auto 0;
+  padding: 0 40px 32px;
 }
 
 .tableShell {
@@ -10,15 +10,20 @@
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-card);
   overflow: hidden;
+  transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease);
+}
+
+.tableShell:hover {
+  box-shadow: var(--shadow-card-hi);
 }
 
 .tableHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 20px;
+  padding: 16px 22px;
   border-bottom: 1px solid var(--border-soft);
-  background: var(--surface);
+  gap: 16px;
 }
 
 .tableTitle {
@@ -27,22 +32,41 @@
   font-size: var(--t-body-lg);
   letter-spacing: -0.01em;
   color: var(--text);
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.tableCount {
+  font-size: var(--t-caption);
+  font-weight: 500;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
 }
 
 .addBtn {
   background: var(--accent);
-  color: #fff;
+  color: var(--accent-on);
   border: none;
   padding: 9px 18px;
   border-radius: var(--radius-pill);
   font-size: var(--t-meta);
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.12s;
+  transition: background 0.18s var(--ease), transform 0.06s var(--ease);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(90, 46, 63, 0.16);
+}
+
+:root[data-theme="dark"] .addBtn {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(199, 164, 106, 0.18);
 }
 
 .addBtn:hover {
   background: var(--accent-strong);
+}
+
+.addBtn:active {
+  transform: scale(0.98);
 }
 
 .scroll {
@@ -57,15 +81,15 @@
 }
 
 .table thead th {
-  background: var(--surface-2);
+  background: var(--surface);
   color: var(--text-muted);
   font-weight: 600;
   font-size: var(--t-eyebrow);
-  letter-spacing: 0.14em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   text-align: left;
-  padding: 12px 10px;
-  border-bottom: 1px solid var(--border);
+  padding: 12px 12px;
+  border-bottom: 1px solid var(--border-soft);
   position: sticky;
   top: 0;
   z-index: 1;
@@ -77,29 +101,38 @@
   vertical-align: middle;
 }
 
+.table tbody tr {
+  transition: background 0.15s var(--ease);
+}
+
 .table tbody tr:hover {
   background: var(--surface-2);
 }
 
 .table tbody tr.credito {
-  background: var(--accent-soft);
+  background: transparent;
 }
 
 .table tbody tr.credito:hover {
-  background: rgba(122, 59, 84, 0.12);
+  background: var(--accent-soft);
 }
 
 .cell {
   width: 100%;
-  height: 44px;
-  padding: 0 10px;
+  height: 52px;
+  padding: 0 12px;
   border: none;
   background: transparent;
   font: inherit;
   font-size: var(--t-body);
-  color: inherit;
+  color: var(--text);
   outline: none;
   font-variant-numeric: tabular-nums;
+  border-radius: 0;
+}
+
+.cell::placeholder {
+  color: var(--text-dim);
 }
 
 .cell:focus {
@@ -110,15 +143,17 @@
 .cellNum {
   font-family: var(--font-mono);
   text-align: right;
+  font-weight: 500;
 }
 
 .calc {
   display: block;
-  padding: 8px 10px;
+  padding: 12px 12px;
   font-family: var(--font-mono);
   text-align: right;
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
+  font-weight: 500;
 }
 
 .calcPositive {
@@ -131,32 +166,60 @@
   font-weight: 600;
 }
 
+/* — Forma pill (tag suave colorida) — */
 .formaPill {
   display: inline-block;
-  width: 100%;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
+  width: auto;
+  border-radius: var(--radius-pill);
+  border: 1px solid transparent;
   background: transparent;
-  padding: 8px 10px;
+  padding: 4px 10px;
   font: inherit;
-  font-size: var(--t-meta);
+  font-size: var(--t-caption);
   appearance: none;
   -webkit-appearance: none;
   font-weight: 600;
+  cursor: pointer;
+  margin: 0 8px;
 }
 
+.formaPill:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+/* — Status pill com dot — */
 .statusPill {
   display: inline-block;
-  width: 100%;
-  border-radius: var(--radius-sm);
-  padding: 6px 10px;
+  border-radius: var(--radius-pill);
+  padding: 4px 12px 4px 22px;
   font: inherit;
-  font-size: var(--t-meta);
+  font-size: var(--t-caption);
   font-weight: 600;
-  border: 1px solid var(--border);
+  border: 1px solid transparent;
   background: transparent;
   appearance: none;
   -webkit-appearance: none;
+  cursor: pointer;
+  margin: 0 8px;
+  position: relative;
+}
+
+.statusPill::before {
+  content: "";
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: currentColor;
+}
+
+.statusPill:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
 .delCell {
@@ -175,7 +238,8 @@
   font-size: 18px;
   line-height: 1;
   cursor: pointer;
-  transition: opacity 0.15s, background 0.15s, color 0.15s;
+  transition: opacity 0.15s var(--ease), background 0.15s var(--ease),
+    color 0.15s var(--ease);
 }
 
 .table tbody tr:hover .del {
@@ -183,13 +247,13 @@
 }
 
 .del:hover {
-  background: rgba(168, 51, 77, 0.12);
+  background: rgba(201, 107, 107, 0.12);
   color: var(--negative);
 }
 
 .empty {
   text-align: center;
-  padding: 56px 24px;
+  padding: 64px 24px;
   color: var(--text-muted);
   font-size: var(--t-body);
 }
@@ -206,6 +270,6 @@
 
 @media (min-width: 721px) and (max-width: 1023px) {
   .wrap {
-    padding: 0 32px 24px;
+    padding: 0 32px 32px;
   }
 }

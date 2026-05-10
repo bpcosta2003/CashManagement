@@ -28,8 +28,15 @@
   box-shadow: var(--shadow-overlay);
   max-width: 92vw;
   text-align: center;
-  animation: slideUp 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+  animation: slideUp 0.22s var(--ease);
   pointer-events: auto;
+  border: 1px solid var(--border-soft);
+}
+
+:root[data-theme="dark"] .toast {
+  background: var(--surface-elevated);
+  color: var(--text);
+  border: 1px solid var(--border);
 }
 
 @keyframes slideUp {
