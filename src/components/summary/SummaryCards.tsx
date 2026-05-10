@@ -28,12 +28,15 @@ export function SummaryCards({
   const liqPositive = liq >= 0;
   const monthLabel = MESES_SHORT[mes];
 
+  const hasCurrentData = bruto > 0;
   const deltaUp = liqDelta !== null && liqDelta >= 0;
-  const deltaGlyph = liqDelta === null ? "—" : deltaUp ? "↑" : "↓";
+  const deltaGlyph = deltaUp ? "↑" : "↓";
   const deltaText =
-    liqDelta === null
-      ? `vs. ${prevMonthLabel} sem dados`
-      : `${deltaGlyph} ${Math.abs(liqDelta).toFixed(1).replace(".", ",")}% vs. ${prevMonthLabel}`;
+    liqDelta !== null
+      ? `${deltaGlyph} ${Math.abs(liqDelta).toFixed(1).replace(".", ",")}% vs. ${prevMonthLabel}`
+      : hasCurrentData
+        ? `Primeiro mês com dados`
+        : `Nenhum lançamento ainda`;
 
   return (
     <section className={styles.section} aria-label="Resumo do mês">

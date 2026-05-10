@@ -15,11 +15,36 @@ body {
   -moz-osx-font-smoothing: grayscale;
   font-feature-settings: "cv11", "ss01", "ss03";
   text-rendering: optimizeLegibility;
+  overflow-x: hidden;
 }
 
 body {
   min-height: 100vh;
   transition: background 0.24s var(--ease), color 0.24s var(--ease);
+}
+
+/* ─── Container utility ─── */
+.container {
+  width: 100%;
+  max-width: var(--container-max);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--container-pad-mobile);
+  padding-right: var(--container-pad-mobile);
+}
+
+@media (min-width: 768px) {
+  .container {
+    padding-left: var(--container-pad-tablet);
+    padding-right: var(--container-pad-tablet);
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    padding-left: var(--container-pad-desktop);
+    padding-right: var(--container-pad-desktop);
+  }
 }
 
 button {

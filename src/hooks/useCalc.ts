@@ -60,11 +60,17 @@ export function useCalc(rows: Row[], mes: number, ano: number) {
     return MESES_SHORT[pm].toLowerCase();
   }, [mes]);
 
-  /** Variação % do líquido vs mês anterior (null quando não há base). */
+  /**
+   * Variação % do líquido vs. mês anterior.
+   * Retorna null quando a comparação não faz sentido — i.e. um dos meses
+   * está sem dados. Evita "↓ 100% vs. mai" confuso quando o usuário
+   * abre o mês corrente que ainda está vazio.
+   */
   const liqDelta = useMemo<number | null>(() => {
+    if (summary.bruto < 0.01) return null;
     if (Math.abs(prevMonthLiq) < 0.01) return null;
     return ((summary.liq - prevMonthLiq) / Math.abs(prevMonthLiq)) * 100;
-  }, [prevMonthLiq, summary.liq]);
+  }, [summary.bruto, prevMonthLiq, summary.liq]);
 
   /** Líquido dos últimos 6 meses até o mês corrente — base do sparkline. */
   const sparkline = useMemo<MonthLiq[]>(() => {
