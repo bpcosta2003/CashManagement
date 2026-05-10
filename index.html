@@ -19,16 +19,15 @@
     <title>Caixa. — Controle financeiro do salão</title>
     <script>
       // Apply theme before first paint to avoid FOUC.
+      // Default to light; only respect saved preference (no auto-dark).
       (function () {
         try {
           var t = localStorage.getItem("controle-caixa:theme");
-          if (!t) {
-            t = window.matchMedia("(prefers-color-scheme: dark)").matches
-              ? "dark"
-              : "light";
-          }
+          if (t !== "light" && t !== "dark") t = "light";
           document.documentElement.setAttribute("data-theme", t);
-        } catch (e) {}
+        } catch (e) {
+          document.documentElement.setAttribute("data-theme", "light");
+        }
       })();
     </script>
   </head>

@@ -6,12 +6,11 @@ const STORAGE_KEY = "controle-caixa:theme";
 
 function readTheme(): Theme {
   if (typeof document === "undefined") return "light";
-  const saved = localStorage.getItem(STORAGE_KEY);
-  if (saved === "dark" || saved === "light") return saved;
-  if (typeof window !== "undefined" && window.matchMedia) {
-    return window.matchMedia("(prefers-color-scheme: dark)").matches
-      ? "dark"
-      : "light";
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved === "dark" || saved === "light") return saved;
+  } catch {
+    /* storage indisponível */
   }
   return "light";
 }
