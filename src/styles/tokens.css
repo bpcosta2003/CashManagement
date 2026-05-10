@@ -106,51 +106,52 @@
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --bg:               #050505;
-  --surface:          #0f0b0b;
-  --surface-2:        #151010;
-  --surface-elevated: #1a1414;
-  --border:           rgba(255, 255, 255, 0.06);
-  --border-soft:      rgba(255, 255, 255, 0.04);
+  --bg:               #0a0708;             /* preto quente */
+  --surface:          #181214;             /* card claramente elevado */
+  --surface-2:        #221a1c;             /* hover */
+  --surface-elevated: #2a2022;
+  --border:           rgba(255, 255, 255, 0.10);
+  --border-soft:      rgba(255, 255, 255, 0.06);
 
   --text:        #f5efe7;
   --text-muted:  #b8aca3;
-  --text-dim:    #7e746d;
+  --text-dim:    #8a7e76;
 
-  /* Primária = ouro (no dark, o ouro é o protagonista) */
+  /* Primária = ouro */
   --accent:        #c7a46a;
-  --accent-strong: #b38f57;
-  --accent-soft:   rgba(199, 164, 106, 0.12);
+  --accent-strong: #d4b27a;
+  --accent-soft:   rgba(199, 164, 106, 0.14);
   --accent-on:     #1a1207;
 
   --secondary:      #c98b6b;
-  --secondary-soft: rgba(201, 139, 107, 0.12);
+  --secondary-soft: rgba(201, 139, 107, 0.14);
 
   --champagne:      #c9a86a;
-  --champagne-soft: rgba(201, 168, 106, 0.10);
+  --champagne-soft: rgba(201, 168, 106, 0.14);
 
   --positive: #7fb07f;
   --warning:  #d4a45b;
   --negative: #b96a6a;
 
-  --hero-bg:    #0f0b0b;
+  /* Hero ainda mais elevado para destaque */
+  --hero-bg:    #221a1c;
   --hero-fg:    #f5efe7;
   --hero-muted: #b8aca3;
-  --hero-line:  rgba(255, 255, 255, 0.06);
+  --hero-line:  rgba(255, 255, 255, 0.10);
 
   --pay-dinheiro: #7fb07f;
   --pay-pix:      #7d9bbf;
   --pay-debito:   #c9a86a;
   --pay-credito:  #c7a46a;
 
-  --shadow-card:    0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.35);
-  --shadow-card-hi: 0 4px 8px rgba(0, 0, 0, 0.5), 0 16px 40px rgba(0, 0, 0, 0.45);
-  --shadow-fab:     0 6px 20px rgba(199, 164, 106, 0.28);
-  --shadow-overlay: 0 24px 64px rgba(0, 0, 0, 0.6);
-  --shadow-hero:    0 10px 30px rgba(0, 0, 0, 0.45);
+  --shadow-card:    0 1px 2px rgba(0, 0, 0, 0.5), 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-card-hi: 0 4px 8px rgba(0, 0, 0, 0.6), 0 16px 40px rgba(0, 0, 0, 0.55);
+  --shadow-fab:     0 6px 20px rgba(199, 164, 106, 0.32);
+  --shadow-overlay: 0 24px 64px rgba(0, 0, 0, 0.7);
+  --shadow-hero:    0 10px 30px rgba(0, 0, 0, 0.55);
 
-  --input-bg:     #120e0e;
-  --input-border: rgba(255, 255, 255, 0.05);
+  --input-bg:     #110d0e;
+  --input-border: rgba(255, 255, 255, 0.08);
   --input-focus:  var(--accent);
 }
 
