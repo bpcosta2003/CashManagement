@@ -90,6 +90,12 @@
   --hit:    44px;
   --hit-lg: 48px;
 
+  /* — Container (alinhamento horizontal consistente) — */
+  --container-max:        1280px;
+  --container-pad-mobile: 16px;
+  --container-pad-tablet: 24px;
+  --container-pad-desktop: 32px;
+
   /* — Z — */
   --z-fab: 40; --z-sheet: 50; --z-overlay: 60;
 

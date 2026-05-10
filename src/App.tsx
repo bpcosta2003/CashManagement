@@ -12,9 +12,8 @@ import { InstallBanner } from "./components/layout/InstallBanner";
 import { ThemeToggle } from "./components/layout/ThemeToggle";
 import { SummaryCards } from "./components/summary/SummaryCards";
 import { PaymentBreakdown } from "./components/summary/PaymentBreakdown";
-import { DesktopTable } from "./components/table/DesktopTable";
+import { EntryList } from "./components/list/EntryList";
 import { ProjectionSection } from "./components/projection/ProjectionSection";
-import { MobileCardList } from "./components/mobile/MobileCardList";
 import { FAB } from "./components/mobile/FAB";
 import { Sheet } from "./components/forms/Sheet";
 import { EntryForm } from "./components/forms/EntryForm";
@@ -100,10 +99,6 @@ export default function App() {
     setAno(y);
   }, []);
 
-  const handleAddInline = useCallback(() => {
-    addRow({ mes, ano });
-  }, [addRow, mes, ano]);
-
   const handleAddSheet = useCallback(() => {
     const id = addRow({ mes, ano });
     setEditingId(id);
@@ -165,14 +160,12 @@ export default function App() {
             sparkline={sparkline}
           />
           <PaymentBreakdown breakdown={paymentBreakdown} />
-          <DesktopTable
+          <EntryList
             rows={monthRows}
             summary={summary}
-            onAdd={handleAddInline}
-            onUpdate={updateRow}
-            onDelete={deleteRow}
+            onAdd={handleAddSheet}
+            onSelect={setEditingId}
           />
-          <MobileCardList rows={monthRows} onSelect={setEditingId} />
         </>
       )}
 
