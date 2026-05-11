@@ -1,0 +1,116 @@
+.section {
+  width: 100%;
+  max-width: var(--container-max);
+  margin: 16px auto 0;
+  padding: 0 var(--container-pad-mobile);
+}
+
+@media (min-width: 768px) {
+  .section {
+    margin: 20px auto 0;
+    padding: 0 var(--container-pad-tablet);
+  }
+}
+
+@media (min-width: 1024px) {
+  .section {
+    padding: 0 var(--container-pad-desktop);
+  }
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  box-shadow: var(--shadow-card);
+}
+
+@media (min-width: 768px) {
+  .bar {
+    padding: 12px 20px;
+  }
+}
+
+.arrow {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.18s var(--ease), border-color 0.18s var(--ease),
+    color 0.18s var(--ease);
+  flex-shrink: 0;
+}
+
+.arrow:hover,
+.arrow:focus-visible {
+  background: var(--accent-soft);
+  border-color: transparent;
+  color: var(--accent);
+  outline: none;
+}
+
+.arrow:active {
+  transform: scale(0.95);
+}
+
+.label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+}
+
+.eyebrow {
+  font-size: var(--t-eyebrow);
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+}
+
+.month {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.monthName {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--t-h3);
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+
+.monthYear {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--t-body);
+  color: var(--text-dim);
+  letter-spacing: 0.02em;
+}
+
+@media (min-width: 768px) {
+  .monthName {
+    font-size: var(--t-h2);
+  }
+  .monthYear {
+    font-size: var(--t-body-lg);
+  }
+}

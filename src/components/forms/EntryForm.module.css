@@ -2,18 +2,21 @@
   display: flex;
   flex-direction: column;
   gap: 18px;
+  min-width: 0;
 }
 
 .row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
+  min-width: 0;
 }
 
 .field {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
 }
 
 .label {
@@ -39,6 +42,8 @@
 .select {
   appearance: none;
   -webkit-appearance: none;
+  width: 100%;
+  min-width: 0;
   border: 1px solid var(--input-border);
   background: var(--input-bg);
   border-radius: var(--radius-sm);

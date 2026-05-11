@@ -80,14 +80,6 @@
   margin: 0 2px;
 }
 
-.heroBody {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 16px;
-  margin-top: 4px;
-}
-
 .heroValue {
   font-family: var(--font-display);
   font-weight: 700;
@@ -96,6 +88,16 @@
   letter-spacing: -0.04em;
   font-variant-numeric: tabular-nums;
   color: var(--hero-fg);
+  display: block;
+  margin-top: 4px;
+  word-break: break-all;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 380px) {
+  .heroValue {
+    font-size: 44px;
+  }
 }
 
 .heroNeg {
@@ -143,8 +145,15 @@
 /* ─────── KPI cards ─────── */
 .grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 480px) {
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
 }
 
 @media (min-width: 768px) {

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useStorage } from "./hooks/useStorage";
 import { useCalc } from "./hooks/useCalc";
 import { useBreakpoint } from "./hooks/useBreakpoint";
@@ -6,6 +6,7 @@ import { useAuth } from "./hooks/useAuth";
 import { useSync } from "./hooks/useSync";
 import { useTheme } from "./hooks/useTheme";
 import { Header } from "./components/layout/Header";
+import { MonthNav } from "./components/layout/MonthNav";
 import { TaxBar } from "./components/layout/TaxBar";
 import { BottomNav, type MobileTab } from "./components/layout/BottomNav";
 import { InstallBanner } from "./components/layout/InstallBanner";
@@ -65,6 +66,21 @@ export default function App() {
     mes,
     ano,
   );
+
+  // Track whether the inline "+ Novo" in EntryList is visible. The floating
+  // FAB only appears when the inline button is OUT of view (mobile scroll).
+  const addBtnRef = useRef<HTMLButtonElement | null>(null);
+  const [inlineAddVisible, setInlineAddVisible] = useState(true);
+  useEffect(() => {
+    const el = addBtnRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const obs = new IntersectionObserver(
+      ([entry]) => setInlineAddVisible(entry.isIntersecting),
+      { rootMargin: "-56px 0px 0px 0px", threshold: 0 },
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [tab]);
 
   // Ask the browser to keep our data even under disk pressure.
   useEffect(() => {
@@ -129,9 +145,6 @@ export default function App() {
   return (
     <div className="app-shell">
       <Header
-        mes={mes}
-        ano={ano}
-        onChangeMes={handleChangeMes}
         onOpenBackup={() => setBackupOpen(true)}
         onToggleTaxBar={() => setTaxBarOpen((v) => !v)}
         extraActions={
@@ -149,6 +162,7 @@ export default function App() {
       <InstallBanner />
       <BackupReminder rows={state.rows} onToast={pushToast} />
       <TaxBar visible={taxBarOpen} />
+      <MonthNav mes={mes} ano={ano} onChange={handleChangeMes} />
 
       {(!isMobile || tab === "lancamentos") && (
         <>
@@ -157,14 +171,17 @@ export default function App() {
             mes={mes}
             liqDelta={liqDelta}
             prevMonthLabel={prevMonthLabel}
+          />
+          <PaymentBreakdown
+            breakdown={paymentBreakdown}
             sparkline={sparkline}
           />
-          <PaymentBreakdown breakdown={paymentBreakdown} />
           <EntryList
             rows={monthRows}
             summary={summary}
             onAdd={handleAddSheet}
             onSelect={setEditingId}
+            addBtnRef={addBtnRef}
           />
         </>
       )}
@@ -173,7 +190,9 @@ export default function App() {
         <ProjectionSection projecao={projecao} />
       )}
 
-      <FAB onClick={handleAddSheet} />
+      {tab === "lancamentos" && !inlineAddVisible && (
+        <FAB onClick={handleAddSheet} />
+      )}
       <BottomNav active={tab} onChange={setTab} />
 
       <Sheet
