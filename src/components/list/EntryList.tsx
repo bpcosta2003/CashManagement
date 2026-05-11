@@ -1,3 +1,4 @@
+import type { Ref } from "react";
 import type { CalculatedRow, Summary } from "../../types";
 import { fmtBRL, fmtPct } from "../../lib/calc";
 import styles from "./EntryList.module.css";
@@ -7,6 +8,8 @@ interface Props {
   summary: Summary;
   onAdd: () => void;
   onSelect: (id: string) => void;
+  /** Ref atribuído ao botão "+ Novo" — usado pelo App pra controlar o FAB. */
+  addBtnRef?: Ref<HTMLButtonElement>;
 }
 
 const FORMA_VAR: Record<string, string> = {
@@ -21,7 +24,7 @@ const formaLabel = (r: CalculatedRow) => {
   return r.forma;
 };
 
-export function EntryList({ rows, summary, onAdd, onSelect }: Props) {
+export function EntryList({ rows, summary, onAdd, onSelect, addBtnRef }: Props) {
   const liqPositive = summary.liq >= 0;
 
   return (
@@ -37,7 +40,12 @@ export function EntryList({ rows, summary, onAdd, onSelect }: Props) {
               <span className={styles.count}>· {rows.length}</span>
             )}
           </span>
-          <button className={styles.addBtn} onClick={onAdd} aria-label="Novo lançamento">
+          <button
+            ref={addBtnRef}
+            className={styles.addBtn}
+            onClick={onAdd}
+            aria-label="Novo lançamento"
+          >
             <svg
               width="14"
               height="14"

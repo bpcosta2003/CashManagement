@@ -1,20 +1,13 @@
 import type { Summary } from "../../types";
 import { fmtBRL, fmtPct } from "../../lib/calc";
-import { Sparkline } from "./Sparkline";
 import { MESES_SHORT } from "../../constants";
 import styles from "./SummaryCards.module.css";
-
-interface SparkPoint {
-  liq: number;
-  label: string;
-}
 
 interface Props {
   summary: Summary;
   mes: number;
   liqDelta: number | null;
   prevMonthLabel: string;
-  sparkline: SparkPoint[];
 }
 
 export function SummaryCards({
@@ -22,7 +15,6 @@ export function SummaryCards({
   mes,
   liqDelta,
   prevMonthLabel,
-  sparkline,
 }: Props) {
   const { bruto, descontos, taxas, custos, liq, margem, futuro } = summary;
   const liqPositive = liq >= 0;
@@ -40,27 +32,19 @@ export function SummaryCards({
 
   return (
     <section className={styles.section} aria-label="Resumo do mês">
-      {/* HERO — dark card sobre creme */}
+      {/* HERO — dark card */}
       <div className={styles.hero}>
         <div className={styles.heroHead}>
           <span className={styles.heroEyebrow}>
-            Lucro líquido <span className={styles.heroEyebrowDot}>·</span> {monthLabel}
+            Lucro líquido <span className={styles.heroEyebrowDot}>·</span>{" "}
+            {monthLabel}
           </span>
         </div>
-        <div className={styles.heroBody}>
-          <span
-            className={`${styles.heroValue} ${liqPositive ? "" : styles.heroNeg}`}
-          >
-            {fmtBRL(liq)}
-          </span>
-          <Sparkline
-            data={sparkline}
-            color="var(--champagne)"
-            width={108}
-            height={32}
-            ariaLabel="Tendência dos últimos 6 meses"
-          />
-        </div>
+        <span
+          className={`${styles.heroValue} ${liqPositive ? "" : styles.heroNeg}`}
+        >
+          {fmtBRL(liq)}
+        </span>
         <div className={styles.heroFoot}>
           <span
             className={`${styles.heroDelta} ${
@@ -81,9 +65,7 @@ export function SummaryCards({
         <article className={styles.kpi}>
           <span className={styles.kpiLabel}>Bruto</span>
           <span className={styles.kpiValue}>{fmtBRL(bruto)}</span>
-          <span className={styles.kpiSub}>
-            Descontos {fmtBRL(descontos)}
-          </span>
+          <span className={styles.kpiSub}>Descontos {fmtBRL(descontos)}</span>
         </article>
 
         <article className={styles.kpi}>

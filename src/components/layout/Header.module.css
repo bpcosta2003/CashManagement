@@ -14,16 +14,15 @@
   margin: 0 auto;
   padding: 12px var(--container-pad-mobile);
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 56px;
 }
 
 @media (min-width: 768px) {
   .inner {
     padding: 14px var(--container-pad-tablet);
-    flex-direction: row;
-    align-items: center;
-    gap: 16px;
   }
 }
 
@@ -33,96 +32,11 @@
   }
 }
 
-/* ─── Linha 1 (mobile: brand + ações) ─── */
-.topRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-@media (min-width: 768px) {
-  .topRow {
-    flex: 0 0 auto;
-  }
-}
-
-/* ─── Linha 2 (mobile: month chip centralizado) ─── */
-.monthRow {
-  display: flex;
-  justify-content: center;
-}
-
-@media (min-width: 768px) {
-  .monthRow {
-    flex: 1;
-    justify-content: center;
-  }
-}
-
-/* ─── Brand (responsivo) ─── */
 .brandWrap {
   flex-shrink: 0;
+  min-width: 0;
 }
 
-/* ─── Month chip ─── */
-.monthChip {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-pill);
-  padding: 4px;
-  flex-shrink: 0;
-}
-
-.monthBtn {
-  background: transparent;
-  border: none;
-  color: var(--text-muted);
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-pill);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.18s var(--ease), color 0.18s var(--ease);
-  flex-shrink: 0;
-}
-
-.monthBtn:hover {
-  background: var(--accent-soft);
-  color: var(--accent);
-}
-
-.monthLabel {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 6px;
-  padding: 0 10px;
-  font-family: var(--font-display);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-  min-width: 96px;
-  justify-content: center;
-}
-
-.monthName {
-  font-size: var(--t-body);
-  font-weight: 600;
-  color: var(--text);
-  letter-spacing: -0.01em;
-}
-
-.monthYear {
-  font-size: var(--t-caption);
-  font-weight: 500;
-  color: var(--text-dim);
-  letter-spacing: 0.04em;
-}
-
-/* ─── Actions ─── */
 .actions {
   display: flex;
   align-items: center;
@@ -149,7 +63,6 @@
   gap: 6px;
   transition: background 0.18s var(--ease), border-color 0.18s var(--ease),
     color 0.18s var(--ease);
-  /* Mobile: icon-only square */
   width: 36px;
   height: 36px;
   padding: 0;
@@ -159,7 +72,6 @@
 @media (min-width: 768px) {
   .actionBtn {
     width: auto;
-    height: 36px;
     padding: 0 14px;
   }
 }
