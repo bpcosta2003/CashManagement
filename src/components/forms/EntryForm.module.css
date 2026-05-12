@@ -43,6 +43,14 @@
   letter-spacing: 0.04em;
 }
 
+.labelHintSoft {
+  font-size: var(--t-eyebrow);
+  font-weight: 500;
+  color: var(--text-dim);
+  text-transform: none;
+  letter-spacing: 0.04em;
+}
+
 .inputError {
   border-color: var(--negative) !important;
   background: rgba(201, 107, 107, 0.04);

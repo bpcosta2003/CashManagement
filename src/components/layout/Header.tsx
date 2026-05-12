@@ -4,6 +4,9 @@ import styles from "./Header.module.css";
 
 interface Props {
   businessName?: string;
+  /** Quando passado, brand vira botão pra abrir o switcher. */
+  onBrandClick?: () => void;
+  showBrandChevron?: boolean;
   onOpenBackup: () => void;
   onToggleTaxBar: () => void;
   /** Slot opcional à direita (ex.: SyncStatus, ThemeToggle). */
@@ -12,6 +15,8 @@ interface Props {
 
 export function Header({
   businessName,
+  onBrandClick,
+  showBrandChevron,
   onOpenBackup,
   onToggleTaxBar,
   extraActions,
@@ -20,7 +25,12 @@ export function Header({
     <header className={styles.header}>
       <div className={styles.inner}>
         <div className={styles.brandWrap}>
-          <Brand size="sm" businessName={businessName} />
+          <Brand
+            size="sm"
+            businessName={businessName}
+            onClick={onBrandClick}
+            showChevron={showBrandChevron}
+          />
         </div>
         <div className={styles.actions}>
           {extraActions}

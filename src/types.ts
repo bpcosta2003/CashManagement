@@ -1,8 +1,40 @@
 export type FormaPagamento = "Dinheiro" | "Pix" | "Débito" | "Crédito";
 export type StatusPagamento = "Pago" | "Pendente";
 
+export type BusinessType =
+  | "salao"
+  | "restaurante"
+  | "comercio"
+  | "servicos"
+  | "freelancer"
+  | "outro";
+
+/** Perfil legado (v1) — preservado pra migração de estado antigo. */
+export interface BusinessProfile {
+  name: string;
+  type: BusinessType;
+}
+
+export interface Business {
+  id: string;
+  name: string;
+  type: BusinessType;
+  createdAt: string;
+}
+
+export interface Client {
+  id: string;
+  businessId: string;
+  name: string;
+  phone?: string;
+  lastUsedAt: string;
+  createdAt: string;
+}
+
 export interface Row {
   id: string;
+  /** Empreendimento dono deste lançamento. */
+  businessId: string;
   cliente: string;
   servico: string;
   valor: number | "";
@@ -27,19 +59,6 @@ export interface CalculatedRow extends Row {
   mar: number;
 }
 
-export type BusinessType =
-  | "salao"
-  | "restaurante"
-  | "comercio"
-  | "servicos"
-  | "freelancer"
-  | "outro";
-
-export interface BusinessProfile {
-  name: string;
-  type: BusinessType;
-}
-
 export interface AppSettings {
   /** "yes" / "no" — consent for automatic Excel backups every 14 days.
    *  null = not asked yet. */
@@ -49,9 +68,17 @@ export interface AppSettings {
 export interface AppState {
   version: number;
   rows: Row[];
+  /** Catálogo de clientes por empreendimento. */
+  clients: Client[];
+  /** Lista de empreendimentos do usuário. */
+  businesses: Business[];
+  /** ID do empreendimento atualmente ativo (vazio = nenhum). */
+  activeBusinessId: string;
   lastModified: string;
-  business?: BusinessProfile;
   settings?: AppSettings;
+  /** Legado v1 — mantido apenas pra migração. Após v2, businesses[]
+   *  passa a ser a fonte de verdade. */
+  business?: BusinessProfile;
 }
 
 export interface Summary {

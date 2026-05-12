@@ -323,6 +323,7 @@ export function importFromExcel(file: File): Promise<ImportResult> {
 
           rows.push({
             id: String(r["ID"] || uid()),
+            businessId: "",
             cliente: String(r["Cliente"] ?? ""),
             servico: String(r["Serviço"] ?? r["Servico"] ?? ""),
             valor,

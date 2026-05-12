@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useStorage } from "./hooks/useStorage";
 import { useCalc } from "./hooks/useCalc";
 import { useBreakpoint } from "./hooks/useBreakpoint";
@@ -24,6 +24,7 @@ import { BackupReminder } from "./components/feedback/BackupReminder";
 import { FirstUseModal } from "./components/onboarding/FirstUseModal";
 import { LoginPanel } from "./components/auth/LoginPanel";
 import { SyncStatus } from "./components/auth/SyncStatus";
+import { BusinessSwitcher } from "./components/business/BusinessSwitcher";
 import { requestPersistentStorage } from "./lib/storage";
 import { uid } from "./lib/calc";
 import type { BusinessProfile, Row } from "./types";
@@ -33,9 +34,10 @@ type SheetMode =
   | { kind: "edit"; id: string }
   | null;
 
-function makeBlankRow(mes: number, ano: number): Row {
+function makeBlankRow(mes: number, ano: number, businessId: string): Row {
   return {
     id: uid(),
+    businessId,
     cliente: "",
     servico: "",
     valor: "",
@@ -59,7 +61,11 @@ export default function App() {
     deleteRow,
     replaceAllRows,
     mergeRows,
-    setBusiness,
+    addBusiness,
+    updateBusiness,
+    deleteBusiness,
+    setActiveBusinessId,
+    upsertClient,
     setSettings,
     replaceState,
   } = useStorage();
@@ -82,15 +88,31 @@ export default function App() {
   const [tab, setTab] = useState<MobileTab>("lancamentos");
   const [backupOpen, setBackupOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
+  const [switcherOpen, setSwitcherOpen] = useState(false);
 
-  // Onboarding: mostra quando ainda não tem nome do empreendimento.
-  const businessName = state.business?.name?.trim() ?? "";
-  const [firstUseOpen, setFirstUseOpen] = useState(() => !businessName);
+  const activeBusinessId = state.activeBusinessId;
+  const activeBusiness = useMemo(
+    () => state.businesses.find((b) => b.id === activeBusinessId) ?? null,
+    [state.businesses, activeBusinessId],
+  );
+  const businessName = activeBusiness?.name ?? "";
+
+  // Onboarding: mostra quando não tem nenhum empreendimento ainda.
+  const needsOnboarding = state.businesses.length === 0;
+  const [firstUseOpen, setFirstUseOpen] = useState(needsOnboarding);
 
   useEffect(() => {
-    // Se o estado mudou e ainda não há business name, mantém o modal aberto.
-    if (!businessName) setFirstUseOpen(true);
-  }, [businessName]);
+    setFirstUseOpen(needsOnboarding);
+  }, [needsOnboarding]);
+
+  // Clientes do empreendimento ativo (passados pro autocomplete)
+  const activeClients = useMemo(
+    () =>
+      activeBusinessId
+        ? state.clients.filter((c) => c.businessId === activeBusinessId)
+        : [],
+    [state.clients, activeBusinessId],
+  );
 
   const {
     monthRows,
@@ -100,10 +122,9 @@ export default function App() {
     liqDelta,
     prevMonthLabel,
     sparkline,
-  } = useCalc(state.rows, mes, ano);
+  } = useCalc(state.rows, mes, ano, activeBusinessId);
 
-  // Track whether the inline "+ Novo" in EntryList is visible. The floating
-  // FAB only appears when the inline button is OUT of view (mobile scroll).
+  // Track whether the inline "+ Novo" in EntryList is visible.
   const addBtnRef = useRef<HTMLButtonElement | null>(null);
   const [inlineAddVisible, setInlineAddVisible] = useState(true);
   useEffect(() => {
@@ -117,7 +138,6 @@ export default function App() {
     return () => obs.disconnect();
   }, [tab]);
 
-  // Ask the browser to keep our data even under disk pressure.
   useEffect(() => {
     requestPersistentStorage().then(({ supported, persisted }) => {
       if (supported && !persisted) {
@@ -126,7 +146,6 @@ export default function App() {
     });
   }, []);
 
-  // Mobile "backup" tab opens the panel
   useEffect(() => {
     if (isMobile && tab === "backup") {
       setBackupOpen(true);
@@ -134,7 +153,6 @@ export default function App() {
     }
   }, [isMobile, tab]);
 
-  // Quota toast
   useEffect(() => {
     const handler = () =>
       pushToast(
@@ -150,8 +168,15 @@ export default function App() {
   }, []);
 
   const handleAddSheet = useCallback(() => {
-    setSheetMode({ kind: "create", draft: makeBlankRow(mes, ano) });
-  }, [mes, ano]);
+    if (!activeBusinessId) {
+      setFirstUseOpen(true);
+      return;
+    }
+    setSheetMode({
+      kind: "create",
+      draft: makeBlankRow(mes, ano, activeBusinessId),
+    });
+  }, [mes, ano, activeBusinessId]);
 
   const handleEditSheet = useCallback((id: string) => {
     setSheetMode({ kind: "edit", id });
@@ -166,8 +191,11 @@ export default function App() {
         ? sheetMode.draft
         : null;
 
-  const handleSave = (row: Row) => {
+  const handleSave = (row: Row, clientPhone?: string) => {
     if (!sheetMode) return;
+    // Upsert cliente: tanto na criação quanto na edição.
+    upsertClient(row.cliente, clientPhone);
+
     if (sheetMode.kind === "create") {
       commitRow(row);
       pushToast("Lançamento adicionado");
@@ -200,15 +228,19 @@ export default function App() {
     [deleteRow, pushToast],
   );
 
-  const handleSubmitBusiness = (business: BusinessProfile) => {
-    setBusiness(business);
+  const handleSubmitBusiness = (profile: BusinessProfile) => {
+    addBusiness({ name: profile.name, type: profile.type });
     setFirstUseOpen(false);
   };
+
+  const showSwitcher = state.businesses.length > 0;
 
   return (
     <div className="app-shell">
       <Header
         businessName={businessName}
+        onBrandClick={showSwitcher ? () => setSwitcherOpen(true) : undefined}
+        showBrandChevron={showSwitcher}
         onOpenBackup={() => setBackupOpen(true)}
         onToggleTaxBar={() => setTaxBarOpen((v) => !v)}
         extraActions={
@@ -280,6 +312,7 @@ export default function App() {
           <EntryForm
             initial={editingRow}
             isNew={sheetMode?.kind === "create"}
+            clients={activeClients}
             onSave={handleSave}
             onDelete={
               sheetMode?.kind === "edit" ? handleDeleteFromSheet : undefined
@@ -291,11 +324,35 @@ export default function App() {
 
       <BackupPanel
         open={backupOpen}
-        rows={state.rows}
+        rows={state.rows.filter(
+          (r) => !activeBusinessId || r.businessId === activeBusinessId,
+        )}
         onClose={() => setBackupOpen(false)}
-        onImportMerge={mergeRows}
-        onImportReplace={replaceAllRows}
-        onClearAll={() => replaceAllRows([])}
+        onImportMerge={(rows) =>
+          mergeRows(
+            rows.map((r) => ({
+              ...r,
+              businessId: r.businessId || activeBusinessId,
+            })),
+          )
+        }
+        onImportReplace={(rows) => {
+          // Substitui apenas os do empreendimento ativo, preserva os outros
+          const others = state.rows.filter(
+            (r) => r.businessId !== activeBusinessId,
+          );
+          const scoped = rows.map((r) => ({
+            ...r,
+            businessId: activeBusinessId,
+          }));
+          replaceAllRows([...others, ...scoped]);
+        }}
+        onClearAll={() => {
+          const others = state.rows.filter(
+            (r) => r.businessId !== activeBusinessId,
+          );
+          replaceAllRows(others);
+        }}
         onToast={pushToast}
       />
 
@@ -309,9 +366,19 @@ export default function App() {
         onSignOut={auth.signOut}
       />
 
+      <BusinessSwitcher
+        open={switcherOpen}
+        businesses={state.businesses}
+        activeBusinessId={activeBusinessId}
+        onClose={() => setSwitcherOpen(false)}
+        onSelect={setActiveBusinessId}
+        onCreate={(data) => addBusiness(data)}
+        onUpdate={updateBusiness}
+        onDelete={deleteBusiness}
+      />
+
       <FirstUseModal
         open={firstUseOpen}
-        initialBusiness={state.business}
         cloudAvailable={auth.configured}
         onSubmit={handleSubmitBusiness}
         onClose={() => setFirstUseOpen(false)}
