@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import type { FormaPagamento, Row, StatusPagamento } from "../../types";
+import { useEffect, useMemo, useState } from "react";
+import type { Client, FormaPagamento, Row, StatusPagamento } from "../../types";
 import { FORMAS_PAGAMENTO, STATUS_OPTIONS } from "../../constants";
 import { autoTaxa, calcRow, fmtBRL, fmtPct } from "../../lib/calc";
 import styles from "./EntryForm.module.css";
@@ -8,7 +8,9 @@ interface Props {
   initial: Row;
   /** true quando o sheet está criando um lançamento novo (não persistido ainda) */
   isNew?: boolean;
-  onSave: (row: Row) => void;
+  /** Clientes do empreendimento ativo — usados pra autocomplete. */
+  clients: Client[];
+  onSave: (row: Row, clientPhone?: string) => void;
   onDelete?: () => void;
   onCancel: () => void;
 }
@@ -30,9 +32,17 @@ function validate(draft: Row): Errors {
   return errors;
 }
 
+/** Procura cliente pelo nome (case-insensitive). */
+function findClient(clients: Client[], name: string): Client | undefined {
+  const trimmed = name.trim().toLowerCase();
+  if (!trimmed) return undefined;
+  return clients.find((c) => c.name.toLowerCase() === trimmed);
+}
+
 export function EntryForm({
   initial,
   isNew = false,
+  clients,
   onSave,
   onDelete,
   onCancel,
@@ -41,13 +51,38 @@ export function EntryForm({
   const [taxaTouched, setTaxaTouched] = useState(false);
   const [errors, setErrors] = useState<Errors>({});
   const [submitted, setSubmitted] = useState(false);
+  const [phone, setPhone] = useState("");
+
+  // Lista de clientes ordenada por uso mais recente — alimenta o datalist
+  const clientSuggestions = useMemo(() => {
+    return [...clients]
+      .sort((a, b) => (a.lastUsedAt < b.lastUsedAt ? 1 : -1))
+      .slice(0, 50);
+  }, [clients]);
+
+  // Cliente conhecido = casamento exato (case-insensitive) com a base
+  const knownClient = useMemo(
+    () => findClient(clients, draft.cliente),
+    [clients, draft.cliente],
+  );
 
   useEffect(() => {
     setDraft(initial);
     setTaxaTouched(false);
     setErrors({});
     setSubmitted(false);
+    // Telefone: se o cliente já está cadastrado, prefilla. Senão, vazio.
+    const found = findClient(clients, initial.cliente);
+    setPhone(found?.phone ?? "");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initial]);
+
+  // Quando o nome muda pra um cliente já conhecido, prefilla o telefone
+  useEffect(() => {
+    if (knownClient) {
+      setPhone((prev) => (prev ? prev : knownClient.phone ?? ""));
+    }
+  }, [knownClient]);
 
   const update = <K extends keyof Row>(field: K, value: Row[K]) => {
     setDraft((prev) => {
@@ -66,7 +101,6 @@ export function EntryForm({
       }
       return next;
     });
-    // Re-validate after change if user already attempted submit once
     if (submitted) {
       setErrors((prev) => {
         const next = { ...prev };
@@ -87,13 +121,12 @@ export function EntryForm({
     const v = validate(draft);
     setErrors(v);
     if (Object.keys(v).length > 0) {
-      // foca o primeiro campo com erro
       const first = v.cliente ? "cliente" : "valor";
       const el = document.getElementById(`ef-${first}`);
       el?.focus();
       return;
     }
-    onSave(draft);
+    onSave(draft, phone.trim() || undefined);
   };
 
   return (
@@ -101,6 +134,9 @@ export function EntryForm({
       <div className={styles.field}>
         <label htmlFor="ef-cliente" className={styles.label}>
           Cliente <span className={styles.required}>*</span>
+          {knownClient && (
+            <span className={styles.labelHint}>· cadastrado</span>
+          )}
         </label>
         <input
           id="ef-cliente"
@@ -109,14 +145,40 @@ export function EntryForm({
           onChange={(e) => update("cliente", e.target.value)}
           placeholder="Nome do cliente"
           autoFocus
+          autoComplete="off"
+          list="ef-cliente-suggestions"
           aria-invalid={!!errors.cliente}
           aria-describedby={errors.cliente ? "ef-cliente-err" : undefined}
         />
+        <datalist id="ef-cliente-suggestions">
+          {clientSuggestions.map((c) => (
+            <option key={c.id} value={c.name}>
+              {c.phone ?? ""}
+            </option>
+          ))}
+        </datalist>
         {errors.cliente && (
           <span id="ef-cliente-err" className={styles.errorMsg}>
             {errors.cliente}
           </span>
         )}
+      </div>
+
+      <div className={styles.field}>
+        <label htmlFor="ef-phone" className={styles.label}>
+          Telefone <span className={styles.labelHintSoft}>· opcional</span>
+        </label>
+        <input
+          id="ef-phone"
+          className={styles.input}
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          placeholder="(11) 90000-0000"
+          inputMode="tel"
+          type="tel"
+          autoComplete="tel"
+          maxLength={20}
+        />
       </div>
 
       <div className={styles.field}>

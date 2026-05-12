@@ -11,8 +11,26 @@ interface MonthLiq {
   bruto: number;
 }
 
-export function useCalc(rows: Row[], mes: number, ano: number) {
-  const allCalc = useMemo<CalculatedRow[]>(() => rows.map(calcRow), [rows]);
+export function useCalc(
+  rows: Row[],
+  mes: number,
+  ano: number,
+  activeBusinessId: string,
+) {
+  // Filtra primeiro pelo empreendimento ativo — todo o resto trabalha
+  // só com os lançamentos desse business.
+  const scopedRows = useMemo<Row[]>(
+    () =>
+      activeBusinessId
+        ? rows.filter((r) => r.businessId === activeBusinessId)
+        : rows,
+    [rows, activeBusinessId],
+  );
+
+  const allCalc = useMemo<CalculatedRow[]>(
+    () => scopedRows.map(calcRow),
+    [scopedRows],
+  );
 
   const monthRows = useMemo<CalculatedRow[]>(
     () => allCalc.filter((r) => r.mes === mes && r.ano === ano),

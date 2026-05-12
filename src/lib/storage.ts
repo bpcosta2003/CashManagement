@@ -1,13 +1,10 @@
-import type { AppState, AppSettings, BusinessProfile } from "../types";
+import type { AppSettings, AppState } from "../types";
+import { uid } from "./calc";
 
 const STORAGE_KEY = "controle-caixa:v1";
 const LAST_BACKUP_KEY = "controle-caixa:last-backup";
 const FIRST_USE_KEY = "controle-caixa:first-use-acked";
-const CURRENT_VERSION = 1;
-
-function defaultBusiness(): BusinessProfile {
-  return { name: "", type: "salao" };
-}
+const CURRENT_VERSION = 2;
 
 function defaultSettings(): AppSettings {
   return { autoBackupConsent: null };
@@ -52,12 +49,52 @@ export function getStorageSize(): number {
   }
 }
 
+/**
+ * Migra estados antigos pra o shape atual.
+ *
+ * v0/v1 → v2:
+ *  - Antes: state.business (singular) + state.rows[]
+ *  - Depois: state.businesses[] (lista) + state.activeBusinessId + cada row
+ *    com businessId. state.business é mantido somente pra clientes velhos
+ *    que ainda não atualizaram (ignorado por código novo).
+ */
 function migrate(state: AppState): AppState {
-  if (!state.version) state.version = CURRENT_VERSION;
-  // Optional fields added later — fill defaults so the rest of the
-  // app doesn't have to deal with undefined.
-  if (!state.business) state.business = defaultBusiness();
+  if (!state.version) state.version = 1;
+
+  // Defaults seguros (não bagunçam migração)
   if (!state.settings) state.settings = defaultSettings();
+  if (!state.clients) state.clients = [];
+  if (!state.businesses) state.businesses = [];
+  if (typeof state.activeBusinessId !== "string") state.activeBusinessId = "";
+
+  if (state.version < 2) {
+    // Converte o business legado em um item de businesses[]
+    if (
+      state.businesses.length === 0 &&
+      state.business &&
+      state.business.name &&
+      state.business.name.trim()
+    ) {
+      const newId = uid();
+      state.businesses.push({
+        id: newId,
+        name: state.business.name.trim(),
+        type: state.business.type ?? "salao",
+        createdAt: new Date().toISOString(),
+      });
+      state.activeBusinessId = newId;
+    }
+
+    // Atribui businessId às linhas que ainda não tinham
+    const fallbackId = state.businesses[0]?.id ?? "";
+    state.rows = state.rows.map((r) => ({
+      ...r,
+      businessId: r.businessId || fallbackId,
+    }));
+
+    state.version = 2;
+  }
+
   return state;
 }
 
@@ -65,15 +102,16 @@ export function initialState(): AppState {
   return {
     version: CURRENT_VERSION,
     rows: [],
+    clients: [],
+    businesses: [],
+    activeBusinessId: "",
     lastModified: new Date().toISOString(),
-    business: defaultBusiness(),
     settings: defaultSettings(),
   };
 }
 
 /* ────────────────────────────────────────────────────────────────────
- * Persistent storage: ask the browser to keep our data even under
- * disk pressure.
+ * Persistent storage.
  * ──────────────────────────────────────────────────────────────────── */
 export async function requestPersistentStorage(): Promise<{
   supported: boolean;
@@ -128,9 +166,7 @@ export function daysSince(iso: string | null): number | null {
 }
 
 /* ────────────────────────────────────────────────────────────────────
- * First-use onboarding flag (legado — mantido para usuários que já
- * passaram pela versão antiga; novo onboarding usa o campo
- * business.name no AppState).
+ * First-use legado (mantido por compat — onboarding novo usa business).
  * ──────────────────────────────────────────────────────────────────── */
 export function getFirstUseAcked(): boolean {
   try {

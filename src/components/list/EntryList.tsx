@@ -1,6 +1,7 @@
 import type { Ref } from "react";
 import type { CalculatedRow, Summary } from "../../types";
 import { fmtBRL, fmtPct } from "../../lib/calc";
+import { BrandMark } from "../layout/Brand";
 import styles from "./EntryList.module.css";
 
 interface Props {
@@ -70,10 +71,16 @@ export function EntryList({
 
         {rows.length === 0 ? (
           <div className={styles.empty}>
+            <div className={styles.emptyArt} aria-hidden="true">
+              <BrandMark size={64} />
+            </div>
             <span className={styles.emptyTitle}>
               Nenhum lançamento neste mês
             </span>
-            Comece registrando o primeiro atendimento.
+            <p className={styles.emptyText}>
+              Comece registrando o primeiro atendimento — em segundos você
+              tem o resumo financeiro do mês.
+            </p>
             <span className={styles.emptyHint}>
               Toque em <strong>+ Novo</strong> para adicionar
             </span>

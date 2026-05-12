@@ -5,6 +5,41 @@
   min-width: 0;
 }
 
+button.brand {
+  background: transparent;
+  border: 1px solid transparent;
+  padding: 4px 8px 4px 4px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: inherit;
+  font-family: inherit;
+  margin-left: -4px;
+  text-align: left;
+  transition: background 0.18s var(--ease), border-color 0.18s var(--ease);
+}
+
+button.brand:hover {
+  background: var(--surface-2);
+  border-color: var(--border-soft);
+}
+
+button.brand:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.chevron {
+  display: inline-block;
+  margin-left: 4px;
+  color: var(--text-dim);
+  transform: translateY(1px);
+}
+
+button.brand:hover .chevron {
+  color: var(--accent);
+}
+
 .mark {
   flex-shrink: 0;
   display: block;
