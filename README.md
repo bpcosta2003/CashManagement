@@ -1,4 +1,4 @@
-# Cash Management 💼
+# Controle de Caixa 🗄️
 
 > Controle financeiro premium pro seu negócio — rápido no celular, completo no desktop, seus dados sempre com você.
 
@@ -8,7 +8,7 @@
 
 ## O que é
 
-**Cash Management** é uma aplicação web progressiva (PWA) para registro e análise dos lançamentos financeiros do dia-a-dia de qualquer empreendimento — salão de beleza, restaurante, comércio, prestador de serviços, freelancer. Substitui planilhas manuais por uma interface moderna e responsiva que funciona offline e sincroniza entre dispositivos.
+**Controle de Caixa** é uma aplicação web progressiva (PWA) para registro e análise dos lançamentos financeiros do dia-a-dia de qualquer empreendimento — salão de beleza, restaurante, comércio, prestador de serviços, freelancer. Substitui planilhas manuais por uma interface moderna e responsiva que funciona offline e sincroniza entre dispositivos.
 
 Cada lançamento registra cliente, serviço, valor, forma de pagamento, parcelas, taxa da maquininha, custo extra, desconto e status. O app calcula valor líquido, margem real e projeta os recebimentos futuros mês a mês.
 
@@ -18,7 +18,7 @@ Cada lançamento registra cliente, serviço, valor, forma de pagamento, parcelas
 
 ### Onboarding personalizado
 - Na primeira vez, pede o nome do empreendimento e o tipo (salão, restaurante, comércio, serviços, freelancer, outro)
-- Brand do header passa a exibir o nome do empreendimento abaixo de "Cash Management"
+- Brand do header passa a exibir o nome do empreendimento abaixo de "Controle de Caixa"
 
 ### Lançamentos financeiros
 - Campos: **cliente** (obrigatório), serviço, **valor** (obrigatório), forma de pagamento (Dinheiro / Pix / Débito / Crédito), parcelas, taxa, custo extra, desconto e status (Pago / Pendente)
@@ -149,7 +149,7 @@ Veja [`DEPLOY.md`](./DEPLOY.md). Em resumo:
 
 1. Aplique `supabase/schema.sql` no SQL Editor do Supabase
 2. Configure Auth → desative "Enable email confirmations", adicione Redirect URLs
-3. **(Opcional)** Cole [`docs/email-template-magic-link.html`](./docs/email-template-magic-link.html) em Auth → Email Templates → Magic Link → Message (HTML) — template premium com a identidade visual do Cash Management
+3. **(Opcional)** Cole [`docs/email-template-magic-link.html`](./docs/email-template-magic-link.html) em Auth → Email Templates → Magic Link → Message (HTML) — template premium com a identidade visual do Controle de Caixa
 4. Execute `bash scripts/deploy.sh` com `VERCEL_TOKEN` definido
 
 ---

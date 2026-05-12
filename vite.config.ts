@@ -25,9 +25,9 @@ export default defineConfig({
         "icon-512.png",
       ],
       manifest: {
-        name: "Caixa. — Controle financeiro do salão",
-        short_name: "Caixa.",
-        description: "Gestão financeira para salão de beleza · SALÃO · PRO",
+        name: "Controle de Caixa — registro e análise financeira",
+        short_name: "Caixa",
+        description: "Registro e análise dos lançamentos financeiros do seu empreendimento",
         theme_color: "#5a2e3f",
         background_color: "#f5f0e8",
         display: "standalone",
