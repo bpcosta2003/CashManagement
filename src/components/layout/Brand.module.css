@@ -10,6 +10,78 @@
   display: block;
 }
 
+/* ─── Cores da marca (themed) ─── */
+.markBg {
+  fill: var(--brand-bg, #efe5cf);
+}
+
+.markChest {
+  fill: var(--brand-chest, #a17247);
+}
+
+.markChestEdge {
+  stroke: var(--brand-chest-edge, #6f4e2e);
+}
+
+.markLock {
+  fill: var(--brand-lock, #6f4e2e);
+}
+
+.markLockDot {
+  fill: var(--brand-lock-dot, #c9a86a);
+}
+
+.markPaper {
+  fill: var(--brand-paper, #fffdfc);
+}
+
+.markPaperLine {
+  fill: var(--brand-paper-line, rgba(46, 38, 35, 0.16));
+}
+
+.markPaperR {
+  fill: var(--accent);
+}
+
+.markBar1 {
+  fill: var(--brand-chest-edge, #6f4e2e);
+}
+
+.markBar2 {
+  fill: var(--champagne);
+}
+
+.markBar3 {
+  fill: var(--accent);
+}
+
+.markArrow {
+  stroke: var(--accent);
+}
+
+/* Tons claros (default) */
+:root {
+  --brand-bg: #efe5cf;
+  --brand-chest: #c9a06a;
+  --brand-chest-edge: #6f4e2e;
+  --brand-lock: #5a3a1f;
+  --brand-lock-dot: #f4ead5;
+  --brand-paper: #fffdfc;
+  --brand-paper-line: rgba(46, 38, 35, 0.18);
+}
+
+/* Tons escuros (dark mode) */
+:root[data-theme="dark"] {
+  --brand-bg: #2a2022;
+  --brand-chest: #5a3e2a;
+  --brand-chest-edge: #1f1411;
+  --brand-lock: #1a1207;
+  --brand-lock-dot: #c9a86a;
+  --brand-paper: #f5efe7;
+  --brand-paper-line: rgba(0, 0, 0, 0.18);
+}
+
+/* ─── Wordmark ─── */
 .text {
   display: flex;
   flex-direction: column;
@@ -24,6 +96,11 @@
   line-height: 1.1;
   color: var(--text);
   white-space: nowrap;
+}
+
+.nameAccent {
+  color: var(--accent);
+  font-weight: 700;
 }
 
 .tag {
