@@ -234,6 +234,37 @@ export function useStorage() {
     [mutate, state.activeBusinessId, state.clients],
   );
 
+  const updateClient = useCallback(
+    (id: string, patch: Partial<Pick<Client, "name" | "phone">>) => {
+      mutate((prev) => ({
+        ...prev,
+        clients: prev.clients.map((c) =>
+          c.id === id
+            ? {
+                ...c,
+                name: patch.name?.trim() ?? c.name,
+                phone:
+                  patch.phone !== undefined
+                    ? patch.phone.trim() || undefined
+                    : c.phone,
+              }
+            : c,
+        ),
+      }));
+    },
+    [mutate],
+  );
+
+  const deleteClient = useCallback(
+    (id: string) => {
+      mutate((prev) => ({
+        ...prev,
+        clients: prev.clients.filter((c) => c.id !== id),
+      }));
+    },
+    [mutate],
+  );
+
   /* ── Settings ─────────────────────────────────────────────────── */
   const setSettings = useCallback(
     (update: Partial<AppSettings>) => {
@@ -267,6 +298,8 @@ export function useStorage() {
     deleteBusiness,
     setActiveBusinessId,
     upsertClient,
+    updateClient,
+    deleteClient,
     setSettings,
     replaceState,
   };

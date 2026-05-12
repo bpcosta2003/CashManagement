@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useStorage } from "./hooks/useStorage";
 import { useCalc } from "./hooks/useCalc";
 import { useAnnual } from "./hooks/useAnnual";
+import { useClients } from "./hooks/useClients";
 import { useBreakpoint } from "./hooks/useBreakpoint";
 import { useAuth } from "./hooks/useAuth";
 import { useSync } from "./hooks/useSync";
@@ -17,6 +18,7 @@ import { PaymentBreakdown } from "./components/summary/PaymentBreakdown";
 import { EntryList } from "./components/list/EntryList";
 import { ProjectionSection } from "./components/projection/ProjectionSection";
 import { AnnualDashboard } from "./components/annual/AnnualDashboard";
+import { ClientsView } from "./components/clients/ClientsView";
 import { FAB } from "./components/mobile/FAB";
 import { Sheet } from "./components/forms/Sheet";
 import { EntryForm } from "./components/forms/EntryForm";
@@ -68,6 +70,8 @@ export default function App() {
     deleteBusiness,
     setActiveBusinessId,
     upsertClient,
+    updateClient,
+    deleteClient,
     setSettings,
     replaceState,
   } = useStorage();
@@ -128,6 +132,7 @@ export default function App() {
   } = useCalc(state.rows, mes, ano, activeBusinessId);
 
   const annual = useAnnual(state.rows, ano, activeBusinessId);
+  const clientStats = useClients(state.clients, state.rows, activeBusinessId);
 
   const handleSelectMonthFromAnnual = useCallback((m: number, y: number) => {
     setMes(m);
@@ -275,16 +280,26 @@ export default function App() {
         onToast={pushToast}
       />
       <TaxBar visible={taxBarOpen} />
-      <PeriodNav
-        period={period}
-        mes={mes}
-        ano={ano}
-        onChangePeriod={setPeriod}
-        onChangeMes={handleChangeMes}
-        onChangeAno={setAno}
-      />
 
-      {period === "year" ? (
+      {/* PeriodNav só faz sentido em visões com tempo (não em Clientes) */}
+      {!(isMobile && tab === "clientes") && (
+        <PeriodNav
+          period={period}
+          mes={mes}
+          ano={ano}
+          onChangePeriod={setPeriod}
+          onChangeMes={handleChangeMes}
+          onChangeAno={setAno}
+        />
+      )}
+
+      {isMobile && tab === "clientes" ? (
+        <ClientsView
+          clients={clientStats}
+          onUpdate={updateClient}
+          onDelete={deleteClient}
+        />
+      ) : period === "year" ? (
         <AnnualDashboard
           summary={annual}
           onSelectMonth={handleSelectMonthFromAnnual}
@@ -317,12 +332,21 @@ export default function App() {
           {(!isMobile || tab === "projecao") && (
             <ProjectionSection projecao={projecao} />
           )}
+
+          {/* Desktop mostra Clientes embedded no fim do flow */}
+          {!isMobile && clientStats.length > 0 && (
+            <ClientsView
+              clients={clientStats}
+              onUpdate={updateClient}
+              onDelete={deleteClient}
+            />
+          )}
         </>
       )}
 
-      {period === "month" && tab === "lancamentos" && !inlineAddVisible && (
-        <FAB onClick={handleAddSheet} />
-      )}
+      {period === "month" &&
+        tab === "lancamentos" &&
+        !inlineAddVisible && <FAB onClick={handleAddSheet} />}
       <BottomNav active={tab} onChange={setTab} />
 
       <Sheet
