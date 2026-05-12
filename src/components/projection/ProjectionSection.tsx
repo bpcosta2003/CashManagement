@@ -1,5 +1,6 @@
 import type { ProjecaoMes } from "../../types";
 import { fmtBRL } from "../../lib/calc";
+import { BrandMark } from "../layout/Brand";
 import styles from "./ProjectionSection.module.css";
 
 interface Props {
@@ -17,7 +18,14 @@ export function ProjectionSection({ projecao }: Props) {
       </h2>
       {projecao.length === 0 ? (
         <div className={styles.empty}>
-          Nenhuma parcela de crédito a receber nos próximos meses.
+          <div className={styles.emptyArt} aria-hidden="true">
+            <BrandMark size={56} />
+          </div>
+          <span className={styles.emptyTitle}>Nada pra receber ainda</span>
+          <p className={styles.emptyText}>
+            Quando você lançar pagamentos no crédito parcelado, as parcelas
+            futuras aparecem aqui distribuídas mês a mês.
+          </p>
         </div>
       ) : (
         <div className={styles.grid}>

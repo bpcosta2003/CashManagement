@@ -59,8 +59,15 @@ export function SummaryCards({
   const brutoFontSize = scaleFontSize(brutoStr, kpiBase, 15);
   const futuroFontSize = scaleFontSize(futuroStr, kpiBase, 15);
 
+  // key força remount + animação a cada mudança de mês/ano (slide fade)
+  const monthKey = `${mes}-${monthLabel}`;
+
   return (
-    <section className={styles.section} aria-label="Resumo do mês">
+    <section
+      key={monthKey}
+      className={styles.section}
+      aria-label="Resumo do mês"
+    >
       <div className={styles.hero}>
         <div className={styles.heroHead}>
           <span className={styles.heroEyebrow}>
