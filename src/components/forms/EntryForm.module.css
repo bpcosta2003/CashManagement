@@ -30,12 +30,33 @@
   gap: 6px;
 }
 
+.required {
+  color: var(--accent);
+  font-weight: 700;
+}
+
 .labelHint {
   font-size: var(--t-eyebrow);
   font-weight: 500;
   color: var(--champagne);
   text-transform: none;
   letter-spacing: 0.04em;
+}
+
+.inputError {
+  border-color: var(--negative) !important;
+  background: rgba(201, 107, 107, 0.04);
+}
+
+.inputError:focus {
+  box-shadow: 0 0 0 4px rgba(201, 107, 107, 0.18) !important;
+}
+
+.errorMsg {
+  font-size: var(--t-caption);
+  color: var(--negative);
+  font-weight: 500;
+  margin-top: 2px;
 }
 
 .input,

@@ -83,38 +83,20 @@
 .heroValue {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: var(--t-display);
   line-height: 0.95;
   letter-spacing: -0.04em;
   font-variant-numeric: tabular-nums;
   color: var(--hero-fg);
   display: block;
   margin-top: 4px;
-  word-break: break-all;
-  overflow-wrap: anywhere;
-}
-
-@media (max-width: 380px) {
-  .heroValue {
-    font-size: 44px;
-  }
+  /* font-size é setado via inline style (auto-shrink) */
 }
 
 .heroNeg {
   color: var(--negative);
 }
 
-@media (min-width: 1024px) {
-  .heroValue {
-    font-size: 64px;
-  }
-}
-
-@media (min-width: 1280px) {
-  .heroValue {
-    font-size: var(--t-display-lg);
-  }
-}
+/* heroValue: font-size dinâmico — inline style (auto-shrink via JS) */
 
 .heroFoot {
   display: flex;
@@ -198,16 +180,22 @@
 .kpiValue {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: var(--t-h2);
   letter-spacing: -0.025em;
   color: var(--text);
   font-variant-numeric: tabular-nums;
   line-height: 1.1;
   margin-top: 2px;
+  /* font-size dinâmico em runtime (auto-shrink), salvo na margem */
+  font-size: var(--t-h2);
+}
+
+/* Margem mantém tamanho fixo (sempre é percentual curto) */
+.kpiValueAccent {
+  font-size: var(--t-h2);
 }
 
 @media (min-width: 768px) {
-  .kpiValue {
+  .kpiValueAccent {
     font-size: 26px;
   }
 }

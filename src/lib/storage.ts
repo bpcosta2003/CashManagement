@@ -1,9 +1,17 @@
-import type { AppState } from "../types";
+import type { AppState, AppSettings, BusinessProfile } from "../types";
 
 const STORAGE_KEY = "controle-caixa:v1";
 const LAST_BACKUP_KEY = "controle-caixa:last-backup";
 const FIRST_USE_KEY = "controle-caixa:first-use-acked";
 const CURRENT_VERSION = 1;
+
+function defaultBusiness(): BusinessProfile {
+  return { name: "", type: "salao" };
+}
+
+function defaultSettings(): AppSettings {
+  return { autoBackupConsent: null };
+}
 
 export function loadState(): AppState | null {
   try {
@@ -28,16 +36,28 @@ export function saveState(state: AppState): void {
 }
 
 export function clearState(): void {
-  localStorage.removeItem(STORAGE_KEY);
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    /* ignore */
+  }
 }
 
 export function getStorageSize(): number {
-  const raw = localStorage.getItem(STORAGE_KEY) ?? "";
-  return Math.round((raw.length / 1024) * 10) / 10;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY) ?? "";
+    return Math.round((raw.length / 1024) * 10) / 10;
+  } catch {
+    return 0;
+  }
 }
 
 function migrate(state: AppState): AppState {
   if (!state.version) state.version = CURRENT_VERSION;
+  // Optional fields added later — fill defaults so the rest of the
+  // app doesn't have to deal with undefined.
+  if (!state.business) state.business = defaultBusiness();
+  if (!state.settings) state.settings = defaultSettings();
   return state;
 }
 
@@ -46,13 +66,14 @@ export function initialState(): AppState {
     version: CURRENT_VERSION,
     rows: [],
     lastModified: new Date().toISOString(),
+    business: defaultBusiness(),
+    settings: defaultSettings(),
   };
 }
 
 /* ────────────────────────────────────────────────────────────────────
  * Persistent storage: ask the browser to keep our data even under
- * disk pressure. PWAs installed on home screen typically get this
- * automatically; on regular tabs it depends on browser heuristics.
+ * disk pressure.
  * ──────────────────────────────────────────────────────────────────── */
 export async function requestPersistentStorage(): Promise<{
   supported: boolean;
@@ -81,9 +102,7 @@ export async function isStoragePersisted(): Promise<boolean> {
 }
 
 /* ────────────────────────────────────────────────────────────────────
- * Backup tracking — separate key so it survives a "reset all data"
- * (we want to know when the user *actually* exported, even after a
- * fresh import).
+ * Backup tracking.
  * ──────────────────────────────────────────────────────────────────── */
 export function getLastBackup(): string | null {
   try {
@@ -109,7 +128,9 @@ export function daysSince(iso: string | null): number | null {
 }
 
 /* ────────────────────────────────────────────────────────────────────
- * First-use onboarding flag.
+ * First-use onboarding flag (legado — mantido para usuários que já
+ * passaram pela versão antiga; novo onboarding usa o campo
+ * business.name no AppState).
  * ──────────────────────────────────────────────────────────────────── */
 export function getFirstUseAcked(): boolean {
   try {

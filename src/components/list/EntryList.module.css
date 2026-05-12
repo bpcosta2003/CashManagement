@@ -2,18 +2,18 @@
   width: 100%;
   max-width: var(--container-max);
   margin: 18px auto 0;
-  padding: 0 var(--container-pad-mobile);
+  padding: 0 var(--container-pad-mobile) 120px;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 721px) {
   .section {
-    padding: 0 var(--container-pad-tablet);
+    padding: 0 var(--container-pad-tablet) 32px;
   }
 }
 
 @media (min-width: 1024px) {
   .section {
-    padding: 0 var(--container-pad-desktop);
+    padding: 0 var(--container-pad-desktop) 32px;
   }
 }
 
@@ -112,35 +112,82 @@
 }
 
 .card {
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid var(--border-soft);
-  padding: 14px 18px;
   display: flex;
-  flex-direction: column;
-  gap: 6px;
-  text-align: left;
-  cursor: pointer;
-  width: 100%;
-  min-height: var(--hit);
+  align-items: stretch;
+  border-bottom: 1px solid var(--border-soft);
   transition: background 0.15s var(--ease);
-  font-family: inherit;
-  color: inherit;
+  position: relative;
 }
 
 .card:last-child {
   border-bottom: none;
 }
 
-.card:hover,
-.card:focus-visible {
+.card:hover {
   background: var(--surface-2);
+}
+
+.cardBody {
+  flex: 1;
+  background: transparent;
+  border: none;
+  padding: 14px 8px 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+  cursor: pointer;
+  min-height: var(--hit);
+  font-family: inherit;
+  color: inherit;
+  min-width: 0;
+}
+
+.cardBody:focus-visible {
+  outline: none;
+  background: var(--accent-soft);
+}
+
+.cardDelete {
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-pill);
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: auto 12px auto 4px;
+  color: var(--text-dim);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s var(--ease), color 0.15s var(--ease);
+}
+
+.cardDelete:hover,
+.cardDelete:focus-visible {
+  background: rgba(201, 107, 107, 0.12);
+  color: var(--negative);
   outline: none;
 }
 
+.cardDelete:active {
+  transform: scale(0.94);
+}
+
 @media (min-width: 768px) {
-  .card {
-    padding: 14px 22px;
+  .cardBody {
+    padding: 14px 8px 14px 22px;
+  }
+  .cardDelete {
+    margin-right: 14px;
+    opacity: 0;
+    transition: opacity 0.15s var(--ease), background 0.15s var(--ease),
+      color 0.15s var(--ease);
+  }
+  .card:hover .cardDelete,
+  .card:focus-within .cardDelete {
+    opacity: 1;
   }
 }
 

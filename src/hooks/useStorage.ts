@@ -1,25 +1,29 @@
 import { useCallback, useEffect, useState } from "react";
-import type { AppState, Row } from "../types";
+import type {
+  AppSettings,
+  AppState,
+  BusinessProfile,
+  Row,
+} from "../types";
 import { autoTaxa, uid } from "../lib/calc";
 import { initialState, loadState, saveState } from "../lib/storage";
 
 export function useStorage() {
-  const [state, setState] = useState<AppState>(() => loadState() ?? initialState());
+  const [state, setState] = useState<AppState>(
+    () => loadState() ?? initialState(),
+  );
 
   useEffect(() => {
     saveState(state);
   }, [state]);
 
   /** Internal: any mutation bumps lastModified so sync can see freshness. */
-  const mutate = useCallback(
-    (apply: (prev: AppState) => AppState) => {
-      setState((prev) => {
-        const next = apply(prev);
-        return { ...next, lastModified: new Date().toISOString() };
-      });
-    },
-    [],
-  );
+  const mutate = useCallback((apply: (prev: AppState) => AppState) => {
+    setState((prev) => {
+      const next = apply(prev);
+      return { ...next, lastModified: new Date().toISOString() };
+    });
+  }, []);
 
   const setRows = useCallback(
     (updater: (rows: Row[]) => Row[]) => {
@@ -49,6 +53,14 @@ export function useStorage() {
       };
       setRows((rows) => [...rows, newRow]);
       return id;
+    },
+    [setRows],
+  );
+
+  /** Commit a fully-formed row (used when EntryForm finishes creating). */
+  const commitRow = useCallback(
+    (row: Row) => {
+      setRows((rows) => [...rows, row]);
     },
     [setRows],
   );
@@ -98,6 +110,27 @@ export function useStorage() {
     [setRows],
   );
 
+  const setBusiness = useCallback(
+    (business: BusinessProfile) => {
+      mutate((prev) => ({ ...prev, business }));
+    },
+    [mutate],
+  );
+
+  const setSettings = useCallback(
+    (update: Partial<AppSettings>) => {
+      mutate((prev) => ({
+        ...prev,
+        settings: {
+          autoBackupConsent: null,
+          ...prev.settings,
+          ...update,
+        },
+      }));
+    },
+    [mutate],
+  );
+
   /** Used by the sync layer: replace the whole document, preserving the
    *  remote `lastModified` so the next push doesn't bounce-back. */
   const replaceState = useCallback((next: AppState) => {
@@ -108,10 +141,13 @@ export function useStorage() {
     state,
     setRows,
     addRow,
+    commitRow,
     updateRow,
     deleteRow,
     replaceAllRows,
     mergeRows,
+    setBusiness,
+    setSettings,
     replaceState,
   };
 }

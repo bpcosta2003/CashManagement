@@ -3,6 +3,7 @@ import { Brand } from "./Brand";
 import styles from "./Header.module.css";
 
 interface Props {
+  businessName?: string;
   onOpenBackup: () => void;
   onToggleTaxBar: () => void;
   /** Slot opcional à direita (ex.: SyncStatus, ThemeToggle). */
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export function Header({
+  businessName,
   onOpenBackup,
   onToggleTaxBar,
   extraActions,
@@ -18,7 +20,7 @@ export function Header({
     <header className={styles.header}>
       <div className={styles.inner}>
         <div className={styles.brandWrap}>
-          <Brand size="sm" />
+          <Brand size="sm" businessName={businessName} />
         </div>
         <div className={styles.actions}>
           {extraActions}

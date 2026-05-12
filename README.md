@@ -1,6 +1,6 @@
-# Controle de Caixa 💈
+# Cash Management 💼
 
-> Gestão financeira pensada para salões de beleza — rápido no celular, completo no desktop, seus dados sempre com você.
+> Controle financeiro premium pro seu negócio — rápido no celular, completo no desktop, seus dados sempre com você.
 
 **App em produção:** https://cash-management-seven.vercel.app
 
@@ -8,60 +8,55 @@
 
 ## O que é
 
-**Controle de Caixa** é uma aplicação web progressiva (PWA) para registro e análise dos lançamentos financeiros de um salão de beleza. Substitui planilhas manuais por uma interface moderna e responsiva que funciona offline e sincroniza automaticamente entre dispositivos.
+**Cash Management** é uma aplicação web progressiva (PWA) para registro e análise dos lançamentos financeiros do dia-a-dia de qualquer empreendimento — salão de beleza, restaurante, comércio, prestador de serviços, freelancer. Substitui planilhas manuais por uma interface moderna e responsiva que funciona offline e sincroniza entre dispositivos.
 
-Cada lançamento registra cliente, serviço, valor, forma de pagamento, parcelas, taxa da maquininha, custo extra, desconto e status de pagamento. O app calcula automaticamente o valor líquido, a margem real e projeta os recebimentos futuros das parcelas de crédito mês a mês.
+Cada lançamento registra cliente, serviço, valor, forma de pagamento, parcelas, taxa da maquininha, custo extra, desconto e status. O app calcula valor líquido, margem real e projeta os recebimentos futuros mês a mês.
 
 ---
 
 ## Funcionalidades
 
-### Lançamentos financeiros
+### Onboarding personalizado
+- Na primeira vez, pede o nome do empreendimento e o tipo (salão, restaurante, comércio, serviços, freelancer, outro)
+- Brand do header passa a exibir o nome do empreendimento abaixo de "Cash Management"
 
-- Campos: **cliente**, **serviço**, **valor bruto**, **forma de pagamento** (Dinheiro, Pix, Débito, Crédito), **parcelas**, **taxa %**, **custo extra**, **desconto** e **status** (Pago / Pendente)
-- Taxa da maquininha preenchida automaticamente conforme a forma e o número de parcelas:
-  - Dinheiro / Pix → 0%
-  - Débito → 1,5%
-  - Crédito à vista → 2,9%
-  - Crédito 2–6x → 3,9%
-  - Crédito 7x+ → 4,9%
-- Cálculo automático por lançamento:
-  - **Valor efetivo** = Bruto − Desconto
-  - **Taxa R$** = Valor efetivo × Taxa %
-  - **Líquido** = Valor efetivo − Taxa − Custo
-  - **Margem %** = Líquido / Bruto
-- Edição inline na tabela desktop ou via painel deslizante no celular
-- Navegação por mês/ano com seletor no cabeçalho
+### Lançamentos financeiros
+- Campos: **cliente** (obrigatório), serviço, **valor** (obrigatório), forma de pagamento (Dinheiro / Pix / Débito / Crédito), parcelas, taxa, custo extra, desconto e status (Pago / Pendente)
+- Taxa da maquininha preenchida automaticamente (Pix/Dinheiro = 0%, Débito = 1,5%, Crédito 1x = 2,9%, 2-6x = 3,9%, 7+x = 4,9%)
+- Cálculo automático de valor efetivo, taxa em R$, líquido e margem por lançamento
+- Validação inline — não permite salvar lançamento sem cliente e valor > 0
+- Clique no card abre a edição; ícone de lixeira direto no card para remover rápido
 
 ### Painel de resumo
+- **Hero card escuro** com lucro líquido do mês em destaque
+- Comparação com mês anterior (↑/↓ X,X%) quando há base de dados
+- KPIs Bruto, A receber, Margem em cards limpos
+- Auto-shrink dos valores muito longos pra nunca ultrapassar o card
 
-- Cards de totais do mês: **Bruto**, **Descontos**, **Taxas**, **Custos** e **Líquido**
-- Breakdown por forma de pagamento com valor e percentual de cada meio
-- Indicador de recebíveis futuros (parcelas de crédito que ainda não caíram)
+### Tendência + Composição
+- Sparkline dos últimos 6 meses de lucro líquido
+- Barra de distribuição por forma de pagamento (Dinheiro/Pix/Débito/Crédito)
+- Legenda com percentual de cada forma
 
 ### Projeção de recebimentos
+- Parcelas futuras de cartão distribuídas mês a mês
+- Total bruto e líquido projetado por mês
+- Detalhamento por cliente/serviço
 
-- Painel dedicado que distribui as parcelas de crédito nos meses futuros corretos
-- Visualização mês a mês com total bruto e líquido projetado
-- Detalhamento por cliente/serviço dentro de cada mês projetado
-
-### Interface adaptativa
+### Interface adaptativa premium
 
 | Desktop | Mobile |
 |---|---|
-| Tabela completa com edição inline | Cards compactos por lançamento |
-| Todas as colunas visíveis | Informações essenciais em destaque |
-| Atalhos de teclado no formulário | FAB (+) para novo lançamento |
-| — | Navegação por abas (Lançamentos / Projeção / Backup) |
+| Cards em layout largo, hover refinado | Cards otimizados pra toque |
+| Header com brand + ações inline | Header compacto |
+| Modais centralizados | Modais centralizados (não drawer) |
+| FAB ausente (botão "Novo" inline) | FAB inteligente — aparece só quando o botão "Novo" sai da tela |
 
 ### Backup e importação Excel
-
-- Exportação dos dados para **arquivo `.xlsx`** com formatação monetária brasileira
-- Importação de planilha Excel com dois modos:
-  - **Mesclar**: mantém dados existentes e adiciona os importados
-  - **Substituir**: substitui tudo pelos dados da planilha
-- **Lembrete automático de backup**: banner amarelo após 7 dias sem backup, vermelho após 14 dias
-- **Auto-backup silencioso**: exporta automaticamente ao abrir o app quando passaram mais de 14 dias (uma vez por sessão)
+- Exportação `.xlsx` em 3 abas: Lançamentos, Resumo Mensal, Projeção Futura
+- Importação com modo **mesclar** ou **substituir**
+- **Lembrete inteligente**: banner amarelo após 7 dias, vermelho urgente após 14
+- **Auto-backup opt-in**: na primeira vez que o lembrete dispara, o app pergunta se você quer backup automático a cada 14 dias. Sem o seu "sim", nunca baixa nada sozinho.
 
 ### Armazenamento e sincronização
 
@@ -71,21 +66,25 @@ Cada lançamento registra cliente, serviço, valor, forma de pagamento, parcelas
 | **Persistência protegida** | `navigator.storage.persist()` — pede ao browser para não apagar os dados em situações de disco cheio |
 | **Nuvem (opcional)** | Supabase — sincronização automática entre dispositivos, último-a-escrever-vence |
 
-**Fluxo de sincronização na nuvem:**
-
-1. Login com **magic link** (e-mail, sem senha)
-2. Pull automático ao entrar — puxa o estado mais recente do servidor
-3. Push debounced (3 segundos após qualquer alteração)
-4. Reconciliação online/offline — detecta perda de rede e sincroniza ao reconectar
-5. Pill de status no cabeçalho: `Sincronizado ✓` / `Sincronizando…` / `Offline` / `Erro`
+**Fluxo de sincronização:**
+1. Login com **magic link** (e-mail, sem senha) — em português
+2. Pull automático ao entrar
+3. Push debounced (3 segundos) após qualquer alteração
+4. Reconciliação online/offline ao reconectar
+5. Pill de status no header: `Sincronizado ✓` / `Sincronizando…` / `Offline` / `Erro`
 
 ### PWA — instalável como app nativo
-
 - Funciona **completamente offline** após o primeiro acesso
-- Instalável via banner nativo no Android/Chrome e "Adicionar à Tela Inicial" no iOS/Safari
-- Ícones 192×512 px, tema escuro no splash, orientação portrait-primary
-- Service Worker com Workbox pré-cacheando JS, CSS, HTML, fontes e imagens
-- Atualização automática em background (`autoUpdate`) sem intervenção do usuário
+- Instalável no Android/Chrome (banner nativo) e iOS/Safari ("Adicionar à Tela Inicial")
+- Tema claro + dark mode com toggle no header (preferência salva)
+- Service Worker com Workbox + atualização automática
+
+### Acessibilidade e qualidade
+- ErrorBoundary com fallback útil (botão "Limpar cache e recarregar")
+- Mensagens de erro do Supabase traduzidas para PT-BR
+- Contraste AA em todos os textos
+- Focus ring visível em todos os elementos interativos
+- Microinterações 150-250ms com `cubic-bezier(0.4, 0, 0.2, 1)`
 
 ---
 
@@ -96,81 +95,24 @@ Cada lançamento registra cliente, serviço, valor, forma de pagamento, parcelas
 | Framework | React 18 + TypeScript |
 | Build | Vite 5 |
 | Estilos | CSS Modules + variáveis CSS (design tokens) |
+| Tipografia | Inter (display + sans) + JetBrains Mono |
 | PWA | vite-plugin-pwa + Workbox |
 | Backend / Auth | Supabase (PostgreSQL + RLS + Magic Link) |
-| Excel | SheetJS (xlsx) — carregado dinamicamente (lazy) |
+| Excel | SheetJS (xlsx) — lazy-loaded sob demanda |
 | Deploy | Vercel |
 
-### Arquitetura de chunks
-
-O build separa o código em chunks paralelos para carregamento otimizado:
-
-```
-app code        ~51 KB  (16 KB gzipped)   — carrega primeiro
-react           ~45 KB  (14 KB gzipped)   — paralelo
-supabase       ~207 KB  (53 KB gzipped)   — paralelo, só se configurado
-excel          ~428 KB  (lazy)            — carregado só ao abrir o painel de backup
-```
-
 ### Banco de dados (Supabase)
-
-Tabela única `cash_state` — um documento JSON por usuário:
 
 ```sql
 create table public.cash_state (
   user_id       uuid primary key references auth.users(id) on delete cascade,
   state         jsonb not null,         -- AppState completo serializado
-  last_modified timestamptz not null,   -- timestamp do cliente (controla last-write-wins)
-  updated_at    timestamptz not null    -- atualizado automaticamente por trigger
+  last_modified timestamptz not null,
+  updated_at    timestamptz not null
 );
 ```
 
-Row-Level Security garante que cada usuário acessa **apenas seus próprios dados** — 4 políticas (select / insert / update / delete) usando `auth.uid() = user_id`.
-
----
-
-## Estrutura do projeto
-
-```
-├── src/
-│   ├── components/
-│   │   ├── auth/          # LoginPanel, SyncStatus
-│   │   ├── backup/        # BackupPanel (export/import Excel)
-│   │   ├── feedback/      # BackupReminder, Toaster
-│   │   ├── forms/         # EntryForm, Sheet (painel deslizante)
-│   │   ├── layout/        # Header, BottomNav, TaxBar, InstallBanner
-│   │   ├── mobile/        # MobileCard, MobileCardList, FAB
-│   │   ├── onboarding/    # FirstUseModal
-│   │   ├── projection/    # ProjectionSection
-│   │   ├── summary/       # SummaryCards, PaymentBreakdown
-│   │   └── table/         # DesktopTable, TotalsRow
-│   ├── hooks/
-│   │   ├── useAuth.ts     # Estado de autenticação Supabase
-│   │   ├── useBreakpoint.ts
-│   │   ├── useCalc.ts     # Derivações: summary, breakdown, projeção
-│   │   ├── useStorage.ts  # Estado principal + persistência local
-│   │   └── useSync.ts     # Orquestração pull/push com debounce
-│   ├── lib/
-│   │   ├── calc.ts        # Funções puras de cálculo financeiro
-│   │   ├── excel.ts       # Export/import via SheetJS
-│   │   ├── storage.ts     # localStorage + persistent storage + backup helpers
-│   │   ├── supabase.ts    # Singleton do cliente Supabase
-│   │   └── sync.ts        # pullState / pushState (last-write-wins)
-│   ├── styles/
-│   │   ├── global.css
-│   │   └── tokens.css     # Design tokens (cores, espaçamentos, tipografia)
-│   ├── types.ts
-│   ├── constants.ts
-│   └── App.tsx
-├── supabase/
-│   └── schema.sql         # Schema completo — aplique no Supabase Dashboard
-├── scripts/
-│   └── deploy.sh          # Deploy idempotente para o Vercel
-├── public/                # Ícones PWA, favicon
-├── vercel.json            # SPA rewrite + cache headers
-├── vite.config.ts
-└── DEPLOY.md              # Guia passo-a-passo de deploy
-```
+Row-Level Security garante que cada usuário acessa apenas seus próprios dados.
 
 ---
 
@@ -179,27 +121,18 @@ Row-Level Security garante que cada usuário acessa **apenas seus próprios dado
 **Pré-requisito:** Node.js 18+
 
 ```bash
-# 1. Clone o repositório
 git clone https://github.com/bpcosta2003/CashManagement.git
 cd CashManagement
-
-# 2. Instale as dependências
 npm install
 
-# 3. Configure as variáveis de ambiente
 cp .env.local.example .env.local
-# Edite .env.local com as credenciais do seu projeto Supabase:
-#   VITE_SUPABASE_URL=https://seu-projeto.supabase.co
-#   VITE_SUPABASE_ANON_KEY=eyJ...
+# Edite com VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY
 
-# 4. Inicie o servidor de desenvolvimento
 npm run dev
 # → http://localhost:5173
 ```
 
-> O app funciona sem Supabase configurado — nesse modo opera 100% offline com localStorage.
-
-### Comandos disponíveis
+### Comandos
 
 | Comando | Descrição |
 |---|---|
@@ -212,22 +145,21 @@ npm run dev
 
 ## Deploy
 
-Veja o guia completo em [`DEPLOY.md`](./DEPLOY.md). Resumo:
+Veja [`DEPLOY.md`](./DEPLOY.md). Em resumo:
 
-1. Aplique `supabase/schema.sql` no SQL Editor do Supabase Dashboard
-2. Configure Auth → desative "Enable email confirmations", adicione as Redirect URLs
-3. Execute `bash scripts/deploy.sh` com `VERCEL_TOKEN` definido
-
-O script é idempotente — pode rodar várias vezes e vai atualizar as env vars sem duplicar.
+1. Aplique `supabase/schema.sql` no SQL Editor do Supabase
+2. Configure Auth → desative "Enable email confirmations", adicione Redirect URLs
+3. **(Opcional)** Cole [`docs/email-template-magic-link.html`](./docs/email-template-magic-link.html) em Auth → Email Templates → Magic Link → Message (HTML) — template premium com a identidade visual do Cash Management
+4. Execute `bash scripts/deploy.sh` com `VERCEL_TOKEN` definido
 
 ---
 
 ## Segurança
 
-- **Anon key pública por design**: exposta no bundle JS, segura porque a proteção real vem das políticas RLS do PostgreSQL
-- **Sem senhas**: autenticação exclusivamente via magic link (OTP por e-mail)
-- **Isolamento total por usuário**: RLS impede qualquer acesso cruzado entre contas
-- **`.env.local` ignorado pelo git**: credenciais nunca entram no repositório
+- **Anon key pública por design** — segurança vem do RLS no banco
+- **Sem senhas** — autenticação só via magic link OTP
+- **Isolamento total por usuário** — políticas RLS impedem qualquer cross-access
+- **`.env.local` no .gitignore** — credenciais nunca entram no repo
 
 ---
 

@@ -1,6 +1,7 @@
 import type { Summary } from "../../types";
 import { fmtBRL, fmtPct } from "../../lib/calc";
 import { MESES_SHORT } from "../../constants";
+import { useBreakpoint } from "../../hooks/useBreakpoint";
 import styles from "./SummaryCards.module.css";
 
 interface Props {
@@ -10,6 +11,20 @@ interface Props {
   prevMonthLabel: string;
 }
 
+/**
+ * Calcula um font-size que cabe melhor em um card, dada a quantidade de
+ * caracteres do valor formatado. Não substitui o CSS — refina números
+ * muito longos (ex.: R$ 1.234.567,89).
+ */
+function scaleFontSize(text: string, baseSize: number, minSize: number) {
+  const len = text.length;
+  // Tolerância de ~10 chars como "R$ 12.345,67". Acima disso, encolhe.
+  const threshold = 11;
+  if (len <= threshold) return baseSize;
+  const ratio = Math.max(0.45, threshold / len);
+  return Math.max(minSize, Math.round(baseSize * ratio));
+}
+
 export function SummaryCards({
   summary,
   mes,
@@ -17,8 +32,13 @@ export function SummaryCards({
   prevMonthLabel,
 }: Props) {
   const { bruto, descontos, taxas, custos, liq, margem, futuro } = summary;
+  const { isMobile } = useBreakpoint();
   const liqPositive = liq >= 0;
   const monthLabel = MESES_SHORT[mes];
+
+  const liqStr = fmtBRL(liq);
+  const brutoStr = fmtBRL(bruto);
+  const futuroStr = fmtBRL(futuro);
 
   const hasCurrentData = bruto > 0;
   const deltaUp = liqDelta !== null && liqDelta >= 0;
@@ -30,9 +50,17 @@ export function SummaryCards({
         ? `Primeiro mês com dados`
         : `Nenhum lançamento ainda`;
 
+  // Auto-scale dinâmico do valor herói para evitar overflow em valores
+  // muito grandes (ex.: R$ 1.234.567,89). Base diferente para mobile/desktop.
+  const heroBase = isMobile ? 48 : 72;
+  const heroMin = isMobile ? 28 : 40;
+  const heroFontSize = scaleFontSize(liqStr, heroBase, heroMin);
+  const kpiBase = isMobile ? 22 : 24;
+  const brutoFontSize = scaleFontSize(brutoStr, kpiBase, 15);
+  const futuroFontSize = scaleFontSize(futuroStr, kpiBase, 15);
+
   return (
     <section className={styles.section} aria-label="Resumo do mês">
-      {/* HERO — dark card */}
       <div className={styles.hero}>
         <div className={styles.heroHead}>
           <span className={styles.heroEyebrow}>
@@ -42,8 +70,10 @@ export function SummaryCards({
         </div>
         <span
           className={`${styles.heroValue} ${liqPositive ? "" : styles.heroNeg}`}
+          style={{ fontSize: `${heroFontSize}px` }}
+          title={liqStr}
         >
-          {fmtBRL(liq)}
+          {liqStr}
         </span>
         <div className={styles.heroFoot}>
           <span
@@ -60,17 +90,28 @@ export function SummaryCards({
         </div>
       </div>
 
-      {/* GRID 3 KPIs */}
       <div className={styles.grid}>
         <article className={styles.kpi}>
           <span className={styles.kpiLabel}>Bruto</span>
-          <span className={styles.kpiValue}>{fmtBRL(bruto)}</span>
+          <span
+            className={styles.kpiValue}
+            style={{ fontSize: `${brutoFontSize}px` }}
+            title={brutoStr}
+          >
+            {brutoStr}
+          </span>
           <span className={styles.kpiSub}>Descontos {fmtBRL(descontos)}</span>
         </article>
 
         <article className={styles.kpi}>
           <span className={styles.kpiLabel}>A receber</span>
-          <span className={styles.kpiValue}>{fmtBRL(futuro)}</span>
+          <span
+            className={styles.kpiValue}
+            style={{ fontSize: `${futuroFontSize}px` }}
+            title={futuroStr}
+          >
+            {futuroStr}
+          </span>
           <span className={styles.kpiSub}>parcelas futuras</span>
         </article>
 
