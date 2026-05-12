@@ -1,0 +1,158 @@
+.wrap {
+  width: 100%;
+}
+
+.shell {
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.eyebrow {
+  font-size: var(--t-eyebrow);
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+}
+
+.hint {
+  font-size: var(--t-caption);
+  color: var(--text-dim);
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 14px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.item {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  padding-left: 22px;
+}
+
+.item::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--border-soft);
+}
+
+.item:first-child::before {
+  top: 14px;
+}
+
+.item:last-child::before {
+  bottom: calc(100% - 14px);
+}
+
+.dot {
+  position: absolute;
+  left: 0;
+  top: 14px;
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  border: 2px solid var(--surface);
+  box-shadow: 0 0 0 1px var(--border);
+  z-index: 1;
+}
+
+.body {
+  flex: 1;
+  appearance: none;
+  background: transparent;
+  border: none;
+  text-align: left;
+  padding: 8px 0 12px;
+  cursor: pointer;
+  font-family: inherit;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: opacity 0.15s var(--ease);
+  min-width: 0;
+}
+
+.body:hover {
+  opacity: 0.72;
+}
+
+.itemHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.monthLabel {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--t-body-lg);
+  color: var(--text);
+  letter-spacing: -0.02em;
+  text-transform: capitalize;
+}
+
+.monthTotal {
+  font-family: var(--font-mono);
+  font-size: var(--t-meta);
+  color: var(--accent);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.events {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.event {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: var(--t-caption);
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.eventIcon {
+  font-size: 14px;
+  line-height: 1.4;
+  flex-shrink: 0;
+}
+
+.eventText {
+  flex: 1;
+  min-width: 0;
+}
+
+.eventText strong {
+  color: var(--text);
+  font-weight: 600;
+}

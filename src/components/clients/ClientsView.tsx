@@ -7,6 +7,11 @@ import { Sheet } from "../forms/Sheet";
 import { ClientForm } from "./ClientForm";
 import styles from "./ClientsView.module.css";
 
+interface EditingState {
+  client: Client;
+  stats: ClientStats;
+}
+
 interface Props {
   clients: ClientStats[];
   onUpdate: (id: string, patch: Partial<Pick<Client, "name" | "phone">>) => void;
@@ -30,7 +35,7 @@ function formatRelativeDate(iso: string | null): string {
 
 export function ClientsView({ clients, onUpdate, onDelete }: Props) {
   const [query, setQuery] = useState("");
-  const [editing, setEditing] = useState<Client | null>(null);
+  const [editing, setEditing] = useState<EditingState | null>(null);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -112,12 +117,14 @@ export function ClientsView({ clients, onUpdate, onDelete }: Props) {
           </div>
         ) : (
           <ul className={styles.list}>
-            {filtered.map(({ client, ltv, count, lastEntryAt }) => (
+            {filtered.map((stats) => {
+              const { client, ltv, count, lastEntryAt } = stats;
+              return (
               <li key={client.id} className={styles.item}>
                 <button
                   type="button"
                   className={styles.itemBody}
-                  onClick={() => setEditing(client)}
+                  onClick={() => setEditing({ client, stats })}
                   aria-label={`Editar ${client.name}`}
                 >
                   <div className={styles.itemMain}>
@@ -175,21 +182,26 @@ export function ClientsView({ clients, onUpdate, onDelete }: Props) {
                   </svg>
                 </button>
               </li>
-            ))}
+              );
+            })}
           </ul>
         )}
       </div>
 
       <Sheet
         open={!!editing}
-        title={editing ? `Editar — ${editing.name}` : "Editar cliente"}
+        title={editing ? `Editar — ${editing.client.name}` : "Editar cliente"}
         onClose={() => setEditing(null)}
       >
         {editing && (
           <ClientForm
-            initial={editing}
+            initial={editing.client}
+            ltv={editing.stats.ltv}
+            ticketMedio={editing.stats.ticketMedio}
+            count={editing.stats.count}
+            recentEntries={editing.stats.recentEntries}
             onSave={(patch) => {
-              onUpdate(editing.id, patch);
+              onUpdate(editing.client.id, patch);
               setEditing(null);
             }}
             onCancel={() => setEditing(null)}

@@ -1,11 +1,14 @@
 import { FORMAS_PAGAMENTO } from "../../constants";
 import { fmtBRL, fmtPct } from "../../lib/calc";
 import type { AnnualSummary } from "../../hooks/useAnnual";
+import type { MonthActivity } from "../../hooks/useActivity";
+import { ActivityTimeline } from "./ActivityTimeline";
 import { BrandMark } from "../layout/Brand";
 import styles from "./AnnualDashboard.module.css";
 
 interface Props {
   summary: AnnualSummary;
+  activity: MonthActivity[];
   /** Click em um mês — chama com o número do mês (0-11) e ano. */
   onSelectMonth: (mes: number, ano: number) => void;
 }
@@ -25,9 +28,17 @@ function scaleFontSize(text: string, baseSize: number, minSize: number) {
   return Math.max(minSize, Math.round(baseSize * ratio));
 }
 
-export function AnnualDashboard({ summary, onSelectMonth }: Props) {
-  const { year, total, monthly, paymentBreakdown, best, worst, liqDelta } =
-    summary;
+export function AnnualDashboard({ summary, activity, onSelectMonth }: Props) {
+  const {
+    year,
+    total,
+    monthly,
+    paymentBreakdown,
+    best,
+    worst,
+    liqDelta,
+    topServicos,
+  } = summary;
 
   const hasAnyData = total.count > 0;
   const liqStr = fmtBRL(total.liq);
@@ -223,6 +234,45 @@ export function AnnualDashboard({ summary, onSelectMonth }: Props) {
           </div>
         </div>
       </div>
+
+      {/* Atividade do ano (timeline) */}
+      <ActivityTimeline activity={activity} onSelectMonth={onSelectMonth} />
+
+      {/* Top serviços */}
+      {topServicos.length > 0 && (
+        <div className={styles.servicosWrap}>
+          <div className={styles.servicosShell}>
+            <header className={styles.servicosHead}>
+              <span className={styles.servicosEyebrow}>
+                Top serviços do ano
+              </span>
+              <span className={styles.servicosHint}>
+                {topServicos.length} de {topServicos.length}
+              </span>
+            </header>
+            <ol className={styles.servicosList}>
+              {topServicos.map((s, idx) => {
+                const pct = total.bruto > 0 ? (s.bruto / total.bruto) * 100 : 0;
+                return (
+                  <li key={s.name} className={styles.servicoItem}>
+                    <span className={styles.servicoRank}>{idx + 1}</span>
+                    <div className={styles.servicoMain}>
+                      <span className={styles.servicoName}>{s.name}</span>
+                      <span className={styles.servicoMeta}>
+                        {s.count} atendimento{s.count === 1 ? "" : "s"}
+                        {pct > 0 ? ` · ${fmtPct(pct, 0)} do bruto` : ""}
+                      </span>
+                    </div>
+                    <span className={styles.servicoValue}>
+                      {fmtBRL(s.bruto)}
+                    </span>
+                  </li>
+                );
+              })}
+            </ol>
+          </div>
+        </div>
+      )}
 
       {/* Composição anual */}
       {totalCompo > 0 && (

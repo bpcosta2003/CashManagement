@@ -63,6 +63,8 @@ export interface AppSettings {
   /** "yes" / "no" — consent for automatic Excel backups every 14 days.
    *  null = not asked yet. */
   autoBackupConsent: "yes" | "no" | null;
+  /** Lembrete diário ativado — checa ao abrir o app. */
+  dailyReminder?: boolean;
 }
 
 export interface AppState {

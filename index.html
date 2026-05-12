@@ -18,16 +18,23 @@
     />
     <title>Controle de Caixa — registro e análise financeira do seu negócio</title>
     <script>
-      // Apply theme before first paint to avoid FOUC.
-      // Default to light; only respect saved preference (no auto-dark).
+      // Apply theme + accent before first paint to avoid FOUC.
       (function () {
+        var ALLOWED_ACCENTS = ["bordo", "esmeralda", "indigo", "terracota", "ouro"];
+        var root = document.documentElement;
         try {
           var t = localStorage.getItem("controle-caixa:theme");
           if (t !== "light" && t !== "dark") t = "light";
-          document.documentElement.setAttribute("data-theme", t);
+          root.setAttribute("data-theme", t);
         } catch (e) {
-          document.documentElement.setAttribute("data-theme", "light");
+          root.setAttribute("data-theme", "light");
         }
+        try {
+          var a = localStorage.getItem("controle-caixa:accent");
+          if (a && ALLOWED_ACCENTS.indexOf(a) !== -1 && a !== "bordo") {
+            root.setAttribute("data-accent", a);
+          }
+        } catch (e) {}
       })();
     </script>
   </head>
