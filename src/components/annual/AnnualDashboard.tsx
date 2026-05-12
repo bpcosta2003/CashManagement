@@ -1,11 +1,14 @@
 import { FORMAS_PAGAMENTO } from "../../constants";
 import { fmtBRL, fmtPct } from "../../lib/calc";
 import type { AnnualSummary } from "../../hooks/useAnnual";
+import type { MonthActivity } from "../../hooks/useActivity";
+import { ActivityTimeline } from "./ActivityTimeline";
 import { BrandMark } from "../layout/Brand";
 import styles from "./AnnualDashboard.module.css";
 
 interface Props {
   summary: AnnualSummary;
+  activity: MonthActivity[];
   /** Click em um mês — chama com o número do mês (0-11) e ano. */
   onSelectMonth: (mes: number, ano: number) => void;
 }
@@ -25,7 +28,7 @@ function scaleFontSize(text: string, baseSize: number, minSize: number) {
   return Math.max(minSize, Math.round(baseSize * ratio));
 }
 
-export function AnnualDashboard({ summary, onSelectMonth }: Props) {
+export function AnnualDashboard({ summary, activity, onSelectMonth }: Props) {
   const {
     year,
     total,
@@ -231,6 +234,9 @@ export function AnnualDashboard({ summary, onSelectMonth }: Props) {
           </div>
         </div>
       </div>
+
+      {/* Atividade do ano (timeline) */}
+      <ActivityTimeline activity={activity} onSelectMonth={onSelectMonth} />
 
       {/* Top serviços */}
       {topServicos.length > 0 && (

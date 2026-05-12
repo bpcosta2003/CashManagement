@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useStorage } from "./hooks/useStorage";
 import { useCalc } from "./hooks/useCalc";
 import { useAnnual } from "./hooks/useAnnual";
+import { useActivity } from "./hooks/useActivity";
 import { useClients } from "./hooks/useClients";
 import { useBreakpoint } from "./hooks/useBreakpoint";
 import { useAuth } from "./hooks/useAuth";
@@ -135,6 +136,7 @@ export default function App() {
   } = useCalc(state.rows, mes, ano, activeBusinessId);
 
   const annual = useAnnual(state.rows, ano, activeBusinessId);
+  const activity = useActivity(state.rows, state.clients, ano, activeBusinessId);
   const clientStats = useClients(state.clients, state.rows, activeBusinessId);
 
   // Sugestões de serviço pro autocomplete do EntryForm — únicos do
@@ -353,6 +355,7 @@ export default function App() {
       ) : period === "year" ? (
         <AnnualDashboard
           summary={annual}
+          activity={activity}
           onSelectMonth={handleSelectMonthFromAnnual}
         />
       ) : (
