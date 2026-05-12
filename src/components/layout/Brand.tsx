@@ -38,20 +38,27 @@ export function BrandMark({ size = 34 }: MarkProps) {
 }
 
 interface BrandProps {
-  tagline?: string;
+  /** Nome do empreendimento exibido no subtítulo. */
+  businessName?: string;
   size?: "sm" | "md";
 }
 
-export function Brand({ tagline = "SALÃO · PRO", size = "sm" }: BrandProps) {
+export function Brand({ businessName, size = "sm" }: BrandProps) {
   const markSize = size === "md" ? 42 : 34;
+  const subtitle = businessName?.trim() || "Configure seu negócio";
+
   return (
     <div className={styles.brand} data-size={size}>
       <BrandMark size={markSize} />
       <div className={styles.text}>
-        <span className={styles.name}>
-          Caixa<span className={styles.dot}>.</span>
+        <span className={styles.name}>Cash Management</span>
+        <span
+          className={styles.tag}
+          title={subtitle}
+          data-empty={!businessName?.trim()}
+        >
+          {subtitle}
         </span>
-        <span className={styles.tag}>{tagline}</span>
       </div>
     </div>
   );

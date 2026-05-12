@@ -24,20 +24,43 @@ import { BackupReminder } from "./components/feedback/BackupReminder";
 import { FirstUseModal } from "./components/onboarding/FirstUseModal";
 import { LoginPanel } from "./components/auth/LoginPanel";
 import { SyncStatus } from "./components/auth/SyncStatus";
-import {
-  getFirstUseAcked,
-  requestPersistentStorage,
-} from "./lib/storage";
-import type { Row } from "./types";
+import { requestPersistentStorage } from "./lib/storage";
+import { uid } from "./lib/calc";
+import type { BusinessProfile, Row } from "./types";
+
+type SheetMode =
+  | { kind: "create"; draft: Row }
+  | { kind: "edit"; id: string }
+  | null;
+
+function makeBlankRow(mes: number, ano: number): Row {
+  return {
+    id: uid(),
+    cliente: "",
+    servico: "",
+    valor: "",
+    forma: "Pix",
+    parc: 1,
+    taxa: 0,
+    custo: "",
+    desconto: "",
+    status: "Pago",
+    mes,
+    ano,
+    criadoEm: new Date().toISOString(),
+  };
+}
 
 export default function App() {
   const {
     state,
-    addRow,
+    commitRow,
     updateRow,
     deleteRow,
     replaceAllRows,
     mergeRows,
+    setBusiness,
+    setSettings,
     replaceState,
   } = useStorage();
   const { isMobile } = useBreakpoint();
@@ -55,17 +78,29 @@ export default function App() {
   const [mes, setMes] = useState(today.getMonth());
   const [ano, setAno] = useState(today.getFullYear());
   const [taxBarOpen, setTaxBarOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [sheetMode, setSheetMode] = useState<SheetMode>(null);
   const [tab, setTab] = useState<MobileTab>("lancamentos");
   const [backupOpen, setBackupOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
-  const [firstUseOpen, setFirstUseOpen] = useState(() => !getFirstUseAcked());
 
-  const { monthRows, summary, paymentBreakdown, projecao, liqDelta, prevMonthLabel, sparkline } = useCalc(
-    state.rows,
-    mes,
-    ano,
-  );
+  // Onboarding: mostra quando ainda não tem nome do empreendimento.
+  const businessName = state.business?.name?.trim() ?? "";
+  const [firstUseOpen, setFirstUseOpen] = useState(() => !businessName);
+
+  useEffect(() => {
+    // Se o estado mudou e ainda não há business name, mantém o modal aberto.
+    if (!businessName) setFirstUseOpen(true);
+  }, [businessName]);
+
+  const {
+    monthRows,
+    summary,
+    paymentBreakdown,
+    projecao,
+    liqDelta,
+    prevMonthLabel,
+    sparkline,
+  } = useCalc(state.rows, mes, ano);
 
   // Track whether the inline "+ Novo" in EntryList is visible. The floating
   // FAB only appears when the inline button is OUT of view (mobile scroll).
@@ -86,7 +121,6 @@ export default function App() {
   useEffect(() => {
     requestPersistentStorage().then(({ supported, persisted }) => {
       if (supported && !persisted) {
-        // Browser declined now; PWA install often promotes data to persistent.
         console.info("Storage não-persistente. Instale o app para proteger.");
       }
     });
@@ -116,35 +150,65 @@ export default function App() {
   }, []);
 
   const handleAddSheet = useCallback(() => {
-    const id = addRow({ mes, ano });
-    setEditingId(id);
-  }, [addRow, mes, ano]);
+    setSheetMode({ kind: "create", draft: makeBlankRow(mes, ano) });
+  }, [mes, ano]);
 
-  const editing = editingId
-    ? state.rows.find((r) => r.id === editingId) ?? null
-    : null;
+  const handleEditSheet = useCallback((id: string) => {
+    setSheetMode({ kind: "edit", id });
+  }, []);
 
-  const closeSheet = () => setEditingId(null);
+  const closeSheet = () => setSheetMode(null);
 
-  const handleSave = (patch: Partial<Row>) => {
-    if (!editingId) return;
-    (Object.keys(patch) as (keyof Row)[]).forEach((k) => {
-      updateRow(editingId, k, patch[k]);
-    });
+  const editingRow: Row | null =
+    sheetMode?.kind === "edit"
+      ? (state.rows.find((r) => r.id === sheetMode.id) ?? null)
+      : sheetMode?.kind === "create"
+        ? sheetMode.draft
+        : null;
+
+  const handleSave = (row: Row) => {
+    if (!sheetMode) return;
+    if (sheetMode.kind === "create") {
+      commitRow(row);
+      pushToast("Lançamento adicionado");
+    } else {
+      (Object.keys(row) as (keyof Row)[]).forEach((k) => {
+        updateRow(sheetMode.id, k, row[k]);
+      });
+      pushToast("Lançamento atualizado");
+    }
     closeSheet();
-    pushToast("Lançamento salvo");
   };
 
   const handleDeleteFromSheet = () => {
-    if (!editingId) return;
-    deleteRow(editingId);
-    closeSheet();
+    if (sheetMode?.kind !== "edit") return;
+    deleteRow(sheetMode.id);
     pushToast("Lançamento removido");
+    closeSheet();
+  };
+
+  const handleDeleteInline = useCallback(
+    (id: string, cliente: string) => {
+      const label = cliente.trim() || "este lançamento";
+      const ok = window.confirm(
+        `Remover ${label}?\n\nEssa ação não pode ser desfeita.`,
+      );
+      if (!ok) return;
+      deleteRow(id);
+      pushToast("Lançamento removido");
+    },
+    [deleteRow, pushToast],
+  );
+
+  const handleSubmitBusiness = (business: BusinessProfile) => {
+    setBusiness(business);
+    setFirstUseOpen(false);
   };
 
   return (
     <div className="app-shell">
       <Header
+        businessName={businessName}
         onOpenBackup={() => setBackupOpen(true)}
         onToggleTaxBar={() => setTaxBarOpen((v) => !v)}
         extraActions={
@@ -160,7 +224,12 @@ export default function App() {
         }
       />
       <InstallBanner />
-      <BackupReminder rows={state.rows} onToast={pushToast} />
+      <BackupReminder
+        rows={state.rows}
+        autoConsent={state.settings?.autoBackupConsent ?? null}
+        onSetAutoConsent={(consent) => setSettings({ autoBackupConsent: consent })}
+        onToast={pushToast}
+      />
       <TaxBar visible={taxBarOpen} />
       <MonthNav mes={mes} ano={ano} onChange={handleChangeMes} />
 
@@ -180,7 +249,8 @@ export default function App() {
             rows={monthRows}
             summary={summary}
             onAdd={handleAddSheet}
-            onSelect={setEditingId}
+            onSelect={handleEditSheet}
+            onDelete={handleDeleteInline}
             addBtnRef={addBtnRef}
           />
         </>
@@ -196,15 +266,24 @@ export default function App() {
       <BottomNav active={tab} onChange={setTab} />
 
       <Sheet
-        open={!!editing}
-        title={editing?.cliente ? `Editar — ${editing.cliente}` : "Novo lançamento"}
+        open={!!editingRow}
+        title={
+          sheetMode?.kind === "create"
+            ? "Novo lançamento"
+            : editingRow?.cliente
+              ? `Editar — ${editingRow.cliente}`
+              : "Editar lançamento"
+        }
         onClose={closeSheet}
       >
-        {editing && (
+        {editingRow && (
           <EntryForm
-            initial={editing}
+            initial={editingRow}
+            isNew={sheetMode?.kind === "create"}
             onSave={handleSave}
-            onDelete={handleDeleteFromSheet}
+            onDelete={
+              sheetMode?.kind === "edit" ? handleDeleteFromSheet : undefined
+            }
             onCancel={closeSheet}
           />
         )}
@@ -232,7 +311,9 @@ export default function App() {
 
       <FirstUseModal
         open={firstUseOpen}
+        initialBusiness={state.business}
         cloudAvailable={auth.configured}
+        onSubmit={handleSubmitBusiness}
         onClose={() => setFirstUseOpen(false)}
         onWantsCloud={() => setLoginOpen(true)}
       />

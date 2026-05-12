@@ -8,6 +8,7 @@ interface Props {
   summary: Summary;
   onAdd: () => void;
   onSelect: (id: string) => void;
+  onDelete: (id: string, cliente: string) => void;
   /** Ref atribuído ao botão "+ Novo" — usado pelo App pra controlar o FAB. */
   addBtnRef?: Ref<HTMLButtonElement>;
 }
@@ -24,14 +25,18 @@ const formaLabel = (r: CalculatedRow) => {
   return r.forma;
 };
 
-export function EntryList({ rows, summary, onAdd, onSelect, addBtnRef }: Props) {
+export function EntryList({
+  rows,
+  summary,
+  onAdd,
+  onSelect,
+  onDelete,
+  addBtnRef,
+}: Props) {
   const liqPositive = summary.liq >= 0;
 
   return (
-    <section
-      className={styles.section}
-      aria-label="Lançamentos do mês"
-    >
+    <section className={styles.section} aria-label="Lançamentos do mês">
       <div className={styles.shell}>
         <header className={styles.head}>
           <span className={styles.title}>
@@ -65,7 +70,9 @@ export function EntryList({ rows, summary, onAdd, onSelect, addBtnRef }: Props) 
 
         {rows.length === 0 ? (
           <div className={styles.empty}>
-            <span className={styles.emptyTitle}>Nenhum lançamento neste mês</span>
+            <span className={styles.emptyTitle}>
+              Nenhum lançamento neste mês
+            </span>
             Comece registrando o primeiro atendimento.
             <span className={styles.emptyHint}>
               Toque em <strong>+ Novo</strong> para adicionar
@@ -78,56 +85,84 @@ export function EntryList({ rows, summary, onAdd, onSelect, addBtnRef }: Props) 
                 const isPaid = r.status === "Pago";
                 const liqPos = r.liq >= 0;
                 return (
-                  <button
-                    key={r.id}
-                    className={styles.card}
-                    onClick={() => onSelect(r.id)}
-                  >
-                    <div className={styles.line1}>
-                      <span className={styles.cliente}>
-                        <span
-                          className={styles.statusDot}
-                          style={{
-                            background: isPaid
-                              ? "var(--positive)"
-                              : "var(--warning)",
-                          }}
-                          aria-hidden="true"
-                        />
-                        {r.cliente || "Sem cliente"}
-                      </span>
-                      <span className={styles.value}>{fmtBRL(r.v)}</span>
-                    </div>
-                    <div className={styles.line2}>
-                      <span className={styles.meta}>
-                        <span className={styles.servico}>
-                          {r.servico || "Sem serviço"}
+                  <div key={r.id} className={styles.card}>
+                    <button
+                      type="button"
+                      className={styles.cardBody}
+                      onClick={() => onSelect(r.id)}
+                      aria-label={`Editar ${r.cliente || "lançamento"}`}
+                    >
+                      <div className={styles.line1}>
+                        <span className={styles.cliente}>
+                          <span
+                            className={styles.statusDot}
+                            style={{
+                              background: isPaid
+                                ? "var(--positive)"
+                                : "var(--warning)",
+                            }}
+                            aria-hidden="true"
+                          />
+                          {r.cliente || "Sem cliente"}
                         </span>
-                        <span className={styles.dot}>·</span>
-                        <span
-                          className={styles.formaTag}
-                          style={{ color: FORMA_VAR[r.forma] }}
-                        >
-                          {formaLabel(r)}
+                        <span className={styles.value}>{fmtBRL(r.v)}</span>
+                      </div>
+                      <div className={styles.line2}>
+                        <span className={styles.meta}>
+                          <span className={styles.servico}>
+                            {r.servico || "Sem serviço"}
+                          </span>
+                          <span className={styles.dot}>·</span>
+                          <span
+                            className={styles.formaTag}
+                            style={{ color: FORMA_VAR[r.forma] }}
+                          >
+                            {formaLabel(r)}
+                          </span>
+                          <span className={styles.dot}>·</span>
+                          <span
+                            className={`${styles.statusLabel} ${
+                              isPaid ? styles.statusPaid : styles.statusPending
+                            }`}
+                          >
+                            {isPaid ? "pago" : "pendente"}
+                          </span>
                         </span>
-                        <span className={styles.dot}>·</span>
                         <span
-                          className={`${styles.statusLabel} ${
-                            isPaid ? styles.statusPaid : styles.statusPending
+                          className={`${styles.liq} ${
+                            liqPos ? styles.liqPos : styles.liqNeg
                           }`}
                         >
-                          {isPaid ? "pago" : "pendente"}
+                          líq {fmtBRL(r.liq)}
                         </span>
-                      </span>
-                      <span
-                        className={`${styles.liq} ${
-                          liqPos ? styles.liqPos : styles.liqNeg
-                        }`}
+                      </div>
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.cardDelete}
+                      onClick={() => onDelete(r.id, r.cliente)}
+                      aria-label={`Remover ${r.cliente || "lançamento"}`}
+                      title="Remover"
+                    >
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
                       >
-                        líq {fmtBRL(r.liq)}
-                      </span>
-                    </div>
-                  </button>
+                        <polyline points="3 6 5 6 21 6" />
+                        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                        <path d="M10 11v6" />
+                        <path d="M14 11v6" />
+                        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                      </svg>
+                    </button>
+                  </div>
                 );
               })}
             </div>

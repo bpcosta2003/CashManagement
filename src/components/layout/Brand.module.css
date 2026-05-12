@@ -19,37 +19,46 @@
 .name {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 18px;
-  letter-spacing: -0.025em;
-  line-height: 1;
+  font-size: 15px;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
   color: var(--text);
-}
-
-.dot {
-  color: var(--accent);
-}
-
-.tag {
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-top: 4px;
   white-space: nowrap;
 }
 
+.tag {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+}
+
+.tag[data-empty="true"] {
+  color: var(--text-dim);
+  font-style: italic;
+}
+
 .brand[data-size="md"] .name {
-  font-size: 24px;
+  font-size: 18px;
 }
 
 .brand[data-size="md"] .tag {
-  font-size: 10px;
-  margin-top: 5px;
+  font-size: 12px;
+  margin-top: 3px;
+  max-width: 280px;
 }
 
-@media (max-width: 720px) {
-  .brand[data-size="md"] .name {
-    font-size: 20px;
+@media (max-width: 480px) {
+  .name {
+    font-size: 14px;
+  }
+  .tag {
+    font-size: 10px;
+    max-width: 140px;
   }
 }

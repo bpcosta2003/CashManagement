@@ -1,26 +1,52 @@
 import { useEffect, useState } from "react";
 import type { FormaPagamento, Row, StatusPagamento } from "../../types";
-import {
-  FORMAS_PAGAMENTO,
-  STATUS_OPTIONS,
-} from "../../constants";
+import { FORMAS_PAGAMENTO, STATUS_OPTIONS } from "../../constants";
 import { autoTaxa, calcRow, fmtBRL, fmtPct } from "../../lib/calc";
 import styles from "./EntryForm.module.css";
 
 interface Props {
   initial: Row;
-  onSave: (patch: Partial<Row>) => void;
+  /** true quando o sheet está criando um lançamento novo (não persistido ainda) */
+  isNew?: boolean;
+  onSave: (row: Row) => void;
   onDelete?: () => void;
   onCancel: () => void;
 }
 
-export function EntryForm({ initial, onSave, onDelete, onCancel }: Props) {
+interface Errors {
+  cliente?: string;
+  valor?: string;
+}
+
+function validate(draft: Row): Errors {
+  const errors: Errors = {};
+  if (!draft.cliente.trim()) {
+    errors.cliente = "Informe o nome do cliente";
+  }
+  const valor = typeof draft.valor === "number" ? draft.valor : 0;
+  if (!valor || valor <= 0) {
+    errors.valor = "Valor precisa ser maior que zero";
+  }
+  return errors;
+}
+
+export function EntryForm({
+  initial,
+  isNew = false,
+  onSave,
+  onDelete,
+  onCancel,
+}: Props) {
   const [draft, setDraft] = useState<Row>(initial);
   const [taxaTouched, setTaxaTouched] = useState(false);
+  const [errors, setErrors] = useState<Errors>({});
+  const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
     setDraft(initial);
     setTaxaTouched(false);
+    setErrors({});
+    setSubmitted(false);
   }, [initial]);
 
   const update = <K extends keyof Row>(field: K, value: Row[K]) => {
@@ -40,31 +66,65 @@ export function EntryForm({ initial, onSave, onDelete, onCancel }: Props) {
       }
       return next;
     });
+    // Re-validate after change if user already attempted submit once
+    if (submitted) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        if (field === "cliente") delete next.cliente;
+        if (field === "valor") delete next.valor;
+        return next;
+      });
+    }
   };
 
   const calc = calcRow(draft);
-  const isAutoTaxa = !taxaTouched && draft.taxa === autoTaxa(draft.forma, draft.parc);
+  const isAutoTaxa =
+    !taxaTouched && draft.taxa === autoTaxa(draft.forma, draft.parc);
+
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitted(true);
+    const v = validate(draft);
+    setErrors(v);
+    if (Object.keys(v).length > 0) {
+      // foca o primeiro campo com erro
+      const first = v.cliente ? "cliente" : "valor";
+      const el = document.getElementById(`ef-${first}`);
+      el?.focus();
+      return;
+    }
     onSave(draft);
   };
 
   return (
-    <form className={styles.form} onSubmit={submit}>
+    <form className={styles.form} onSubmit={submit} noValidate>
       <div className={styles.field}>
-        <label className={styles.label}>Cliente</label>
+        <label htmlFor="ef-cliente" className={styles.label}>
+          Cliente <span className={styles.required}>*</span>
+        </label>
         <input
-          className={styles.input}
+          id="ef-cliente"
+          className={`${styles.input} ${errors.cliente ? styles.inputError : ""}`}
           value={draft.cliente}
           onChange={(e) => update("cliente", e.target.value)}
           placeholder="Nome do cliente"
           autoFocus
+          aria-invalid={!!errors.cliente}
+          aria-describedby={errors.cliente ? "ef-cliente-err" : undefined}
         />
+        {errors.cliente && (
+          <span id="ef-cliente-err" className={styles.errorMsg}>
+            {errors.cliente}
+          </span>
+        )}
       </div>
 
       <div className={styles.field}>
-        <label className={styles.label}>Serviço</label>
+        <label htmlFor="ef-servico" className={styles.label}>
+          Serviço
+        </label>
         <input
+          id="ef-servico"
           className={styles.input}
           value={draft.servico}
           onChange={(e) => update("servico", e.target.value)}
@@ -74,26 +134,41 @@ export function EntryForm({ initial, onSave, onDelete, onCancel }: Props) {
 
       <div className={styles.row}>
         <div className={styles.field}>
-          <label className={styles.label}>Valor</label>
+          <label htmlFor="ef-valor" className={styles.label}>
+            Valor <span className={styles.required}>*</span>
+          </label>
           <input
-            className={styles.input}
+            id="ef-valor"
+            className={`${styles.input} ${errors.valor ? styles.inputError : ""}`}
             inputMode="decimal"
             type="number"
             step="0.01"
+            min="0"
             value={draft.valor === "" ? "" : draft.valor}
             onChange={(e) =>
               update("valor", e.target.value === "" ? "" : +e.target.value)
             }
             placeholder="0,00"
+            aria-invalid={!!errors.valor}
+            aria-describedby={errors.valor ? "ef-valor-err" : undefined}
           />
+          {errors.valor && (
+            <span id="ef-valor-err" className={styles.errorMsg}>
+              {errors.valor}
+            </span>
+          )}
         </div>
         <div className={styles.field}>
-          <label className={styles.label}>Desconto</label>
+          <label htmlFor="ef-desconto" className={styles.label}>
+            Desconto
+          </label>
           <input
+            id="ef-desconto"
             className={styles.input}
             inputMode="decimal"
             type="number"
             step="0.01"
+            min="0"
             value={draft.desconto === "" ? "" : draft.desconto}
             onChange={(e) =>
               update("desconto", e.target.value === "" ? "" : +e.target.value)
@@ -164,6 +239,7 @@ export function EntryForm({ initial, onSave, onDelete, onCancel }: Props) {
             inputMode="decimal"
             type="number"
             step="0.01"
+            min="0"
             value={draft.custo === "" ? "" : draft.custo}
             onChange={(e) =>
               update("custo", e.target.value === "" ? "" : +e.target.value)
@@ -252,7 +328,7 @@ export function EntryForm({ initial, onSave, onDelete, onCancel }: Props) {
         >
           Cancelar
         </button>
-        {onDelete && (
+        {onDelete && !isNew && (
           <button
             type="button"
             className={styles.btnDanger}
@@ -262,7 +338,7 @@ export function EntryForm({ initial, onSave, onDelete, onCancel }: Props) {
           </button>
         )}
         <button type="submit" className={styles.btnPrimary}>
-          Salvar lançamento
+          {isNew ? "Adicionar" : "Salvar"}
         </button>
       </div>
     </form>

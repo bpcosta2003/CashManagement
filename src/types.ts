@@ -27,10 +27,31 @@ export interface CalculatedRow extends Row {
   mar: number;
 }
 
+export type BusinessType =
+  | "salao"
+  | "restaurante"
+  | "comercio"
+  | "servicos"
+  | "freelancer"
+  | "outro";
+
+export interface BusinessProfile {
+  name: string;
+  type: BusinessType;
+}
+
+export interface AppSettings {
+  /** "yes" / "no" — consent for automatic Excel backups every 14 days.
+   *  null = not asked yet. */
+  autoBackupConsent: "yes" | "no" | null;
+}
+
 export interface AppState {
   version: number;
   rows: Row[];
   lastModified: string;
+  business?: BusinessProfile;
+  settings?: AppSettings;
 }
 
 export interface Summary {

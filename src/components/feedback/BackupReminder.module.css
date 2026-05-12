@@ -15,6 +15,12 @@
   border-bottom-color: rgba(201, 107, 107, 0.18);
 }
 
+.banner.consent {
+  background: var(--accent-soft);
+  color: var(--text);
+  border-bottom-color: transparent;
+}
+
 .icon {
   font-size: 16px;
   line-height: 1;
