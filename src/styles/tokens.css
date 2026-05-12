@@ -108,6 +108,82 @@
   --input-focus:  var(--accent);
 }
 
+/* ─────────────────────────────────────────────────────────────
+   Accents alternativos
+   :root[data-accent="esmeralda|indigo|terracota|ouro"]
+   sobrescreve as variáveis de accent. O default (data-accent
+   ausente OR "bordo") usa os valores já definidos acima.
+   ───────────────────────────────────────────────────────────── */
+:root[data-accent="esmeralda"] {
+  --accent:        #2f5d44;
+  --accent-strong: #244836;
+  --accent-soft:   #dde9e0;
+  --accent-on:     #ffffff;
+  --pay-credito:   #2f5d44;
+  --hero-bg:       #1f3429;
+}
+
+:root[data-accent="indigo"] {
+  --accent:        #2e3f6b;
+  --accent-strong: #243254;
+  --accent-soft:   #d8dded;
+  --accent-on:     #ffffff;
+  --pay-credito:   #2e3f6b;
+  --hero-bg:       #1f2a47;
+}
+
+:root[data-accent="terracota"] {
+  --accent:        #8a4530;
+  --accent-strong: #6f3422;
+  --accent-soft:   #f1ddd4;
+  --accent-on:     #ffffff;
+  --pay-credito:   #8a4530;
+  --hero-bg:       #322020;
+}
+
+:root[data-accent="ouro"] {
+  --accent:        #7a5a1f;
+  --accent-strong: #5e4514;
+  --accent-soft:   #f0e6cd;
+  --accent-on:     #ffffff;
+  --pay-credito:   #7a5a1f;
+  --hero-bg:       #2e2520;
+}
+
+/* No dark mode, accents alternativos mudam pro tom mais claro/dourado */
+:root[data-theme="dark"][data-accent="esmeralda"] {
+  --accent:        #8bbc9a;
+  --accent-strong: #a5cdb1;
+  --accent-soft:   rgba(139, 188, 154, 0.14);
+  --accent-on:     #18241c;
+  --pay-credito:   #8bbc9a;
+}
+
+:root[data-theme="dark"][data-accent="indigo"] {
+  --accent:        #9aaac8;
+  --accent-strong: #b3bfd6;
+  --accent-soft:   rgba(154, 170, 200, 0.14);
+  --accent-on:     #1b2336;
+  --pay-credito:   #9aaac8;
+}
+
+:root[data-theme="dark"][data-accent="terracota"] {
+  --accent:        #d09875;
+  --accent-strong: #dfae8f;
+  --accent-soft:   rgba(208, 152, 117, 0.14);
+  --accent-on:     #2b1810;
+  --pay-credito:   #d09875;
+}
+
+:root[data-theme="dark"][data-accent="ouro"] {
+  /* No dark, ouro já é o padrão — mantém alinhado */
+  --accent:        #c7a46a;
+  --accent-strong: #d4b27a;
+  --accent-soft:   rgba(199, 164, 106, 0.14);
+  --accent-on:     #1a1207;
+  --pay-credito:   #c7a46a;
+}
+
 /* ─────── Dark mode ─────── */
 :root[data-theme="dark"] {
   color-scheme: dark;

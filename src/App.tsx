@@ -6,13 +6,14 @@ import { useClients } from "./hooks/useClients";
 import { useBreakpoint } from "./hooks/useBreakpoint";
 import { useAuth } from "./hooks/useAuth";
 import { useSync } from "./hooks/useSync";
-import { useTheme } from "./hooks/useTheme";
+import { useAppearance } from "./hooks/useAppearance";
 import { Header } from "./components/layout/Header";
 import { PeriodNav, type Period } from "./components/layout/PeriodNav";
 import { TaxBar } from "./components/layout/TaxBar";
 import { BottomNav, type MobileTab } from "./components/layout/BottomNav";
 import { InstallBanner } from "./components/layout/InstallBanner";
 import { ThemeToggle } from "./components/layout/ThemeToggle";
+import { SettingsModal } from "./components/settings/SettingsModal";
 import { SummaryCards } from "./components/summary/SummaryCards";
 import { PaymentBreakdown } from "./components/summary/PaymentBreakdown";
 import { EntryList } from "./components/list/EntryList";
@@ -76,7 +77,7 @@ export default function App() {
     replaceState,
   } = useStorage();
   const { isMobile } = useBreakpoint();
-  const { theme, toggle: toggleTheme } = useTheme();
+  const { theme, accent, toggleTheme, setAccent } = useAppearance();
   const auth = useAuth();
   const { toasts, push: pushToast } = useToast();
   const sync = useSync({
@@ -96,6 +97,7 @@ export default function App() {
   const [backupOpen, setBackupOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
   const [switcherOpen, setSwitcherOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const activeBusinessId = state.activeBusinessId;
   const activeBusiness = useMemo(
@@ -288,6 +290,28 @@ export default function App() {
               onClick={() => setLoginOpen(true)}
             />
             <ThemeToggle theme={theme} onToggle={toggleTheme} />
+            <button
+              type="button"
+              className="settings-btn"
+              onClick={() => setSettingsOpen(true)}
+              aria-label="Preferências"
+              title="Preferências"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="12" r="3" />
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+              </svg>
+            </button>
           </>
         }
       />
@@ -447,6 +471,17 @@ export default function App() {
         onCreate={(data) => addBusiness(data)}
         onUpdate={updateBusiness}
         onDelete={deleteBusiness}
+      />
+
+      <SettingsModal
+        open={settingsOpen}
+        theme={theme}
+        accent={accent}
+        settings={state.settings}
+        onClose={() => setSettingsOpen(false)}
+        onToggleTheme={toggleTheme}
+        onSetAccent={setAccent}
+        onSetSettings={setSettings}
       />
 
       <FirstUseModal
