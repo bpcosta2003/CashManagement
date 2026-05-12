@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useStorage } from "./hooks/useStorage";
 import { useCalc } from "./hooks/useCalc";
+import { useAnnual } from "./hooks/useAnnual";
 import { useBreakpoint } from "./hooks/useBreakpoint";
 import { useAuth } from "./hooks/useAuth";
 import { useSync } from "./hooks/useSync";
 import { useTheme } from "./hooks/useTheme";
 import { Header } from "./components/layout/Header";
-import { MonthNav } from "./components/layout/MonthNav";
+import { PeriodNav, type Period } from "./components/layout/PeriodNav";
 import { TaxBar } from "./components/layout/TaxBar";
 import { BottomNav, type MobileTab } from "./components/layout/BottomNav";
 import { InstallBanner } from "./components/layout/InstallBanner";
@@ -15,6 +16,7 @@ import { SummaryCards } from "./components/summary/SummaryCards";
 import { PaymentBreakdown } from "./components/summary/PaymentBreakdown";
 import { EntryList } from "./components/list/EntryList";
 import { ProjectionSection } from "./components/projection/ProjectionSection";
+import { AnnualDashboard } from "./components/annual/AnnualDashboard";
 import { FAB } from "./components/mobile/FAB";
 import { Sheet } from "./components/forms/Sheet";
 import { EntryForm } from "./components/forms/EntryForm";
@@ -83,6 +85,7 @@ export default function App() {
   const today = new Date();
   const [mes, setMes] = useState(today.getMonth());
   const [ano, setAno] = useState(today.getFullYear());
+  const [period, setPeriod] = useState<Period>("month");
   const [taxBarOpen, setTaxBarOpen] = useState(false);
   const [sheetMode, setSheetMode] = useState<SheetMode>(null);
   const [tab, setTab] = useState<MobileTab>("lancamentos");
@@ -123,6 +126,15 @@ export default function App() {
     prevMonthLabel,
     sparkline,
   } = useCalc(state.rows, mes, ano, activeBusinessId);
+
+  const annual = useAnnual(state.rows, ano, activeBusinessId);
+
+  const handleSelectMonthFromAnnual = useCallback((m: number, y: number) => {
+    setMes(m);
+    setAno(y);
+    setPeriod("month");
+    setTab("lancamentos");
+  }, []);
 
   // Track whether the inline "+ Novo" in EntryList is visible.
   const addBtnRef = useRef<HTMLButtonElement | null>(null);
@@ -263,36 +275,52 @@ export default function App() {
         onToast={pushToast}
       />
       <TaxBar visible={taxBarOpen} />
-      <MonthNav mes={mes} ano={ano} onChange={handleChangeMes} />
+      <PeriodNav
+        period={period}
+        mes={mes}
+        ano={ano}
+        onChangePeriod={setPeriod}
+        onChangeMes={handleChangeMes}
+        onChangeAno={setAno}
+      />
 
-      {(!isMobile || tab === "lancamentos") && (
+      {period === "year" ? (
+        <AnnualDashboard
+          summary={annual}
+          onSelectMonth={handleSelectMonthFromAnnual}
+        />
+      ) : (
         <>
-          <SummaryCards
-            summary={summary}
-            mes={mes}
-            liqDelta={liqDelta}
-            prevMonthLabel={prevMonthLabel}
-          />
-          <PaymentBreakdown
-            breakdown={paymentBreakdown}
-            sparkline={sparkline}
-          />
-          <EntryList
-            rows={monthRows}
-            summary={summary}
-            onAdd={handleAddSheet}
-            onSelect={handleEditSheet}
-            onDelete={handleDeleteInline}
-            addBtnRef={addBtnRef}
-          />
+          {(!isMobile || tab === "lancamentos") && (
+            <>
+              <SummaryCards
+                summary={summary}
+                mes={mes}
+                liqDelta={liqDelta}
+                prevMonthLabel={prevMonthLabel}
+              />
+              <PaymentBreakdown
+                breakdown={paymentBreakdown}
+                sparkline={sparkline}
+              />
+              <EntryList
+                rows={monthRows}
+                summary={summary}
+                onAdd={handleAddSheet}
+                onSelect={handleEditSheet}
+                onDelete={handleDeleteInline}
+                addBtnRef={addBtnRef}
+              />
+            </>
+          )}
+
+          {(!isMobile || tab === "projecao") && (
+            <ProjectionSection projecao={projecao} />
+          )}
         </>
       )}
 
-      {(!isMobile || tab === "projecao") && (
-        <ProjectionSection projecao={projecao} />
-      )}
-
-      {tab === "lancamentos" && !inlineAddVisible && (
+      {period === "month" && tab === "lancamentos" && !inlineAddVisible && (
         <FAB onClick={handleAddSheet} />
       )}
       <BottomNav active={tab} onChange={setTab} />
