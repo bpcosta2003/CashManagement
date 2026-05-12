@@ -1,0 +1,528 @@
+.section {
+  width: 100%;
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 18px var(--container-pad-mobile) 120px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  animation: monthFade 0.32s var(--ease);
+}
+
+@media (min-width: 768px) {
+  .section {
+    padding: 20px var(--container-pad-tablet) 32px;
+    gap: 16px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .section {
+    padding: 20px var(--container-pad-desktop) 40px;
+  }
+}
+
+@keyframes monthFade {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ─── Empty state ─── */
+.empty {
+  background: var(--surface);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-md);
+  padding: 48px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.emptyArt {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 88px;
+  height: 88px;
+  border-radius: 22px;
+  background: var(--surface-2);
+  margin-bottom: 4px;
+}
+
+.emptyTitle {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--t-h3);
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+.emptyText {
+  margin: 0;
+  max-width: 360px;
+  font-size: var(--t-meta);
+  color: var(--text-muted);
+  line-height: 1.55;
+}
+
+/* ─── Hero ─── */
+.hero {
+  background: var(--hero-bg);
+  color: var(--hero-fg);
+  border-radius: var(--radius-lg);
+  padding: 22px 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: var(--shadow-hero);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 24px;
+  right: 24px;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--champagne) 50%,
+    transparent
+  );
+  opacity: 0.45;
+}
+
+@media (min-width: 768px) {
+  .hero {
+    padding: 26px 28px 22px;
+  }
+}
+
+.heroHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.heroEyebrow {
+  font-size: var(--t-eyebrow);
+  font-weight: 600;
+  color: var(--hero-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+}
+
+.heroEyebrowDot {
+  color: var(--champagne);
+  margin: 0 2px;
+}
+
+.heroValue {
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  color: var(--hero-fg);
+  display: block;
+  margin-top: 4px;
+}
+
+.heroNeg {
+  color: var(--negative);
+}
+
+.heroFoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+
+.heroDelta {
+  font-size: var(--t-meta);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.heroDeltaUp {
+  color: var(--positive);
+}
+
+.heroDeltaDown {
+  color: var(--negative);
+}
+
+.heroDeltaNeutral {
+  color: var(--hero-muted);
+}
+
+.heroMeta {
+  font-size: var(--t-caption);
+  color: var(--hero-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── KPI grid ─── */
+.kpiGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 480px) {
+  .kpiGrid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .kpiGrid {
+    gap: 16px;
+  }
+}
+
+.kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px 18px;
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+}
+
+.kpiLabel {
+  font-size: var(--t-eyebrow);
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+.kpiValue {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--t-h2);
+  letter-spacing: -0.025em;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  margin-top: 2px;
+}
+
+@media (min-width: 768px) {
+  .kpiValue {
+    font-size: 24px;
+  }
+}
+
+.kpiValueAccent {
+  color: var(--accent);
+}
+
+.kpiSub {
+  font-size: var(--t-caption);
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+  margin-top: 4px;
+}
+
+/* ─── Highlights (best/worst) ─── */
+.highlights {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+@media (min-width: 480px) {
+  .highlights {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.highlight {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.highlightEyebrow {
+  font-size: var(--t-eyebrow);
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+.highlightCard {
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  transition: border-color 0.18s var(--ease), background 0.18s var(--ease);
+  font-family: inherit;
+  color: inherit;
+  box-shadow: var(--shadow-card);
+}
+
+.highlightCard:hover {
+  background: var(--surface-2);
+  border-color: var(--border);
+}
+
+.highlightMonth {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--t-h3);
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+
+.highlightValue {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--t-h2);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.025em;
+}
+
+.up {
+  color: var(--positive);
+}
+
+.down {
+  color: var(--negative);
+}
+
+.highlightHint {
+  font-size: var(--t-caption);
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* ─── 12-month grid ─── */
+.shellWrap {
+  width: 100%;
+}
+
+.shell {
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+
+.shellHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border-soft);
+  gap: 12px;
+}
+
+.shellTitle {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--t-body-lg);
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+.shellHint {
+  font-size: var(--t-caption);
+  color: var(--text-dim);
+}
+
+.monthGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1px;
+  background: var(--border-soft);
+}
+
+@media (min-width: 480px) {
+  .monthGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 768px) {
+  .monthGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (min-width: 1280px) {
+  .monthGrid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+.monthCard {
+  background: var(--surface);
+  border: none;
+  padding: 14px 14px 16px;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 80px;
+  transition: background 0.18s var(--ease);
+  font-family: inherit;
+  color: inherit;
+  position: relative;
+}
+
+.monthCard:hover {
+  background: var(--surface-2);
+}
+
+.monthCard[data-empty="true"] {
+  background: var(--surface);
+}
+
+.monthCard[data-empty="true"] .monthLabel {
+  color: var(--text-dim);
+}
+
+.monthLabel {
+  font-size: var(--t-eyebrow);
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+.monthValue {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 17px;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  margin-top: 2px;
+}
+
+.monthEmpty {
+  color: var(--text-dim);
+  font-weight: 500;
+}
+
+.monthBar {
+  height: 3px;
+  border-radius: 2px;
+  margin-top: 6px;
+  transition: width 0.4s var(--ease);
+}
+
+/* ─── Composição anual ─── */
+.compoWrap {
+  width: 100%;
+}
+
+.compoShell {
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: 18px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: var(--shadow-card);
+}
+
+.compoHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.compoEyebrow {
+  font-size: var(--t-eyebrow);
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+}
+
+.compoTotal {
+  font-family: var(--font-mono);
+  font-size: var(--t-meta);
+  color: var(--text);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.compoBar {
+  display: flex;
+  width: 100%;
+  height: 10px;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  background: var(--surface-2);
+  border: 1px solid var(--border-soft);
+}
+
+.compoSegment {
+  height: 100%;
+  transition: width 0.4s var(--ease);
+}
+
+.compoLegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 22px;
+  margin-top: 2px;
+}
+
+.compoItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--t-meta);
+  font-variant-numeric: tabular-nums;
+}
+
+.compoSwatch {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  flex-shrink: 0;
+}
+
+.compoName {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.compoValue {
+  color: var(--text);
+  font-weight: 600;
+  margin-left: 4px;
+}

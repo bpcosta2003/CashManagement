@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useStorage } from "./hooks/useStorage";
 import { useCalc } from "./hooks/useCalc";
+import { useAnnual } from "./hooks/useAnnual";
+import { useClients } from "./hooks/useClients";
 import { useBreakpoint } from "./hooks/useBreakpoint";
 import { useAuth } from "./hooks/useAuth";
 import { useSync } from "./hooks/useSync";
 import { useTheme } from "./hooks/useTheme";
 import { Header } from "./components/layout/Header";
-import { MonthNav } from "./components/layout/MonthNav";
+import { PeriodNav, type Period } from "./components/layout/PeriodNav";
 import { TaxBar } from "./components/layout/TaxBar";
 import { BottomNav, type MobileTab } from "./components/layout/BottomNav";
 import { InstallBanner } from "./components/layout/InstallBanner";
@@ -15,6 +17,8 @@ import { SummaryCards } from "./components/summary/SummaryCards";
 import { PaymentBreakdown } from "./components/summary/PaymentBreakdown";
 import { EntryList } from "./components/list/EntryList";
 import { ProjectionSection } from "./components/projection/ProjectionSection";
+import { AnnualDashboard } from "./components/annual/AnnualDashboard";
+import { ClientsView } from "./components/clients/ClientsView";
 import { FAB } from "./components/mobile/FAB";
 import { Sheet } from "./components/forms/Sheet";
 import { EntryForm } from "./components/forms/EntryForm";
@@ -66,6 +70,8 @@ export default function App() {
     deleteBusiness,
     setActiveBusinessId,
     upsertClient,
+    updateClient,
+    deleteClient,
     setSettings,
     replaceState,
   } = useStorage();
@@ -83,6 +89,7 @@ export default function App() {
   const today = new Date();
   const [mes, setMes] = useState(today.getMonth());
   const [ano, setAno] = useState(today.getFullYear());
+  const [period, setPeriod] = useState<Period>("month");
   const [taxBarOpen, setTaxBarOpen] = useState(false);
   const [sheetMode, setSheetMode] = useState<SheetMode>(null);
   const [tab, setTab] = useState<MobileTab>("lancamentos");
@@ -123,6 +130,16 @@ export default function App() {
     prevMonthLabel,
     sparkline,
   } = useCalc(state.rows, mes, ano, activeBusinessId);
+
+  const annual = useAnnual(state.rows, ano, activeBusinessId);
+  const clientStats = useClients(state.clients, state.rows, activeBusinessId);
+
+  const handleSelectMonthFromAnnual = useCallback((m: number, y: number) => {
+    setMes(m);
+    setAno(y);
+    setPeriod("month");
+    setTab("lancamentos");
+  }, []);
 
   // Track whether the inline "+ Novo" in EntryList is visible.
   const addBtnRef = useRef<HTMLButtonElement | null>(null);
@@ -263,38 +280,73 @@ export default function App() {
         onToast={pushToast}
       />
       <TaxBar visible={taxBarOpen} />
-      <MonthNav mes={mes} ano={ano} onChange={handleChangeMes} />
 
-      {(!isMobile || tab === "lancamentos") && (
+      {/* PeriodNav só faz sentido em visões com tempo (não em Clientes) */}
+      {!(isMobile && tab === "clientes") && (
+        <PeriodNav
+          period={period}
+          mes={mes}
+          ano={ano}
+          onChangePeriod={setPeriod}
+          onChangeMes={handleChangeMes}
+          onChangeAno={setAno}
+        />
+      )}
+
+      {isMobile && tab === "clientes" ? (
+        <ClientsView
+          clients={clientStats}
+          onUpdate={updateClient}
+          onDelete={deleteClient}
+        />
+      ) : period === "year" ? (
+        <AnnualDashboard
+          summary={annual}
+          onSelectMonth={handleSelectMonthFromAnnual}
+        />
+      ) : (
         <>
-          <SummaryCards
-            summary={summary}
-            mes={mes}
-            liqDelta={liqDelta}
-            prevMonthLabel={prevMonthLabel}
-          />
-          <PaymentBreakdown
-            breakdown={paymentBreakdown}
-            sparkline={sparkline}
-          />
-          <EntryList
-            rows={monthRows}
-            summary={summary}
-            onAdd={handleAddSheet}
-            onSelect={handleEditSheet}
-            onDelete={handleDeleteInline}
-            addBtnRef={addBtnRef}
-          />
+          {(!isMobile || tab === "lancamentos") && (
+            <>
+              <SummaryCards
+                summary={summary}
+                mes={mes}
+                liqDelta={liqDelta}
+                prevMonthLabel={prevMonthLabel}
+              />
+              <PaymentBreakdown
+                breakdown={paymentBreakdown}
+                sparkline={sparkline}
+              />
+              <EntryList
+                rows={monthRows}
+                summary={summary}
+                onAdd={handleAddSheet}
+                onSelect={handleEditSheet}
+                onDelete={handleDeleteInline}
+                addBtnRef={addBtnRef}
+              />
+            </>
+          )}
+
+          {(!isMobile || tab === "projecao") && (
+            <ProjectionSection projecao={projecao} />
+          )}
+
+          {/* Desktop mostra Clientes embedded no fim do flow */}
+          {!isMobile && clientStats.length > 0 && (
+            <ClientsView
+              clients={clientStats}
+              onUpdate={updateClient}
+              onDelete={deleteClient}
+            />
+          )}
         </>
       )}
 
-      {(!isMobile || tab === "projecao") && (
-        <ProjectionSection projecao={projecao} />
-      )}
-
-      {tab === "lancamentos" && !inlineAddVisible && (
-        <FAB onClick={handleAddSheet} />
-      )}
+      {period === "month" &&
+        tab === "lancamentos" &&
+        !inlineAddVisible && <FAB onClick={handleAddSheet} />}
       <BottomNav active={tab} onChange={setTab} />
 
       <Sheet
