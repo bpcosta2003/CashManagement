@@ -26,6 +26,7 @@ import { EntryForm } from "./components/forms/EntryForm";
 import { BackupPanel } from "./components/backup/BackupPanel";
 import { Toaster, useToast } from "./components/feedback/Toaster";
 import { BackupReminder } from "./components/feedback/BackupReminder";
+import { DailyReminder } from "./components/feedback/DailyReminder";
 import { FirstUseModal } from "./components/onboarding/FirstUseModal";
 import { LoginPanel } from "./components/auth/LoginPanel";
 import { SyncStatus } from "./components/auth/SyncStatus";
@@ -321,6 +322,13 @@ export default function App() {
         autoConsent={state.settings?.autoBackupConsent ?? null}
         onSetAutoConsent={(consent) => setSettings({ autoBackupConsent: consent })}
         onToast={pushToast}
+      />
+      <DailyReminder
+        enabled={state.settings?.dailyReminder ?? false}
+        rows={state.rows.filter(
+          (r) => !activeBusinessId || r.businessId === activeBusinessId,
+        )}
+        onAdd={handleAddSheet}
       />
       <TaxBar visible={taxBarOpen} />
 
