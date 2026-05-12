@@ -20,6 +20,12 @@ export interface AnnualBreakdown {
   liq: number;
 }
 
+export interface ServiceStat {
+  name: string;
+  count: number;
+  bruto: number;
+}
+
 export interface AnnualSummary {
   year: number;
   total: {
@@ -38,6 +44,8 @@ export interface AnnualSummary {
   /** Líquido do ano anterior (mesmo business). null se sem dados. */
   prevYearLiq: number | null;
   liqDelta: number | null;
+  /** Top serviços do ano por bruto, agrupados case-insensitive. */
+  topServicos: ServiceStat[];
 }
 
 export function useAnnual(
@@ -78,6 +86,12 @@ export function useAnnual(
       Crédito: { count: 0, bruto: 0, liq: 0 },
     };
 
+    // Top serviços (case-insensitive, mantém o casing mais usado)
+    const servicosMap = new Map<
+      string,
+      { name: string; count: number; bruto: number }
+    >();
+
     calc
       .filter((r) => r.ano === ano && r.v > 0)
       .forEach((r) => {
@@ -102,7 +116,28 @@ export function useAnnual(
           bd.bruto += r.v;
           bd.liq += r.liq;
         }
+
+        // Top serviços
+        const servicoRaw = r.servico.trim();
+        if (servicoRaw) {
+          const key = servicoRaw.toLowerCase();
+          const entry = servicosMap.get(key);
+          if (entry) {
+            entry.count += 1;
+            entry.bruto += r.v;
+          } else {
+            servicosMap.set(key, {
+              name: servicoRaw,
+              count: 1,
+              bruto: r.v,
+            });
+          }
+        }
       });
+
+    const topServicos: ServiceStat[] = Array.from(servicosMap.values())
+      .sort((a, b) => b.bruto - a.bruto)
+      .slice(0, 5);
 
     // Best/worst — só meses com lançamentos
     const withData = monthly.filter((b) => b.count > 0);
@@ -142,6 +177,7 @@ export function useAnnual(
       worst,
       prevYearLiq,
       liqDelta,
+      topServicos,
     };
   }, [rows, ano, activeBusinessId]);
 }

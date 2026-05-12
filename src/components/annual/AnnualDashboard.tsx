@@ -26,8 +26,16 @@ function scaleFontSize(text: string, baseSize: number, minSize: number) {
 }
 
 export function AnnualDashboard({ summary, onSelectMonth }: Props) {
-  const { year, total, monthly, paymentBreakdown, best, worst, liqDelta } =
-    summary;
+  const {
+    year,
+    total,
+    monthly,
+    paymentBreakdown,
+    best,
+    worst,
+    liqDelta,
+    topServicos,
+  } = summary;
 
   const hasAnyData = total.count > 0;
   const liqStr = fmtBRL(total.liq);
@@ -223,6 +231,42 @@ export function AnnualDashboard({ summary, onSelectMonth }: Props) {
           </div>
         </div>
       </div>
+
+      {/* Top serviços */}
+      {topServicos.length > 0 && (
+        <div className={styles.servicosWrap}>
+          <div className={styles.servicosShell}>
+            <header className={styles.servicosHead}>
+              <span className={styles.servicosEyebrow}>
+                Top serviços do ano
+              </span>
+              <span className={styles.servicosHint}>
+                {topServicos.length} de {topServicos.length}
+              </span>
+            </header>
+            <ol className={styles.servicosList}>
+              {topServicos.map((s, idx) => {
+                const pct = total.bruto > 0 ? (s.bruto / total.bruto) * 100 : 0;
+                return (
+                  <li key={s.name} className={styles.servicoItem}>
+                    <span className={styles.servicoRank}>{idx + 1}</span>
+                    <div className={styles.servicoMain}>
+                      <span className={styles.servicoName}>{s.name}</span>
+                      <span className={styles.servicoMeta}>
+                        {s.count} atendimento{s.count === 1 ? "" : "s"}
+                        {pct > 0 ? ` · ${fmtPct(pct, 0)} do bruto` : ""}
+                      </span>
+                    </div>
+                    <span className={styles.servicoValue}>
+                      {fmtBRL(s.bruto)}
+                    </span>
+                  </li>
+                );
+              })}
+            </ol>
+          </div>
+        </div>
+      )}
 
       {/* Composição anual */}
       {totalCompo > 0 && (

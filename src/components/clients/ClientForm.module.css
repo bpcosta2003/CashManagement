@@ -83,6 +83,146 @@
   font-weight: 600;
 }
 
+/* ─── Histórico do cliente ─── */
+.metrics {
+  background: var(--surface-2);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: 14px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.metricsHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.metricsTitle {
+  font-size: var(--t-eyebrow);
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+}
+
+.metricsCount {
+  font-size: var(--t-caption);
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.metricsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.metricCard {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+}
+
+.metricLabel {
+  font-size: var(--t-eyebrow);
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+.metricValue {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+  margin-top: 2px;
+}
+
+.metricAccent {
+  color: var(--accent);
+}
+
+.recents {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.recentsLabel {
+  font-size: var(--t-eyebrow);
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+.recentsList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: var(--border-soft);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.recentItem {
+  display: grid;
+  grid-template-columns: 80px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  background: var(--surface);
+  font-size: var(--t-meta);
+  min-height: 38px;
+}
+
+.recentDate {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--t-caption);
+  text-transform: lowercase;
+}
+
+.recentServico {
+  color: var(--text);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.recentValue {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  text-align: right;
+}
+
+.recentsMore {
+  font-size: var(--t-caption);
+  color: var(--text-dim);
+  text-align: center;
+  margin-top: 2px;
+}
+
 .actions {
   display: flex;
   gap: 10px;

@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import type { Client, Row } from "../types";
+import type { CalculatedRow, Client, Row } from "../types";
 import { calcRow } from "../lib/calc";
 
 export interface ClientStats {
@@ -10,10 +10,12 @@ export interface ClientStats {
   liq: number;
   /** Quantidade de lançamentos. */
   count: number;
-  /** ISO date do último lançamento (não confunde com lastUsedAt — esse
-   *  é o lastUsed do cliente, pode ser diferente se o cliente foi
-   *  cadastrado mas nunca usado em lançamento). */
+  /** ISO date do último lançamento. null se nunca usado. */
   lastEntryAt: string | null;
+  /** Ticket médio (bruto / count). 0 se sem lançamentos. */
+  ticketMedio: number;
+  /** Últimos atendimentos (mais recente primeiro), até 8 itens. */
+  recentEntries: CalculatedRow[];
 }
 
 /**
@@ -39,32 +41,37 @@ export function useClients(
     return scopedClients
       .map((client) => {
         const nameLower = client.name.trim().toLowerCase();
-        const related = calced.filter(
-          (r) =>
-            r.cliente.trim().toLowerCase() === nameLower && r.v > 0,
-        );
+        const related = calced
+          .filter(
+            (r) =>
+              r.cliente.trim().toLowerCase() === nameLower && r.v > 0,
+          )
+          .sort((a, b) => (a.criadoEm < b.criadoEm ? 1 : -1));
 
         let ltv = 0;
         let liq = 0;
-        let lastEntryAt: string | null = null;
         for (const r of related) {
           ltv += r.v;
           liq += r.liq;
-          if (!lastEntryAt || r.criadoEm > lastEntryAt) {
-            lastEntryAt = r.criadoEm;
-          }
         }
+
+        const count = related.length;
+        const ticketMedio = count > 0 ? ltv / count : 0;
+        const lastEntryAt = related[0]?.criadoEm ?? null;
+        const recentEntries = related.slice(0, 8);
 
         return {
           client,
           ltv,
           liq,
-          count: related.length,
+          count,
           lastEntryAt,
+          ticketMedio,
+          recentEntries,
         };
       })
       .sort((a, b) => {
-        // Sort: mais usados primeiro (LTV desc), depois alfabético
+        // Sort: maior LTV primeiro, depois alfabético
         if (b.ltv !== a.ltv) return b.ltv - a.ltv;
         return a.client.name.localeCompare(b.client.name, "pt-BR");
       });

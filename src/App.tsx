@@ -134,6 +134,25 @@ export default function App() {
   const annual = useAnnual(state.rows, ano, activeBusinessId);
   const clientStats = useClients(state.clients, state.rows, activeBusinessId);
 
+  // Sugestões de serviço pro autocomplete do EntryForm — únicos do
+  // empreendimento ativo, ordenados pelo uso mais recente.
+  const servicoSuggestions = useMemo(() => {
+    if (!activeBusinessId) return [];
+    const seen = new Map<string, string>();
+    const scoped = state.rows.filter(
+      (r) => r.businessId === activeBusinessId && r.servico.trim(),
+    );
+    // Mais recentes primeiro
+    [...scoped]
+      .sort((a, b) => (a.criadoEm < b.criadoEm ? 1 : -1))
+      .forEach((r) => {
+        const trimmed = r.servico.trim();
+        const key = trimmed.toLowerCase();
+        if (!seen.has(key)) seen.set(key, trimmed);
+      });
+    return Array.from(seen.values()).slice(0, 30);
+  }, [state.rows, activeBusinessId]);
+
   const handleSelectMonthFromAnnual = useCallback((m: number, y: number) => {
     setMes(m);
     setAno(y);
@@ -365,6 +384,7 @@ export default function App() {
             initial={editingRow}
             isNew={sheetMode?.kind === "create"}
             clients={activeClients}
+            servicoSuggestions={servicoSuggestions}
             onSave={handleSave}
             onDelete={
               sheetMode?.kind === "edit" ? handleDeleteFromSheet : undefined

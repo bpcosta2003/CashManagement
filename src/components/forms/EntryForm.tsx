@@ -10,6 +10,8 @@ interface Props {
   isNew?: boolean;
   /** Clientes do empreendimento ativo — usados pra autocomplete. */
   clients: Client[];
+  /** Serviços já lançados no empreendimento ativo (ordenados por uso). */
+  servicoSuggestions?: string[];
   onSave: (row: Row, clientPhone?: string) => void;
   onDelete?: () => void;
   onCancel: () => void;
@@ -43,6 +45,7 @@ export function EntryForm({
   initial,
   isNew = false,
   clients,
+  servicoSuggestions = [],
   onSave,
   onDelete,
   onCancel,
@@ -191,7 +194,18 @@ export function EntryForm({
           value={draft.servico}
           onChange={(e) => update("servico", e.target.value)}
           placeholder="Ex: Corte + escova"
+          autoComplete="off"
+          list={
+            servicoSuggestions.length > 0 ? "ef-servico-suggestions" : undefined
+          }
         />
+        {servicoSuggestions.length > 0 && (
+          <datalist id="ef-servico-suggestions">
+            {servicoSuggestions.map((s) => (
+              <option key={s} value={s} />
+            ))}
+          </datalist>
+        )}
       </div>
 
       <div className={styles.row}>
