@@ -209,7 +209,17 @@
   flex-direction: column;
   align-items: flex-end;
   gap: 2px;
-  flex-shrink: 0;
+  min-width: 0;
+  max-width: 55%;
+  flex-shrink: 1;
+}
+
+.ltvWrap {
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  display: flex;
+  justify-content: flex-end;
 }
 
 .ltv {
@@ -219,6 +229,8 @@
   color: var(--accent);
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.025em;
+  display: block;
+  white-space: nowrap;
 }
 
 .ltvEmpty {

@@ -4,6 +4,7 @@ import { fmtBRL } from "../../lib/calc";
 import { MESES_SHORT } from "../../constants";
 import { formatPhoneBR } from "../../lib/phone";
 import { InfoTooltip } from "../feedback/InfoTooltip";
+import { FitText } from "../feedback/FitText";
 import styles from "./ClientForm.module.css";
 
 interface Props {
@@ -102,16 +103,34 @@ export function ClientForm({
                 Ticket médio
                 <InfoTooltip text="Valor médio que esse cliente costuma gastar por atendimento. Calculado dividindo o total faturado pelo número de atendimentos." />
               </span>
-              <span className={styles.metricValue}>{fmtBRL(ticketMedio)}</span>
+              <div className={styles.metricValueWrap}>
+                <FitText
+                  className={styles.metricValue}
+                  baseFontSize={20}
+                  minFontSize={11}
+                  watchKey={ticketMedio}
+                  title={fmtBRL(ticketMedio)}
+                >
+                  {fmtBRL(ticketMedio)}
+                </FitText>
+              </div>
             </div>
             <div className={styles.metricCard}>
               <span className={styles.metricLabel}>
                 LTV (bruto)
                 <InfoTooltip text="Lifetime Value — total faturado bruto com esse cliente desde o primeiro atendimento. Ajuda a identificar clientes mais valiosos." />
               </span>
-              <span className={`${styles.metricValue} ${styles.metricAccent}`}>
-                {fmtBRL(ltv)}
-              </span>
+              <div className={styles.metricValueWrap}>
+                <FitText
+                  className={`${styles.metricValue} ${styles.metricAccent}`}
+                  baseFontSize={20}
+                  minFontSize={11}
+                  watchKey={ltv}
+                  title={fmtBRL(ltv)}
+                >
+                  {fmtBRL(ltv)}
+                </FitText>
+              </div>
             </div>
           </div>
 
@@ -127,9 +146,17 @@ export function ClientForm({
                     <span className={styles.recentServico}>
                       {r.servico || "Sem serviço"}
                     </span>
-                    <span className={styles.recentValue}>
-                      {fmtBRL(r.v)}
-                    </span>
+                    <div className={styles.recentValueWrap}>
+                      <FitText
+                        className={styles.recentValue}
+                        baseFontSize={14}
+                        minFontSize={10}
+                        watchKey={r.v}
+                        title={fmtBRL(r.v)}
+                      >
+                        {fmtBRL(r.v)}
+                      </FitText>
+                    </div>
                   </li>
                 ))}
               </ul>

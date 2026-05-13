@@ -92,6 +92,7 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
+  min-width: 0;
 }
 
 .metricsHead {
@@ -117,8 +118,9 @@
 
 .metricsGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 10px;
+  min-width: 0;
 }
 
 .metricCard {
@@ -129,6 +131,7 @@
   border: 1px solid var(--border-soft);
   border-radius: var(--radius-sm);
   padding: 12px 14px;
+  min-width: 0;
 }
 
 .metricLabel {
@@ -139,6 +142,13 @@
   letter-spacing: 0.16em;
 }
 
+.metricValueWrap {
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  margin-top: 2px;
+}
+
 .metricValue {
   font-family: var(--font-display);
   font-weight: 700;
@@ -147,7 +157,8 @@
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.025em;
   line-height: 1.1;
-  margin-top: 2px;
+  display: block;
+  white-space: nowrap;
 }
 
 .metricAccent {
@@ -182,13 +193,14 @@
 
 .recentItem {
   display: grid;
-  grid-template-columns: 80px 1fr auto;
+  grid-template-columns: 80px minmax(0, 1fr) minmax(0, 1.4fr);
   align-items: center;
   gap: 10px;
   padding: 9px 12px;
   background: var(--surface);
   font-size: var(--t-meta);
   min-height: 38px;
+  min-width: 0;
 }
 
 .recentDate {
@@ -207,6 +219,13 @@
   min-width: 0;
 }
 
+.recentValueWrap {
+  min-width: 0;
+  overflow: hidden;
+  display: flex;
+  justify-content: flex-end;
+}
+
 .recentValue {
   font-family: var(--font-mono);
   font-weight: 600;
@@ -214,6 +233,7 @@
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   text-align: right;
+  display: block;
 }
 
 .recentsMore {
