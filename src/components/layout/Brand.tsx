@@ -4,67 +4,42 @@ interface MarkProps {
   size?: number;
 }
 
+/**
+ * BrandMark — usa as PNGs renderizadas (light + dark) trocadas via CSS
+ * conforme o data-theme do root. Empilha as duas e mostra só a do tema
+ * ativo (evita flicker em troca de tema).
+ */
 export function BrandMark({ size = 36 }: MarkProps) {
   return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 64 64"
+    <span
+      className={styles.markWrap}
+      style={{ width: size, height: size }}
       aria-hidden="true"
-      className={styles.mark}
     >
-      <rect width="64" height="64" rx="14" className={styles.markBg} />
-
-      <g transform="translate(11, 14)">
-        <rect width="11" height="15" rx="1.2" className={styles.markPaper} />
-        <rect x="2" y="3.5" width="7" height="0.9" className={styles.markPaperLine} />
-        <text
-          x="5.5"
-          y="11"
-          textAnchor="middle"
-          fontFamily="Inter, system-ui, sans-serif"
-          fontSize="5.2"
-          fontWeight="700"
-          className={styles.markPaperR}
-        >
-          R$
-        </text>
-      </g>
-
-      <g transform="translate(28, 15)">
-        <rect x="0" y="9" width="3.5" height="6" rx="0.6" className={styles.markBar1} />
-        <rect x="5" y="5" width="3.5" height="10" rx="0.6" className={styles.markBar2} />
-        <rect x="10" y="0" width="3.5" height="15" rx="0.6" className={styles.markBar3} />
-      </g>
-
-      <g transform="translate(43, 12)">
-        <path
-          d="M0 9 L5 4 L9 7 L14 1"
-          fill="none"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className={styles.markArrow}
-        />
-        <path
-          d="M10 0 L14 0 L14 4"
-          fill="none"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className={styles.markArrow}
-        />
-      </g>
-
-      <path d="M8 36 L56 36 L52 56 L12 56 Z" className={styles.markChest} />
-      <path d="M6 36 L58 36" strokeWidth="1.2" className={styles.markChestEdge} />
-      <rect x="29" y="44" width="6" height="6" rx="1.2" className={styles.markLock} />
-      <circle cx="32" cy="47" r="1" className={styles.markLockDot} />
-    </svg>
+      <img
+        className={`${styles.markImg} ${styles.markLight}`}
+        src="/brand-light.png"
+        alt=""
+        width={size}
+        height={size}
+        loading="eager"
+        decoding="async"
+      />
+      <img
+        className={`${styles.markImg} ${styles.markDark}`}
+        src="/brand-dark.png"
+        alt=""
+        width={size}
+        height={size}
+        loading="eager"
+        decoding="async"
+      />
+    </span>
   );
 }
 
 interface BrandProps {
+  /** Nome do empreendimento exibido no subtítulo. */
   businessName?: string;
   size?: "sm" | "md";
   /** Se passado, o brand vira clicável (botão pra abrir o switcher). */

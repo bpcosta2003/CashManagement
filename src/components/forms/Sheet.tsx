@@ -25,13 +25,18 @@ export function Sheet({ open, title, onClose, children }: Props) {
 
   if (!open) return null;
 
+  // Fechar clicando fora só faz sentido no mobile (bottom sheet — gesto
+  // intuitivo). No desktop o modal pode ter formulários longos com
+  // seleção de texto que escapa do retângulo — fechar por clique fora é
+  // hostil. Aqui, só fechamos quando clica no backdrop em mobile (<721px).
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target !== e.currentTarget) return;
+    if (typeof window !== "undefined" && window.innerWidth > 720) return;
+    onClose();
+  };
+
   return (
-    <div
-      className={styles.backdrop}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
+    <div className={styles.backdrop} onClick={handleBackdropClick}>
       <div
         className={styles.sheet}
         role="dialog"

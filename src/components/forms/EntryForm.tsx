@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import type { Client, FormaPagamento, Row, StatusPagamento } from "../../types";
 import { FORMAS_PAGAMENTO, STATUS_OPTIONS } from "../../constants";
 import { autoTaxa, calcRow, fmtBRL, fmtPct } from "../../lib/calc";
+import { formatPhoneBR } from "../../lib/phone";
+import { ClientCombobox } from "./ClientCombobox";
 import styles from "./EntryForm.module.css";
 
 interface Props {
@@ -20,6 +22,8 @@ interface Props {
 interface Errors {
   cliente?: string;
   valor?: string;
+  parc?: string;
+  taxa?: string;
 }
 
 function validate(draft: Row): Errors {
@@ -30,6 +34,17 @@ function validate(draft: Row): Errors {
   const valor = typeof draft.valor === "number" ? draft.valor : 0;
   if (!valor || valor <= 0) {
     errors.valor = "Valor precisa ser maior que zero";
+  }
+  if (draft.forma === "Crédito") {
+    if (!draft.parc || draft.parc < 1) {
+      errors.parc = "Informe o número de parcelas";
+    }
+    if (draft.taxa <= 0) {
+      errors.taxa = "Informe a taxa";
+    }
+  }
+  if (draft.forma === "Débito" && draft.taxa <= 0) {
+    errors.taxa = "Informe a taxa";
   }
   return errors;
 }
@@ -56,13 +71,6 @@ export function EntryForm({
   const [submitted, setSubmitted] = useState(false);
   const [phone, setPhone] = useState("");
 
-  // Lista de clientes ordenada por uso mais recente — alimenta o datalist
-  const clientSuggestions = useMemo(() => {
-    return [...clients]
-      .sort((a, b) => (a.lastUsedAt < b.lastUsedAt ? 1 : -1))
-      .slice(0, 50);
-  }, [clients]);
-
   // Cliente conhecido = casamento exato (case-insensitive) com a base
   const knownClient = useMemo(
     () => findClient(clients, draft.cliente),
@@ -76,14 +84,14 @@ export function EntryForm({
     setSubmitted(false);
     // Telefone: se o cliente já está cadastrado, prefilla. Senão, vazio.
     const found = findClient(clients, initial.cliente);
-    setPhone(found?.phone ?? "");
+    setPhone(formatPhoneBR(found?.phone ?? ""));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initial]);
 
   // Quando o nome muda pra um cliente já conhecido, prefilla o telefone
   useEffect(() => {
     if (knownClient) {
-      setPhone((prev) => (prev ? prev : knownClient.phone ?? ""));
+      setPhone((prev) => (prev ? prev : formatPhoneBR(knownClient.phone ?? "")));
     }
   }, [knownClient]);
 
@@ -109,6 +117,12 @@ export function EntryForm({
         const next = { ...prev };
         if (field === "cliente") delete next.cliente;
         if (field === "valor") delete next.valor;
+        if (field === "parc") delete next.parc;
+        if (field === "taxa") delete next.taxa;
+        if (field === "forma") {
+          delete next.parc;
+          delete next.taxa;
+        }
         return next;
       });
     }
@@ -124,9 +138,12 @@ export function EntryForm({
     const v = validate(draft);
     setErrors(v);
     if (Object.keys(v).length > 0) {
-      const first = v.cliente ? "cliente" : "valor";
-      const el = document.getElementById(`ef-${first}`);
-      el?.focus();
+      const order: Array<keyof Errors> = ["cliente", "valor", "parc", "taxa"];
+      const first = order.find((k) => v[k]);
+      if (first) {
+        const el = document.getElementById(`ef-${first}`);
+        el?.focus();
+      }
       return;
     }
     onSave(draft, phone.trim() || undefined);
@@ -137,29 +154,18 @@ export function EntryForm({
       <div className={styles.field}>
         <label htmlFor="ef-cliente" className={styles.label}>
           Cliente <span className={styles.required}>*</span>
-          {knownClient && (
-            <span className={styles.labelHint}>· cadastrado</span>
-          )}
         </label>
-        <input
+        <ClientCombobox
           id="ef-cliente"
-          className={`${styles.input} ${errors.cliente ? styles.inputError : ""}`}
           value={draft.cliente}
-          onChange={(e) => update("cliente", e.target.value)}
+          onChange={(v) => update("cliente", v)}
+          matchedClient={knownClient ?? null}
+          clients={clients}
           placeholder="Nome do cliente"
+          invalid={!!errors.cliente}
+          errorId={errors.cliente ? "ef-cliente-err" : undefined}
           autoFocus
-          autoComplete="off"
-          list="ef-cliente-suggestions"
-          aria-invalid={!!errors.cliente}
-          aria-describedby={errors.cliente ? "ef-cliente-err" : undefined}
         />
-        <datalist id="ef-cliente-suggestions">
-          {clientSuggestions.map((c) => (
-            <option key={c.id} value={c.name}>
-              {c.phone ?? ""}
-            </option>
-          ))}
-        </datalist>
         {errors.cliente && (
           <span id="ef-cliente-err" className={styles.errorMsg}>
             {errors.cliente}
@@ -175,12 +181,12 @@ export function EntryForm({
           id="ef-phone"
           className={styles.input}
           value={phone}
-          onChange={(e) => setPhone(e.target.value)}
+          onChange={(e) => setPhone(formatPhoneBR(e.target.value))}
           placeholder="(11) 90000-0000"
           inputMode="tel"
           type="tel"
           autoComplete="tel"
-          maxLength={20}
+          maxLength={16}
         />
       </div>
 
@@ -277,32 +283,48 @@ export function EntryForm({
       {draft.forma === "Crédito" && (
         <div className={styles.row}>
           <div className={styles.field}>
-            <label className={styles.label}>Parcelas</label>
+            <label className={styles.label}>
+              Parcelas <span className={styles.required}>*</span>
+            </label>
             <input
-              className={styles.input}
-              type="number"
-              min={1}
-              max={24}
+              className={`${styles.input} ${errors.parc ? styles.inputError : ""}`}
+              type="text"
               inputMode="numeric"
-              value={draft.parc}
-              onChange={(e) => update("parc", +e.target.value || 1)}
+              pattern="[0-9]*"
+              value={draft.parc === 0 ? "" : String(draft.parc)}
+              onChange={(e) => {
+                const raw = e.target.value.replace(/\D/g, "");
+                update("parc", raw === "" ? 0 : Math.min(24, +raw));
+              }}
+              placeholder="1"
+              aria-invalid={!!errors.parc}
             />
+            {errors.parc && (
+              <span className={styles.errorMsg}>{errors.parc}</span>
+            )}
           </div>
           <div className={styles.field}>
             <label className={styles.label}>
-              Taxa %
+              Taxa % <span className={styles.required}>*</span>
               {isAutoTaxa && (
                 <span className={styles.labelHint}>· automática</span>
               )}
             </label>
             <input
-              className={styles.input}
-              type="number"
-              step="0.01"
+              className={`${styles.input} ${errors.taxa ? styles.inputError : ""}`}
+              type="text"
               inputMode="decimal"
-              value={draft.taxa}
-              onChange={(e) => update("taxa", +e.target.value || 0)}
+              value={draft.taxa === 0 ? "" : String(draft.taxa).replace(".", ",")}
+              onChange={(e) => {
+                const raw = e.target.value.replace(",", ".").replace(/[^0-9.]/g, "");
+                update("taxa", raw === "" ? 0 : +raw);
+              }}
+              placeholder="0,00"
+              aria-invalid={!!errors.taxa}
             />
+            {errors.taxa && (
+              <span className={styles.errorMsg}>{errors.taxa}</span>
+            )}
           </div>
         </div>
       )}
@@ -326,19 +348,26 @@ export function EntryForm({
         {draft.forma === "Débito" && (
           <div className={styles.field}>
             <label className={styles.label}>
-              Taxa %
+              Taxa % <span className={styles.required}>*</span>
               {isAutoTaxa && (
                 <span className={styles.labelHint}>· automática</span>
               )}
             </label>
             <input
-              className={styles.input}
-              type="number"
-              step="0.01"
+              className={`${styles.input} ${errors.taxa ? styles.inputError : ""}`}
+              type="text"
               inputMode="decimal"
-              value={draft.taxa}
-              onChange={(e) => update("taxa", +e.target.value || 0)}
+              value={draft.taxa === 0 ? "" : String(draft.taxa).replace(".", ",")}
+              onChange={(e) => {
+                const raw = e.target.value.replace(",", ".").replace(/[^0-9.]/g, "");
+                update("taxa", raw === "" ? 0 : +raw);
+              }}
+              placeholder="0,00"
+              aria-invalid={!!errors.taxa}
             />
+            {errors.taxa && (
+              <span className={styles.errorMsg}>{errors.taxa}</span>
+            )}
           </div>
         )}
       </div>

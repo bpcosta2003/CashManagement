@@ -1,5 +1,7 @@
+import { useLayoutEffect, useRef } from "react";
 import type { Summary } from "../../types";
 import { fmtBRL, fmtPct } from "../../lib/calc";
+import { fitTextToContainer } from "../../lib/fitText";
 import { MESES_SHORT } from "../../constants";
 import { useBreakpoint } from "../../hooks/useBreakpoint";
 import styles from "./SummaryCards.module.css";
@@ -9,20 +11,6 @@ interface Props {
   mes: number;
   liqDelta: number | null;
   prevMonthLabel: string;
-}
-
-/**
- * Calcula um font-size que cabe melhor em um card, dada a quantidade de
- * caracteres do valor formatado. Não substitui o CSS — refina números
- * muito longos (ex.: R$ 1.234.567,89).
- */
-function scaleFontSize(text: string, baseSize: number, minSize: number) {
-  const len = text.length;
-  // Tolerância de ~10 chars como "R$ 12.345,67". Acima disso, encolhe.
-  const threshold = 11;
-  if (len <= threshold) return baseSize;
-  const ratio = Math.max(0.45, threshold / len);
-  return Math.max(minSize, Math.round(baseSize * ratio));
 }
 
 export function SummaryCards({
@@ -50,16 +38,56 @@ export function SummaryCards({
         ? `Primeiro mês com dados`
         : `Nenhum lançamento ainda`;
 
-  // Auto-scale dinâmico do valor herói para evitar overflow em valores
-  // muito grandes (ex.: R$ 1.234.567,89). Base diferente para mobile/desktop.
-  const heroBase = isMobile ? 48 : 72;
-  const heroMin = isMobile ? 28 : 40;
-  const heroFontSize = scaleFontSize(liqStr, heroBase, heroMin);
-  const kpiBase = isMobile ? 22 : 24;
-  const brutoFontSize = scaleFontSize(brutoStr, kpiBase, 15);
-  const futuroFontSize = scaleFontSize(futuroStr, kpiBase, 15);
+  // Refs pros valores que precisam de auto-shrink garantido
+  const heroRef = useRef<HTMLSpanElement>(null);
+  const brutoRef = useRef<HTMLSpanElement>(null);
+  const futuroRef = useRef<HTMLSpanElement>(null);
+  const margemRef = useRef<HTMLSpanElement>(null);
 
-  // key força remount + animação a cada mudança de mês/ano (slide fade)
+  // Bases responsivas
+  const heroBase = isMobile ? 48 : 72;
+  const heroMin = 24;
+  const kpiBase = isMobile ? 22 : 26;
+  const kpiMin = 14;
+
+  // Re-ajusta toda vez que o texto/breakpoint muda. useLayoutEffect roda
+  // antes do paint, então o usuário nunca vê o overflow.
+  useLayoutEffect(() => {
+    if (heroRef.current) {
+      fitTextToContainer(heroRef.current, heroBase, heroMin);
+    }
+    if (brutoRef.current) {
+      fitTextToContainer(brutoRef.current, kpiBase, kpiMin);
+    }
+    if (futuroRef.current) {
+      fitTextToContainer(futuroRef.current, kpiBase, kpiMin);
+    }
+    if (margemRef.current) {
+      fitTextToContainer(margemRef.current, kpiBase, kpiMin);
+    }
+  }, [liqStr, brutoStr, futuroStr, heroBase, kpiBase, isMobile]);
+
+  // Re-ajusta também em resize (orientação, redimensionar janela)
+  useLayoutEffect(() => {
+    const onResize = () => {
+      if (heroRef.current) {
+        fitTextToContainer(heroRef.current, heroBase, heroMin);
+      }
+      if (brutoRef.current) {
+        fitTextToContainer(brutoRef.current, kpiBase, kpiMin);
+      }
+      if (futuroRef.current) {
+        fitTextToContainer(futuroRef.current, kpiBase, kpiMin);
+      }
+      if (margemRef.current) {
+        fitTextToContainer(margemRef.current, kpiBase, kpiMin);
+      }
+    };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [heroBase, kpiBase]);
+
+  // key força remount + animação a cada mudança de mês/ano
   const monthKey = `${mes}-${monthLabel}`;
 
   return (
@@ -76,8 +104,8 @@ export function SummaryCards({
           </span>
         </div>
         <span
+          ref={heroRef}
           className={`${styles.heroValue} ${liqPositive ? "" : styles.heroNeg}`}
-          style={{ fontSize: `${heroFontSize}px` }}
           title={liqStr}
         >
           {liqStr}
@@ -101,8 +129,8 @@ export function SummaryCards({
         <article className={styles.kpi}>
           <span className={styles.kpiLabel}>Bruto</span>
           <span
+            ref={brutoRef}
             className={styles.kpiValue}
-            style={{ fontSize: `${brutoFontSize}px` }}
             title={brutoStr}
           >
             {brutoStr}
@@ -113,8 +141,8 @@ export function SummaryCards({
         <article className={styles.kpi}>
           <span className={styles.kpiLabel}>A receber</span>
           <span
+            ref={futuroRef}
             className={styles.kpiValue}
-            style={{ fontSize: `${futuroFontSize}px` }}
             title={futuroStr}
           >
             {futuroStr}
@@ -124,7 +152,10 @@ export function SummaryCards({
 
         <article className={styles.kpi}>
           <span className={styles.kpiLabel}>Margem</span>
-          <span className={`${styles.kpiValue} ${styles.kpiValueAccent}`}>
+          <span
+            ref={margemRef}
+            className={`${styles.kpiValue} ${styles.kpiValueAccent}`}
+          >
             {fmtPct(margem)}
           </span>
           <span className={styles.kpiSub}>

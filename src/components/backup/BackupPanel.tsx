@@ -90,13 +90,15 @@ export function BackupPanel({
 
   const totalImport = preview?.result.rows.length ?? 0;
 
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target !== e.currentTarget) return;
+    // No desktop, não fechar por clique fora (seleção de texto escapa)
+    if (typeof window !== "undefined" && window.innerWidth > 720) return;
+    onClose();
+  };
+
   return (
-    <div
-      className={styles.modalBackdrop}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
+    <div className={styles.modalBackdrop} onClick={handleBackdropClick}>
       <div className={styles.panel} role="dialog" aria-modal="true">
         <div className={styles.header}>
           <span className={styles.title}>💾 Backup & Restauração</span>
@@ -109,7 +111,7 @@ export function BackupPanel({
           <div className={styles.body}>
             <button className={styles.action} onClick={handleExport}>
               <span className={styles.actionIcon}>📥</span>
-              <span>
+              <span className={styles.actionTextWrap}>
                 <span className={styles.actionTitle}>Exportar Excel</span>
                 <span className={styles.actionDesc}>
                   Baixa o arquivo .xlsx com todos os dados em 3 abas:
@@ -120,7 +122,7 @@ export function BackupPanel({
 
             <button className={styles.action} onClick={handlePickFile}>
               <span className={styles.actionIcon}>📤</span>
-              <span>
+              <span className={styles.actionTextWrap}>
                 <span className={styles.actionTitle}>Importar Excel</span>
                 <span className={styles.actionDesc}>
                   Restaurar de um arquivo .xlsx. Você verá um preview antes
@@ -137,30 +139,32 @@ export function BackupPanel({
               hidden
             />
 
-            <div
-              className={styles.meta}
-              style={{ flexDirection: "column", alignItems: "stretch", gap: 4 }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span>{rows.length} lançamentos</span>
-                <span>{getStorageSize()} KB usados</span>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span>
-                  Último backup:{" "}
+            <ul className={styles.stats}>
+              <li className={styles.statItem}>
+                <span className={styles.statLabel}>Lançamentos</span>
+                <span className={styles.statValue}>{rows.length}</span>
+              </li>
+              <li className={styles.statItem}>
+                <span className={styles.statLabel}>Tamanho</span>
+                <span className={styles.statValue}>{getStorageSize()} KB</span>
+              </li>
+              <li className={styles.statItem}>
+                <span className={styles.statLabel}>Último backup</span>
+                <span className={styles.statValue}>
                   {lastBackupDays === null
-                    ? "nunca"
+                    ? "Nunca"
                     : lastBackupDays === 0
-                      ? "hoje"
-                      : `há ${lastBackupDays} dia${lastBackupDays === 1 ? "" : "s"}`}
+                      ? "Hoje"
+                      : `Há ${lastBackupDays} dia${lastBackupDays === 1 ? "" : "s"}`}
                 </span>
-                <span>
-                  {persisted
-                    ? "🔒 Armazenamento protegido"
-                    : "⚠ Não persistente"}
+              </li>
+              <li className={styles.statItem}>
+                <span className={styles.statLabel}>Armazenamento</span>
+                <span className={styles.statValue}>
+                  {persisted ? "🔒 Protegido" : "⚠ Não persistente"}
                 </span>
-              </div>
-            </div>
+              </li>
+            </ul>
 
             <div className={styles.danger}>
               <span className={styles.dangerLabel}>Zona de perigo</span>

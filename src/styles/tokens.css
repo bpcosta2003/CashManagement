@@ -150,6 +150,42 @@
   --hero-bg:       #2e2520;
 }
 
+:root[data-accent="grafite"] {
+  --accent:        #3a3a3e;
+  --accent-strong: #1f1f22;
+  --accent-soft:   #e2e2e6;
+  --accent-on:     #ffffff;
+  --pay-credito:   #3a3a3e;
+  --hero-bg:       #1a1a1d;
+}
+
+:root[data-accent="oceano"] {
+  --accent:        #226c7a;
+  --accent-strong: #19505b;
+  --accent-soft:   #d4e6ea;
+  --accent-on:     #ffffff;
+  --pay-credito:   #226c7a;
+  --hero-bg:       #15323a;
+}
+
+:root[data-accent="lavanda"] {
+  --accent:        #5e3f72;
+  --accent-strong: #482f59;
+  --accent-soft:   #e6dceb;
+  --accent-on:     #ffffff;
+  --pay-credito:   #5e3f72;
+  --hero-bg:       #2a1e36;
+}
+
+:root[data-accent="rosa"] {
+  --accent:        #964060;
+  --accent-strong: #74304a;
+  --accent-soft:   #f1d8e1;
+  --accent-on:     #ffffff;
+  --pay-credito:   #964060;
+  --hero-bg:       #3a1d28;
+}
+
 /* No dark mode, accents alternativos mudam pro tom mais claro/dourado */
 :root[data-theme="dark"][data-accent="esmeralda"] {
   --accent:        #8bbc9a;
@@ -182,6 +218,38 @@
   --accent-soft:   rgba(199, 164, 106, 0.14);
   --accent-on:     #1a1207;
   --pay-credito:   #c7a46a;
+}
+
+:root[data-theme="dark"][data-accent="grafite"] {
+  --accent:        #b8b8c0;
+  --accent-strong: #cbcbd2;
+  --accent-soft:   rgba(184, 184, 192, 0.14);
+  --accent-on:     #1a1a1d;
+  --pay-credito:   #b8b8c0;
+}
+
+:root[data-theme="dark"][data-accent="oceano"] {
+  --accent:        #7ab8c8;
+  --accent-strong: #92c8d6;
+  --accent-soft:   rgba(122, 184, 200, 0.14);
+  --accent-on:     #112a32;
+  --pay-credito:   #7ab8c8;
+}
+
+:root[data-theme="dark"][data-accent="lavanda"] {
+  --accent:        #b899c8;
+  --accent-strong: #c9b0d6;
+  --accent-soft:   rgba(184, 153, 200, 0.14);
+  --accent-on:     #221530;
+  --pay-credito:   #b899c8;
+}
+
+:root[data-theme="dark"][data-accent="rosa"] {
+  --accent:        #d488a4;
+  --accent-strong: #df9eb6;
+  --accent-soft:   rgba(212, 136, 164, 0.14);
+  --accent-on:     #2b1320;
+  --pay-credito:   #d488a4;
 }
 
 /* ─────── Dark mode ─────── */

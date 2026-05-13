@@ -1,0 +1,122 @@
+.wrap {
+  position: relative;
+  min-width: 0;
+}
+
+.input {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--input-border);
+  background: var(--input-bg);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  font: inherit;
+  font-size: 16px;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  min-height: var(--hit);
+  transition: border-color 0.18s var(--ease), box-shadow 0.18s var(--ease);
+}
+
+.input::placeholder {
+  color: var(--text-dim);
+}
+
+.input:hover {
+  border-color: var(--text-dim);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-soft);
+}
+
+.inputError {
+  border-color: var(--negative) !important;
+  background: rgba(201, 107, 107, 0.04);
+}
+
+.inputError:focus {
+  box-shadow: 0 0 0 4px rgba(201, 107, 107, 0.18) !important;
+}
+
+.matchBadge {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 3px 8px;
+  border-radius: var(--radius-pill);
+  pointer-events: none;
+}
+
+/* ─── Listbox (sugestões) ─── */
+.list {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 4px;
+  position: absolute;
+  z-index: 5;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-card-hi);
+  max-height: 240px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: calc(var(--radius-sm) - 4px);
+  cursor: pointer;
+  font-size: var(--t-meta);
+  color: var(--text);
+  transition: background 0.12s var(--ease);
+}
+
+.option:not(:last-child) {
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.optionActive {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.optionName {
+  font-weight: 500;
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.optionPhone {
+  font-family: var(--font-mono);
+  font-size: var(--t-caption);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.optionActive .optionPhone {
+  color: var(--accent);
+}
