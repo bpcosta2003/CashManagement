@@ -68,6 +68,8 @@ export default function App() {
     deleteRow,
     replaceAllRows,
     mergeRows,
+    mergeClients,
+    replaceAllClients,
     addBusiness,
     updateBusiness,
     deleteBusiness,
@@ -280,6 +282,7 @@ export default function App() {
     <div className="app-shell">
       <Header
         businessName={businessName}
+        businessLogo={activeBusiness?.logo}
         onBrandClick={showSwitcher ? () => setSwitcherOpen(true) : undefined}
         showBrandChevron={showSwitcher}
         onOpenBackup={() => setBackupOpen(true)}
@@ -434,31 +437,54 @@ export default function App() {
         rows={state.rows.filter(
           (r) => !activeBusinessId || r.businessId === activeBusinessId,
         )}
+        clients={state.clients.filter(
+          (c) => !activeBusinessId || c.businessId === activeBusinessId,
+        )}
         onClose={() => setBackupOpen(false)}
-        onImportMerge={(rows) =>
+        onImportMerge={(rows, clients) => {
           mergeRows(
             rows.map((r) => ({
               ...r,
               businessId: r.businessId || activeBusinessId,
             })),
-          )
-        }
-        onImportReplace={(rows) => {
+          );
+          if (clients.length > 0) {
+            mergeClients(
+              clients.map((c) => ({
+                ...c,
+                businessId: c.businessId || activeBusinessId,
+              })),
+            );
+          }
+        }}
+        onImportReplace={(rows, clients) => {
           // Substitui apenas os do empreendimento ativo, preserva os outros
-          const others = state.rows.filter(
+          const otherRows = state.rows.filter(
             (r) => r.businessId !== activeBusinessId,
           );
-          const scoped = rows.map((r) => ({
+          const scopedRows = rows.map((r) => ({
             ...r,
             businessId: activeBusinessId,
           }));
-          replaceAllRows([...others, ...scoped]);
+          replaceAllRows([...otherRows, ...scopedRows]);
+          const otherClients = state.clients.filter(
+            (c) => c.businessId !== activeBusinessId,
+          );
+          const scopedClients = clients.map((c) => ({
+            ...c,
+            businessId: activeBusinessId,
+          }));
+          replaceAllClients([...otherClients, ...scopedClients]);
         }}
         onClearAll={() => {
           const others = state.rows.filter(
             (r) => r.businessId !== activeBusinessId,
           );
           replaceAllRows(others);
+          const otherClients = state.clients.filter(
+            (c) => c.businessId !== activeBusinessId,
+          );
+          replaceAllClients(otherClients);
         }}
         onToast={pushToast}
       />

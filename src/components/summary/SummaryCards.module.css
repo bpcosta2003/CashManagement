@@ -49,6 +49,7 @@
   overflow: hidden;
   isolation: isolate;
   transition: transform 0.24s var(--ease), box-shadow 0.24s var(--ease);
+  min-width: 0;
 }
 
 .hero::before {
@@ -92,6 +93,13 @@
   margin: 0 2px;
 }
 
+.heroValueWrap {
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
 .heroValue {
   font-family: var(--font-display);
   font-weight: 700;
@@ -100,9 +108,7 @@
   font-variant-numeric: tabular-nums;
   color: var(--hero-fg);
   display: block;
-  margin-top: 4px;
   white-space: nowrap;
-  overflow: hidden;
   /* font-size definido dinamicamente em runtime (auto-shrink via JS) */
 }
 
@@ -167,9 +173,16 @@
   border: 1px solid var(--border-soft);
   border-radius: var(--radius-md);
   min-height: 96px;
+  min-width: 0;
   transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease),
     transform 0.2s var(--ease);
   box-shadow: var(--shadow-card);
+}
+
+.kpiValueWrap {
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .kpi:hover {

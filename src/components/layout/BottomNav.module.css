@@ -1,3 +1,4 @@
+/* ─── Mobile (≤720px): bottom bar horizontal ─── */
 .nav {
   position: fixed;
   bottom: 0;
@@ -69,8 +70,80 @@
   transition: color 0.18s var(--ease);
 }
 
+/* ─── Desktop (≥721px): sidebar lateral flutuante ─── */
 @media (min-width: 721px) {
   .nav {
-    display: none;
+    /* Posicionada à esquerda, flutuante, vertical */
+    top: 50%;
+    bottom: auto;
+    right: auto;
+    left: 16px;
+    transform: translateY(-50%);
+    flex-direction: column;
+    width: auto;
+    min-width: 76px;
+    padding: 10px 8px;
+    gap: 4px;
+    background: color-mix(in srgb, var(--surface) 96%, transparent);
+    border: 1px solid var(--border-soft);
+    border-top: 1px solid var(--border-soft);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card-hi);
+  }
+
+  .btn {
+    flex: 0 0 auto;
+    min-height: 64px;
+    padding: 10px 8px;
+    border-radius: var(--radius-md);
+  }
+
+  /* No desktop, o indicador ativo vira uma barra lateral à esquerda */
+  .btn::before {
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 24px;
+    border-radius: 0 2px 2px 0;
+  }
+
+  .btn[data-active="true"] {
+    background: var(--accent-soft);
+  }
+
+  .icon {
+    font-size: 19px;
+  }
+}
+
+/* Fallback: telas baixas no desktop (ex.: <600px altura) — sidebar
+   poderia cortar conteúdo importante. Volta pro bottom horizontal. */
+@media (min-width: 721px) and (max-height: 540px) {
+  .nav {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    transform: none;
+    flex-direction: row;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+  }
+  .btn {
+    flex: 1;
+  }
+  .btn::before {
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 28px;
+    height: 2px;
+    border-radius: 0 0 2px 2px;
+  }
+  .btn[data-active="true"] {
+    background: transparent;
   }
 }

@@ -117,15 +117,54 @@ export function useStorage() {
     [setRows],
   );
 
+  const mergeClients = useCallback(
+    (incoming: Client[]) => {
+      mutate((prev) => {
+        const byKey = new Map<string, Client>();
+        // Existing first (preserva ids atuais)
+        prev.clients.forEach((c) =>
+          byKey.set(`${c.businessId}|${c.name.toLowerCase().trim()}`, c),
+        );
+        // Merge novos, atualizando lastUsedAt + phone se vazio
+        incoming.forEach((c) => {
+          const key = `${c.businessId}|${c.name.toLowerCase().trim()}`;
+          const existing = byKey.get(key);
+          if (existing) {
+            byKey.set(key, {
+              ...existing,
+              phone: existing.phone ?? c.phone,
+              lastUsedAt:
+                c.lastUsedAt > existing.lastUsedAt
+                  ? c.lastUsedAt
+                  : existing.lastUsedAt,
+            });
+          } else {
+            byKey.set(key, c);
+          }
+        });
+        return { ...prev, clients: Array.from(byKey.values()) };
+      });
+    },
+    [mutate],
+  );
+
+  const replaceAllClients = useCallback(
+    (clients: Client[]) => {
+      mutate((prev) => ({ ...prev, clients }));
+    },
+    [mutate],
+  );
+
   /* ── Businesses ───────────────────────────────────────────────── */
   const addBusiness = useCallback(
-    (data: { name: string; type: BusinessType }) => {
+    (data: { name: string; type: BusinessType; logo?: string }) => {
       const id = uid();
       const newBusiness: Business = {
         id,
         name: data.name.trim(),
         type: data.type,
         createdAt: new Date().toISOString(),
+        ...(data.logo ? { logo: data.logo } : {}),
       };
       mutate((prev) => ({
         ...prev,
@@ -139,12 +178,22 @@ export function useStorage() {
   );
 
   const updateBusiness = useCallback(
-    (id: string, patch: Partial<Pick<Business, "name" | "type">>) => {
+    (
+      id: string,
+      patch: Partial<Pick<Business, "name" | "type" | "logo">>,
+    ) => {
       mutate((prev) => ({
         ...prev,
-        businesses: prev.businesses.map((b) =>
-          b.id === id ? { ...b, ...patch } : b,
-        ),
+        businesses: prev.businesses.map((b) => {
+          if (b.id !== id) return b;
+          const next = { ...b, ...patch };
+          // "logo: undefined" no patch significa remover a logo
+          if ("logo" in patch && patch.logo === undefined) {
+            const { logo: _drop, ...rest } = next;
+            return rest;
+          }
+          return next;
+        }),
       }));
     },
     [mutate],
@@ -293,6 +342,8 @@ export function useStorage() {
     deleteRow,
     replaceAllRows,
     mergeRows,
+    mergeClients,
+    replaceAllClients,
     addBusiness,
     updateBusiness,
     deleteBusiness,

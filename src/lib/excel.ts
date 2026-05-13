@@ -1,6 +1,7 @@
 import * as XLSX from "xlsx";
 import type {
   CalculatedRow,
+  Client,
   FormaPagamento,
   Row,
   StatusPagamento,
@@ -11,6 +12,7 @@ import { MESES_FULL } from "../constants";
 export interface ImportResult {
   success: boolean;
   rows: Row[];
+  clients: Client[];
   errors: string[];
   total: number;
   skipped: number;
@@ -34,7 +36,7 @@ const MESES_MAP: Record<string, number> = {
 
 const FORMAS_VALIDAS: FormaPagamento[] = ["Dinheiro", "Pix", "Débito", "Crédito"];
 
-export function exportToExcel(rows: Row[]): void {
+export function exportToExcel(rows: Row[], clients: Client[] = []): void {
   const wb = XLSX.utils.book_new();
 
   // ── Aba 1: Lançamentos ────────────────────────────────────────────────
@@ -227,6 +229,33 @@ export function exportToExcel(rows: Row[]): void {
   ]);
   XLSX.utils.book_append_sheet(wb, ws3, "Projeção Futura");
 
+  // ── Aba 4: Clientes ───────────────────────────────────────────────────
+  if (clients.length > 0) {
+    const cliHeaders = [
+      "Nome",
+      "Telefone",
+      "Último uso",
+      "Criado em",
+      "ID",
+    ];
+    const cliData = clients.map((c) => [
+      c.name,
+      c.phone ?? "",
+      c.lastUsedAt,
+      c.createdAt,
+      c.id,
+    ]);
+    const ws4 = XLSX.utils.aoa_to_sheet([cliHeaders, ...cliData]);
+    ws4["!cols"] = [
+      { wch: 24 },
+      { wch: 18 },
+      { wch: 22 },
+      { wch: 22 },
+      { wch: 14 },
+    ];
+    XLSX.utils.book_append_sheet(wb, ws4, "Clientes");
+  }
+
   // ── Download ──────────────────────────────────────────────────────────
   const dateStr = new Date().toLocaleDateString("pt-BR").replace(/\//g, "-");
   XLSX.writeFile(wb, `controle-caixa-backup-${dateStr}.xlsx`);
@@ -266,6 +295,7 @@ export function importFromExcel(file: File): Promise<ImportResult> {
           return resolve({
             success: false,
             rows: [],
+            clients: [],
             errors: ["Aba 'Lançamentos' não encontrada no arquivo."],
             total: 0,
             skipped: 0,
@@ -339,11 +369,50 @@ export function importFromExcel(file: File): Promise<ImportResult> {
           });
         });
 
-        resolve({ success: true, rows, errors, total: raw.length, skipped });
+        // Aba opcional: Clientes
+        const clients: Client[] = [];
+        const cliSheetName = wb.SheetNames.find((n) =>
+          n.toLowerCase().includes("cliente"),
+        );
+        if (cliSheetName) {
+          const wsC = wb.Sheets[cliSheetName];
+          const rawC = XLSX.utils.sheet_to_json<Record<string, unknown>>(wsC, {
+            defval: "",
+          });
+          rawC.forEach((c) => {
+            const name = String(c["Nome"] ?? "").trim();
+            if (!name) return;
+            const phone = String(c["Telefone"] ?? "").trim();
+            const lastUsedAt =
+              String(c["Último uso"] ?? c["Ultimo uso"] ?? "") ||
+              new Date().toISOString();
+            const createdAt =
+              String(c["Criado em"] ?? "") || new Date().toISOString();
+            const id = String(c["ID"] ?? uid());
+            clients.push({
+              id,
+              businessId: "",
+              name,
+              phone: phone || undefined,
+              lastUsedAt,
+              createdAt,
+            });
+          });
+        }
+
+        resolve({
+          success: true,
+          rows,
+          clients,
+          errors,
+          total: raw.length,
+          skipped,
+        });
       } catch (err) {
         resolve({
           success: false,
           rows: [],
+          clients: [],
           errors: [String(err)],
           total: 0,
           skipped: 0,
@@ -354,6 +423,7 @@ export function importFromExcel(file: File): Promise<ImportResult> {
       resolve({
         success: false,
         rows: [],
+        clients: [],
         errors: ["Erro ao ler o arquivo."],
         total: 0,
         skipped: 0,

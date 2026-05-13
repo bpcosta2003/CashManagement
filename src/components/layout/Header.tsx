@@ -4,6 +4,7 @@ import styles from "./Header.module.css";
 
 interface Props {
   businessName?: string;
+  businessLogo?: string;
   /** Quando passado, brand vira botão pra abrir o switcher. */
   onBrandClick?: () => void;
   showBrandChevron?: boolean;
@@ -15,6 +16,7 @@ interface Props {
 
 export function Header({
   businessName,
+  businessLogo,
   onBrandClick,
   showBrandChevron,
   onOpenBackup,
@@ -28,6 +30,7 @@ export function Header({
           <Brand
             size="sm"
             businessName={businessName}
+            businessLogo={businessLogo}
             onClick={onBrandClick}
             showChevron={showBrandChevron}
           />

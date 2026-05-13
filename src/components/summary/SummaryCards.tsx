@@ -1,7 +1,7 @@
-import { useLayoutEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import type { Summary } from "../../types";
 import { fmtBRL, fmtPct } from "../../lib/calc";
-import { fitTextToContainer } from "../../lib/fitText";
+import { observeFit } from "../../lib/fitText";
 import { MESES_SHORT } from "../../constants";
 import { useBreakpoint } from "../../hooks/useBreakpoint";
 import styles from "./SummaryCards.module.css";
@@ -27,6 +27,7 @@ export function SummaryCards({
   const liqStr = fmtBRL(liq);
   const brutoStr = fmtBRL(bruto);
   const futuroStr = fmtBRL(futuro);
+  const margemStr = fmtPct(margem);
 
   const hasCurrentData = bruto > 0;
   const deltaUp = liqDelta !== null && liqDelta >= 0;
@@ -38,56 +39,33 @@ export function SummaryCards({
         ? `Primeiro mês com dados`
         : `Nenhum lançamento ainda`;
 
-  // Refs pros valores que precisam de auto-shrink garantido
   const heroRef = useRef<HTMLSpanElement>(null);
   const brutoRef = useRef<HTMLSpanElement>(null);
   const futuroRef = useRef<HTMLSpanElement>(null);
   const margemRef = useRef<HTMLSpanElement>(null);
 
-  // Bases responsivas
-  const heroBase = isMobile ? 48 : 72;
-  const heroMin = 24;
+  const heroBase = isMobile ? 44 : 64;
+  const heroMin = 14;
   const kpiBase = isMobile ? 22 : 26;
-  const kpiMin = 14;
+  const kpiMin = 11;
 
-  // Re-ajusta toda vez que o texto/breakpoint muda. useLayoutEffect roda
-  // antes do paint, então o usuário nunca vê o overflow.
-  useLayoutEffect(() => {
+  useEffect(() => {
+    const cleanups: Array<() => void> = [];
     if (heroRef.current) {
-      fitTextToContainer(heroRef.current, heroBase, heroMin);
+      cleanups.push(observeFit(heroRef.current, heroBase, heroMin));
     }
     if (brutoRef.current) {
-      fitTextToContainer(brutoRef.current, kpiBase, kpiMin);
+      cleanups.push(observeFit(brutoRef.current, kpiBase, kpiMin));
     }
     if (futuroRef.current) {
-      fitTextToContainer(futuroRef.current, kpiBase, kpiMin);
+      cleanups.push(observeFit(futuroRef.current, kpiBase, kpiMin));
     }
     if (margemRef.current) {
-      fitTextToContainer(margemRef.current, kpiBase, kpiMin);
+      cleanups.push(observeFit(margemRef.current, kpiBase, kpiMin));
     }
-  }, [liqStr, brutoStr, futuroStr, heroBase, kpiBase, isMobile]);
+    return () => cleanups.forEach((fn) => fn());
+  }, [heroBase, kpiBase, liqStr, brutoStr, futuroStr, margemStr]);
 
-  // Re-ajusta também em resize (orientação, redimensionar janela)
-  useLayoutEffect(() => {
-    const onResize = () => {
-      if (heroRef.current) {
-        fitTextToContainer(heroRef.current, heroBase, heroMin);
-      }
-      if (brutoRef.current) {
-        fitTextToContainer(brutoRef.current, kpiBase, kpiMin);
-      }
-      if (futuroRef.current) {
-        fitTextToContainer(futuroRef.current, kpiBase, kpiMin);
-      }
-      if (margemRef.current) {
-        fitTextToContainer(margemRef.current, kpiBase, kpiMin);
-      }
-    };
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, [heroBase, kpiBase]);
-
-  // key força remount + animação a cada mudança de mês/ano
   const monthKey = `${mes}-${monthLabel}`;
 
   return (
@@ -103,13 +81,15 @@ export function SummaryCards({
             {monthLabel}
           </span>
         </div>
-        <span
-          ref={heroRef}
-          className={`${styles.heroValue} ${liqPositive ? "" : styles.heroNeg}`}
-          title={liqStr}
-        >
-          {liqStr}
-        </span>
+        <div className={styles.heroValueWrap}>
+          <span
+            ref={heroRef}
+            className={`${styles.heroValue} ${liqPositive ? "" : styles.heroNeg}`}
+            title={liqStr}
+          >
+            {liqStr}
+          </span>
+        </div>
         <div className={styles.heroFoot}>
           <span
             className={`${styles.heroDelta} ${
@@ -128,36 +108,34 @@ export function SummaryCards({
       <div className={styles.grid}>
         <article className={styles.kpi}>
           <span className={styles.kpiLabel}>Bruto</span>
-          <span
-            ref={brutoRef}
-            className={styles.kpiValue}
-            title={brutoStr}
-          >
-            {brutoStr}
-          </span>
+          <div className={styles.kpiValueWrap}>
+            <span ref={brutoRef} className={styles.kpiValue} title={brutoStr}>
+              {brutoStr}
+            </span>
+          </div>
           <span className={styles.kpiSub}>Descontos {fmtBRL(descontos)}</span>
         </article>
 
         <article className={styles.kpi}>
           <span className={styles.kpiLabel}>A receber</span>
-          <span
-            ref={futuroRef}
-            className={styles.kpiValue}
-            title={futuroStr}
-          >
-            {futuroStr}
-          </span>
+          <div className={styles.kpiValueWrap}>
+            <span ref={futuroRef} className={styles.kpiValue} title={futuroStr}>
+              {futuroStr}
+            </span>
+          </div>
           <span className={styles.kpiSub}>parcelas futuras</span>
         </article>
 
         <article className={styles.kpi}>
           <span className={styles.kpiLabel}>Margem</span>
-          <span
-            ref={margemRef}
-            className={`${styles.kpiValue} ${styles.kpiValueAccent}`}
-          >
-            {fmtPct(margem)}
-          </span>
+          <div className={styles.kpiValueWrap}>
+            <span
+              ref={margemRef}
+              className={`${styles.kpiValue} ${styles.kpiValueAccent}`}
+            >
+              {margemStr}
+            </span>
+          </div>
           <span className={styles.kpiSub}>
             Taxas + custos {fmtBRL(taxas + custos)}
           </span>

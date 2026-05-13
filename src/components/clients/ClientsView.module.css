@@ -8,6 +8,7 @@
 
 @media (min-width: 721px) {
   .section {
+    margin-top: 16px;
     padding: 0 var(--container-pad-tablet) 32px;
   }
 }

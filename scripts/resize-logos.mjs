@@ -50,6 +50,7 @@ emit("public/brand-light.png", [
   { size: 256, path: "public/brand-light.png" },
   { size: 192, path: "public/icon-192.png" },
   { size: 512, path: "public/icon-512.png" },
+  { size: 180, path: "public/apple-touch-icon.png" },
 ]);
 
 emit("public/brand-dark.png", [
