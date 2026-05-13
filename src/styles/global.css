@@ -72,21 +72,6 @@ textarea {
   background: var(--bg);
 }
 
-/* No desktop reserva espaço pra sidebar flutuante à esquerda.
-   ~108px = 76 (largura mínima sidebar) + 16 (gap esquerdo) + 16 (gap conteúdo). */
-@media (min-width: 721px) {
-  .app-shell {
-    padding-left: 108px;
-  }
-}
-
-/* Fallback: tela muito baixa volta pro bottom — recolhe o padding */
-@media (min-width: 721px) and (max-height: 540px) {
-  .app-shell {
-    padding-left: 0;
-  }
-}
-
 ::selection {
   background: var(--accent-soft);
   color: var(--accent-strong);
