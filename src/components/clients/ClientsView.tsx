@@ -5,6 +5,7 @@ import { fmtBRL } from "../../lib/calc";
 import { BrandMark } from "../layout/Brand";
 import { Sheet } from "../forms/Sheet";
 import { ClientForm } from "./ClientForm";
+import { FitText } from "../feedback/FitText";
 import styles from "./ClientsView.module.css";
 
 interface EditingState {
@@ -148,11 +149,17 @@ export function ClientsView({ clients, onUpdate, onDelete }: Props) {
                     </span>
                   </div>
                   <div className={styles.itemValue}>
-                    <span
-                      className={`${styles.ltv} ${ltv === 0 ? styles.ltvEmpty : ""}`}
-                    >
-                      {ltv > 0 ? fmtBRL(ltv) : "—"}
-                    </span>
+                    <div className={styles.ltvWrap}>
+                      <FitText
+                        className={`${styles.ltv} ${ltv === 0 ? styles.ltvEmpty : ""}`}
+                        baseFontSize={18}
+                        minFontSize={10}
+                        watchKey={ltv}
+                        title={ltv > 0 ? fmtBRL(ltv) : "Sem atendimentos"}
+                      >
+                        {ltv > 0 ? fmtBRL(ltv) : "—"}
+                      </FitText>
+                    </div>
                     <span className={styles.ltvLabel}>LTV</span>
                   </div>
                 </button>
