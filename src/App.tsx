@@ -4,7 +4,6 @@ import { useCalc } from "./hooks/useCalc";
 import { useAnnual } from "./hooks/useAnnual";
 import { useActivity } from "./hooks/useActivity";
 import { useClients } from "./hooks/useClients";
-import { useBreakpoint } from "./hooks/useBreakpoint";
 import { useAuth } from "./hooks/useAuth";
 import { useSync } from "./hooks/useSync";
 import { useAppearance } from "./hooks/useAppearance";
@@ -80,7 +79,6 @@ export default function App() {
     setSettings,
     replaceState,
   } = useStorage();
-  const { isMobile } = useBreakpoint();
   const { theme, accent, toggleTheme, setAccent } = useAppearance();
   const auth = useAuth();
   const { toasts, push: pushToast } = useToast();
@@ -190,11 +188,11 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (isMobile && tab === "backup") {
+    if (tab === "backup") {
       setBackupOpen(true);
       setTab("lancamentos");
     }
-  }, [isMobile, tab]);
+  }, [tab]);
 
   useEffect(() => {
     const handler = () =>
@@ -338,7 +336,7 @@ export default function App() {
       <TaxBar visible={taxBarOpen} />
 
       {/* PeriodNav só faz sentido em visões com tempo (não em Clientes) */}
-      {!(isMobile && tab === "clientes") && (
+      {tab !== "clientes" && (
         <PeriodNav
           period={period}
           mes={mes}
@@ -349,7 +347,7 @@ export default function App() {
         />
       )}
 
-      {isMobile && tab === "clientes" ? (
+      {tab === "clientes" ? (
         <ClientsView
           clients={clientStats}
           onUpdate={updateClient}
@@ -361,45 +359,30 @@ export default function App() {
           activity={activity}
           onSelectMonth={handleSelectMonthFromAnnual}
         />
-      ) : (
+      ) : tab === "lancamentos" ? (
         <>
-          {(!isMobile || tab === "lancamentos") && (
-            <>
-              <SummaryCards
-                summary={summary}
-                mes={mes}
-                liqDelta={liqDelta}
-                prevMonthLabel={prevMonthLabel}
-              />
-              <PaymentBreakdown
-                breakdown={paymentBreakdown}
-                sparkline={sparkline}
-              />
-              <EntryList
-                rows={monthRows}
-                summary={summary}
-                onAdd={handleAddSheet}
-                onSelect={handleEditSheet}
-                onDelete={handleDeleteInline}
-                addBtnRef={addBtnRef}
-              />
-            </>
-          )}
-
-          {(!isMobile || tab === "projecao") && (
-            <ProjectionSection projecao={projecao} />
-          )}
-
-          {/* Desktop mostra Clientes embedded no fim do flow */}
-          {!isMobile && clientStats.length > 0 && (
-            <ClientsView
-              clients={clientStats}
-              onUpdate={updateClient}
-              onDelete={deleteClient}
-            />
-          )}
+          <SummaryCards
+            summary={summary}
+            mes={mes}
+            liqDelta={liqDelta}
+            prevMonthLabel={prevMonthLabel}
+          />
+          <PaymentBreakdown
+            breakdown={paymentBreakdown}
+            sparkline={sparkline}
+          />
+          <EntryList
+            rows={monthRows}
+            summary={summary}
+            onAdd={handleAddSheet}
+            onSelect={handleEditSheet}
+            onDelete={handleDeleteInline}
+            addBtnRef={addBtnRef}
+          />
         </>
-      )}
+      ) : tab === "projecao" ? (
+        <ProjectionSection projecao={projecao} />
+      ) : null}
 
       {period === "month" &&
         tab === "lancamentos" &&
