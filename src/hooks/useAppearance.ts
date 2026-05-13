@@ -10,7 +10,10 @@ export type Accent =
   | "grafite"
   | "oceano"
   | "lavanda"
-  | "rosa";
+  | "rosa"
+  | "cobalto"
+  | "salvia"
+  | "pessego";
 
 const THEME_KEY = "controle-caixa:theme";
 const ACCENT_KEY = "controle-caixa:accent";
@@ -25,6 +28,9 @@ const ALLOWED_ACCENTS: Accent[] = [
   "oceano",
   "lavanda",
   "rosa",
+  "cobalto",
+  "salvia",
+  "pessego",
 ];
 
 export const ACCENT_LABELS: Record<Accent, string> = {
@@ -37,6 +43,9 @@ export const ACCENT_LABELS: Record<Accent, string> = {
   oceano: "Oceano",
   lavanda: "Lavanda",
   rosa: "Rosa",
+  cobalto: "Cobalto",
+  salvia: "Sálvia",
+  pessego: "Pêssego",
 };
 
 /** Cor representativa de cada accent (usada nos swatches do seletor). */
@@ -50,6 +59,9 @@ export const ACCENT_PREVIEW: Record<Accent, string> = {
   oceano: "#226c7a",
   lavanda: "#5e3f72",
   rosa: "#964060",
+  cobalto: "#1d4f80",
+  salvia: "#4a6b54",
+  pessego: "#b46640",
 };
 
 function readTheme(): Theme {

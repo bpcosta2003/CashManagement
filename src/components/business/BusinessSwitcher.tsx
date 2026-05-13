@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { Business, BusinessType } from "../../types";
+import { resizeImageToDataUrl } from "../../lib/imageResize";
 import styles from "./BusinessSwitcher.module.css";
 
 interface Props {
@@ -8,8 +9,15 @@ interface Props {
   activeBusinessId: string;
   onClose: () => void;
   onSelect: (id: string) => void;
-  onCreate: (data: { name: string; type: BusinessType }) => string;
-  onUpdate: (id: string, patch: Partial<Pick<Business, "name" | "type">>) => void;
+  onCreate: (data: {
+    name: string;
+    type: BusinessType;
+    logo?: string;
+  }) => string;
+  onUpdate: (
+    id: string,
+    patch: Partial<Pick<Business, "name" | "type" | "logo">>,
+  ) => void;
   onDelete: (id: string) => void;
 }
 
@@ -129,7 +137,11 @@ export function BusinessSwitcher({
           {view.mode === "create" && (
             <BusinessForm
               onSubmit={(data) => {
-                const id = onCreate(data);
+                const id = onCreate({
+                  name: data.name,
+                  type: data.type,
+                  logo: typeof data.logo === "string" ? data.logo : undefined,
+                });
                 onSelect(id);
                 onClose();
                 setView({ mode: "list" });
@@ -142,7 +154,16 @@ export function BusinessSwitcher({
             <BusinessForm
               initial={view.business}
               onSubmit={(data) => {
-                onUpdate(view.business.id, data);
+                // logo: undefined = não mexer; null = remover
+                const patch: Partial<
+                  Pick<Business, "name" | "type" | "logo">
+                > = { name: data.name, type: data.type };
+                if (data.logo === null) {
+                  patch.logo = undefined;
+                } else if (typeof data.logo === "string") {
+                  patch.logo = data.logo;
+                }
+                onUpdate(view.business.id, patch);
                 setView({ mode: "list" });
               }}
               onCancel={() => setView({ mode: "list" })}
@@ -197,7 +218,15 @@ function BusinessList({
                 aria-label={`Selecionar ${b.name}`}
               >
                 <span className={styles.itemIcon} aria-hidden="true">
-                  {TYPE_ICON[b.type]}
+                  {b.logo ? (
+                    <img
+                      src={b.logo}
+                      alt=""
+                      className={styles.itemLogoImg}
+                    />
+                  ) : (
+                    TYPE_ICON[b.type]
+                  )}
                 </span>
                 <span className={styles.itemText}>
                   <span className={styles.itemName}>{b.name}</span>
@@ -269,7 +298,11 @@ function BusinessList({
 
 interface FormProps {
   initial?: Business;
-  onSubmit: (data: { name: string; type: BusinessType }) => void;
+  onSubmit: (data: {
+    name: string;
+    type: BusinessType;
+    logo?: string | null;
+  }) => void;
   onCancel: () => void;
   onDelete?: () => void;
 }
@@ -277,7 +310,10 @@ interface FormProps {
 function BusinessForm({ initial, onSubmit, onCancel, onDelete }: FormProps) {
   const [name, setName] = useState(initial?.name ?? "");
   const [type, setType] = useState<BusinessType>(initial?.type ?? "salao");
+  const [logo, setLogo] = useState<string | undefined>(initial?.logo);
+  const [logoError, setLogoError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -286,7 +322,33 @@ function BusinessForm({ initial, onSubmit, onCancel, onDelete }: FormProps) {
       setError("Informe o nome do empreendimento");
       return;
     }
-    onSubmit({ name: trimmed, type });
+    // logo === undefined → não mexer; null → remover; string → atualizar
+    const logoPatch =
+      logo === initial?.logo ? undefined : logo === undefined ? null : logo;
+    onSubmit({ name: trimmed, type, logo: logoPatch });
+  };
+
+  const handleLogoPick = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setLogoError(null);
+    if (!file.type.startsWith("image/")) {
+      setLogoError("Selecione um arquivo de imagem (PNG, JPG, etc.)");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setLogoError("Imagem muito grande — máx. 5 MB");
+      return;
+    }
+    try {
+      const dataUrl = await resizeImageToDataUrl(file, 256);
+      setLogo(dataUrl);
+    } catch (err) {
+      setLogoError(
+        err instanceof Error ? err.message : "Erro ao processar a imagem",
+      );
+    }
   };
 
   return (
@@ -326,6 +388,47 @@ function BusinessForm({ initial, onSubmit, onCancel, onDelete }: FormProps) {
             </button>
           ))}
         </div>
+      </div>
+
+      <div className={styles.field}>
+        <label className={styles.label}>
+          Logo <span className={styles.labelHint}>· opcional</span>
+        </label>
+        <div className={styles.logoRow}>
+          <div className={styles.logoPreview} data-empty={!logo}>
+            {logo ? (
+              <img src={logo} alt="" className={styles.logoImg} />
+            ) : (
+              <span className={styles.logoPlaceholder}>—</span>
+            )}
+          </div>
+          <div className={styles.logoActions}>
+            <button
+              type="button"
+              className={styles.btnSecondary}
+              onClick={() => logoInputRef.current?.click()}
+            >
+              {logo ? "Trocar imagem" : "Escolher imagem"}
+            </button>
+            {logo && (
+              <button
+                type="button"
+                className={styles.btnGhost}
+                onClick={() => setLogo(undefined)}
+              >
+                Remover
+              </button>
+            )}
+            <input
+              ref={logoInputRef}
+              type="file"
+              accept="image/*"
+              hidden
+              onChange={handleLogoPick}
+            />
+          </div>
+        </div>
+        {logoError && <span className={styles.errorMsg}>{logoError}</span>}
       </div>
 
       <div className={styles.actions}>

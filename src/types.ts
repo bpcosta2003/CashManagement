@@ -20,6 +20,8 @@ export interface Business {
   name: string;
   type: BusinessType;
   createdAt: string;
+  /** Logo customizada (data URL PNG/JPG ~256x256). Substitui a logo padrão. */
+  logo?: string;
 }
 
 export interface Client {

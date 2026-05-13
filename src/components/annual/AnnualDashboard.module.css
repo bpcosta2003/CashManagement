@@ -128,6 +128,13 @@
   margin: 0 2px;
 }
 
+.heroValueWrap {
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
 .heroValue {
   font-family: var(--font-display);
   font-weight: 700;
@@ -136,7 +143,7 @@
   font-variant-numeric: tabular-nums;
   color: var(--hero-fg);
   display: block;
-  margin-top: 4px;
+  white-space: nowrap;
 }
 
 .heroNeg {
@@ -205,6 +212,13 @@
   border: 1px solid var(--border-soft);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-card);
+  min-width: 0;
+}
+
+.kpiValueWrap {
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .kpiLabel {
@@ -285,6 +299,13 @@
   font-family: inherit;
   color: inherit;
   box-shadow: var(--shadow-card);
+  min-width: 0;
+}
+
+.highlightValueWrap {
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .highlightCard:hover {
@@ -396,6 +417,15 @@
   font-family: inherit;
   color: inherit;
   position: relative;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.monthValueWrap {
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  margin-top: 2px;
 }
 
 .monthCard:hover {
@@ -425,7 +455,8 @@
   color: var(--text);
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
-  margin-top: 2px;
+  display: block;
+  white-space: nowrap;
 }
 
 .monthEmpty {

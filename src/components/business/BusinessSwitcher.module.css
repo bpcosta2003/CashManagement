@@ -143,14 +143,22 @@
   font-size: 22px;
   line-height: 1;
   flex-shrink: 0;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   background: var(--surface);
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-soft);
+  overflow: hidden;
+}
+
+.itemLogoImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .item[data-active="true"] .itemIcon {
@@ -337,6 +345,82 @@
 .typeIcon {
   font-size: 20px;
   line-height: 1;
+}
+
+/* ─── Logo picker ─── */
+.logoRow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.logoPreview {
+  width: 72px;
+  height: 72px;
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  border: 1px solid var(--border-soft);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.logoPreview[data-empty="true"] {
+  background: repeating-linear-gradient(
+    45deg,
+    var(--surface-2),
+    var(--surface-2) 6px,
+    var(--surface) 6px,
+    var(--surface) 12px
+  );
+}
+
+.logoImg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.logoPlaceholder {
+  color: var(--text-dim);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.logoActions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.btnGhost {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: var(--t-caption);
+  font-weight: 500;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  align-self: flex-start;
+  transition: background 0.15s var(--ease), color 0.15s var(--ease);
+}
+
+.btnGhost:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.labelHint {
+  color: var(--text-dim);
+  font-weight: 400;
+  font-size: var(--t-caption);
+  margin-left: 6px;
 }
 
 .actions {

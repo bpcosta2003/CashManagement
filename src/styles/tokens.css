@@ -186,6 +186,33 @@
   --hero-bg:       #3a1d28;
 }
 
+:root[data-accent="cobalto"] {
+  --accent:        #1d4f80;
+  --accent-strong: #163d63;
+  --accent-soft:   #d6e1ed;
+  --accent-on:     #ffffff;
+  --pay-credito:   #1d4f80;
+  --hero-bg:       #102536;
+}
+
+:root[data-accent="salvia"] {
+  --accent:        #4a6b54;
+  --accent-strong: #38513f;
+  --accent-soft:   #dde6df;
+  --accent-on:     #ffffff;
+  --pay-credito:   #4a6b54;
+  --hero-bg:       #1d2922;
+}
+
+:root[data-accent="pessego"] {
+  --accent:        #b46640;
+  --accent-strong: #8e4f30;
+  --accent-soft:   #f4dccd;
+  --accent-on:     #ffffff;
+  --pay-credito:   #b46640;
+  --hero-bg:       #361e13;
+}
+
 /* No dark mode, accents alternativos mudam pro tom mais claro/dourado */
 :root[data-theme="dark"][data-accent="esmeralda"] {
   --accent:        #8bbc9a;
@@ -250,6 +277,30 @@
   --accent-soft:   rgba(212, 136, 164, 0.14);
   --accent-on:     #2b1320;
   --pay-credito:   #d488a4;
+}
+
+:root[data-theme="dark"][data-accent="cobalto"] {
+  --accent:        #88b6dc;
+  --accent-strong: #a0c5e2;
+  --accent-soft:   rgba(136, 182, 220, 0.14);
+  --accent-on:     #102536;
+  --pay-credito:   #88b6dc;
+}
+
+:root[data-theme="dark"][data-accent="salvia"] {
+  --accent:        #9cc0a4;
+  --accent-strong: #b0cdb6;
+  --accent-soft:   rgba(156, 192, 164, 0.14);
+  --accent-on:     #1d2922;
+  --pay-credito:   #9cc0a4;
+}
+
+:root[data-theme="dark"][data-accent="pessego"] {
+  --accent:        #e0a888;
+  --accent-strong: #e8b89a;
+  --accent-soft:   rgba(224, 168, 136, 0.14);
+  --accent-on:     #361e13;
+  --pay-credito:   #e0a888;
 }
 
 /* ─────── Dark mode ─────── */

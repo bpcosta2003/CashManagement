@@ -7,13 +7,14 @@
 
 @media (min-width: 721px) {
   .section {
-    padding: 0 var(--container-pad-tablet) 32px;
+    margin-top: 16px;
+    padding: 0 var(--container-pad-tablet) 8px;
   }
 }
 
 @media (min-width: 1024px) {
   .section {
-    padding: 0 var(--container-pad-desktop) 32px;
+    padding: 0 var(--container-pad-desktop) 8px;
   }
 }
 

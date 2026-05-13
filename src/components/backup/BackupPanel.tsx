@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { Row } from "../../types";
+import type { Client, Row } from "../../types";
 import type { ImportResult } from "../../lib/excel";
 import {
   clearState,
@@ -16,9 +16,10 @@ const loadExcel = () => import("../../lib/excel");
 interface Props {
   open: boolean;
   rows: Row[];
+  clients: Client[];
   onClose: () => void;
-  onImportMerge: (rows: Row[]) => void;
-  onImportReplace: (rows: Row[]) => void;
+  onImportMerge: (rows: Row[], clients: Client[]) => void;
+  onImportReplace: (rows: Row[], clients: Client[]) => void;
   onClearAll: () => void;
   onToast?: (msg: string) => void;
 }
@@ -31,6 +32,7 @@ interface PreviewState {
 export function BackupPanel({
   open,
   rows,
+  clients,
   onClose,
   onImportMerge,
   onImportReplace,
@@ -59,7 +61,7 @@ export function BackupPanel({
   const handleExport = async () => {
     try {
       const { exportToExcel } = await loadExcel();
-      exportToExcel(rows);
+      exportToExcel(rows, clients);
       setLastBackup();
       onToast?.("Backup exportado com sucesso");
     } catch (e) {
@@ -181,6 +183,13 @@ export function BackupPanel({
                 <>
                   <span className={styles.previewStat}>
                     Encontrados: <strong>{totalImport}</strong> lançamentos
+                    {preview.result.clients.length > 0 && (
+                      <>
+                        {" "}
+                        + <strong>{preview.result.clients.length}</strong>{" "}
+                        clientes
+                      </>
+                    )}
                   </span>
                   {preview.result.skipped > 0 && (
                     <span className={styles.previewStat}>
@@ -211,9 +220,12 @@ export function BackupPanel({
                   <button
                     className={`${styles.previewBtn} ${styles.previewBtnPrimary}`}
                     onClick={() => {
-                      onImportMerge(preview.result.rows);
+                      onImportMerge(preview.result.rows, preview.result.clients);
+                      const cliPart = preview.result.clients.length
+                        ? ` + ${preview.result.clients.length} clientes`
+                        : "";
                       onToast?.(
-                        `${totalImport} lançamentos adicionados (duplicados ignorados)`,
+                        `${totalImport} lançamentos${cliPart} adicionados (duplicados ignorados)`,
                       );
                       onClose();
                     }}
@@ -243,9 +255,15 @@ export function BackupPanel({
                   <button
                     className={`${styles.previewBtn} ${styles.previewBtnDanger}`}
                     onClick={() => {
-                      onImportReplace(preview.result.rows);
+                      onImportReplace(
+                        preview.result.rows,
+                        preview.result.clients,
+                      );
+                      const cliPart = preview.result.clients.length
+                        ? ` + ${preview.result.clients.length} clientes`
+                        : "";
                       onToast?.(
-                        `Dados substituídos: ${totalImport} lançamentos importados`,
+                        `Dados substituídos: ${totalImport} lançamentos${cliPart} importados`,
                       );
                       onClose();
                     }}

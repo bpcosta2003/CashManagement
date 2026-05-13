@@ -2,14 +2,36 @@ import styles from "./Brand.module.css";
 
 interface MarkProps {
   size?: number;
+  /** Logo customizada (data URL). Substitui as PNGs padrão. */
+  customLogo?: string;
 }
 
 /**
  * BrandMark — usa as PNGs renderizadas (light + dark) trocadas via CSS
- * conforme o data-theme do root. Empilha as duas e mostra só a do tema
- * ativo (evita flicker em troca de tema).
+ * conforme o data-theme do root, OU uma logo customizada do empreendimento
+ * quando passada.
  */
-export function BrandMark({ size = 36 }: MarkProps) {
+export function BrandMark({ size = 36, customLogo }: MarkProps) {
+  if (customLogo) {
+    return (
+      <span
+        className={styles.markWrap}
+        style={{ width: size, height: size }}
+        aria-hidden="true"
+      >
+        <img
+          className={styles.markCustom}
+          src={customLogo}
+          alt=""
+          width={size}
+          height={size}
+          loading="eager"
+          decoding="async"
+        />
+      </span>
+    );
+  }
+
   return (
     <span
       className={styles.markWrap}
@@ -41,6 +63,8 @@ export function BrandMark({ size = 36 }: MarkProps) {
 interface BrandProps {
   /** Nome do empreendimento exibido no subtítulo. */
   businessName?: string;
+  /** Logo do empreendimento (sobrepõe a logo padrão se presente). */
+  businessLogo?: string;
   size?: "sm" | "md";
   /** Se passado, o brand vira clicável (botão pra abrir o switcher). */
   onClick?: () => void;
@@ -50,6 +74,7 @@ interface BrandProps {
 
 export function Brand({
   businessName,
+  businessLogo,
   size = "sm",
   onClick,
   showChevron,
@@ -59,7 +84,7 @@ export function Brand({
 
   const inner = (
     <>
-      <BrandMark size={markSize} />
+      <BrandMark size={markSize} customLogo={businessLogo} />
       <div className={styles.text}>
         <span className={styles.name}>
           Controle <span className={styles.nameAccent}>de Caixa</span>

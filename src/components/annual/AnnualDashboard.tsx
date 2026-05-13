@@ -4,6 +4,7 @@ import type { AnnualSummary } from "../../hooks/useAnnual";
 import type { MonthActivity } from "../../hooks/useActivity";
 import { ActivityTimeline } from "./ActivityTimeline";
 import { BrandMark } from "../layout/Brand";
+import { FitText } from "../feedback/FitText";
 import styles from "./AnnualDashboard.module.css";
 
 interface Props {
@@ -20,14 +21,6 @@ const SEGMENT_VAR: Record<string, string> = {
   Crédito: "var(--pay-credito)",
 };
 
-function scaleFontSize(text: string, baseSize: number, minSize: number) {
-  const len = text.length;
-  const threshold = 11;
-  if (len <= threshold) return baseSize;
-  const ratio = Math.max(0.45, threshold / len);
-  return Math.max(minSize, Math.round(baseSize * ratio));
-}
-
 export function AnnualDashboard({ summary, activity, onSelectMonth }: Props) {
   const {
     year,
@@ -42,7 +35,6 @@ export function AnnualDashboard({ summary, activity, onSelectMonth }: Props) {
 
   const hasAnyData = total.count > 0;
   const liqStr = fmtBRL(total.liq);
-  const heroFontSize = scaleFontSize(liqStr, 48, 28);
 
   // Max líquido pra normalizar as barras do grid
   const maxLiq = Math.max(...monthly.map((m) => Math.abs(m.liq)), 1);
@@ -94,13 +86,17 @@ export function AnnualDashboard({ summary, activity, onSelectMonth }: Props) {
             Lucro líquido <span className={styles.heroEyebrowDot}>·</span> {year}
           </span>
         </div>
-        <span
-          className={`${styles.heroValue} ${total.liq < 0 ? styles.heroNeg : ""}`}
-          style={{ fontSize: `${heroFontSize}px` }}
-          title={liqStr}
-        >
-          {liqStr}
-        </span>
+        <div className={styles.heroValueWrap}>
+          <FitText
+            className={`${styles.heroValue} ${total.liq < 0 ? styles.heroNeg : ""}`}
+            baseFontSize={48}
+            minFontSize={14}
+            watchKey={liqStr}
+            title={liqStr}
+          >
+            {liqStr}
+          </FitText>
+        </div>
         <div className={styles.heroFoot}>
           <span
             className={`${styles.heroDelta} ${
@@ -123,25 +119,48 @@ export function AnnualDashboard({ summary, activity, onSelectMonth }: Props) {
       <div className={styles.kpiGrid}>
         <article className={styles.kpi}>
           <span className={styles.kpiLabel}>Bruto</span>
-          <span className={styles.kpiValue}>{fmtBRL(total.bruto)}</span>
+          <div className={styles.kpiValueWrap}>
+            <FitText
+              className={styles.kpiValue}
+              baseFontSize={22}
+              minFontSize={11}
+              watchKey={total.bruto}
+            >
+              {fmtBRL(total.bruto)}
+            </FitText>
+          </div>
           <span className={styles.kpiSub}>
             Descontos {fmtBRL(total.descontos)}
           </span>
         </article>
         <article className={styles.kpi}>
           <span className={styles.kpiLabel}>Custos + Taxas</span>
-          <span className={styles.kpiValue}>
-            {fmtBRL(total.taxas + total.custos)}
-          </span>
+          <div className={styles.kpiValueWrap}>
+            <FitText
+              className={styles.kpiValue}
+              baseFontSize={22}
+              minFontSize={11}
+              watchKey={total.taxas + total.custos}
+            >
+              {fmtBRL(total.taxas + total.custos)}
+            </FitText>
+          </div>
           <span className={styles.kpiSub}>
             {fmtBRL(total.taxas)} taxas · {fmtBRL(total.custos)} custos
           </span>
         </article>
         <article className={styles.kpi}>
           <span className={styles.kpiLabel}>Margem média</span>
-          <span className={`${styles.kpiValue} ${styles.kpiValueAccent}`}>
-            {fmtPct(total.margem)}
-          </span>
+          <div className={styles.kpiValueWrap}>
+            <FitText
+              className={`${styles.kpiValue} ${styles.kpiValueAccent}`}
+              baseFontSize={22}
+              minFontSize={11}
+              watchKey={total.margem}
+            >
+              {fmtPct(total.margem)}
+            </FitText>
+          </div>
           <span className={styles.kpiSub}>do bruto vira líquido</span>
         </article>
       </div>
@@ -157,9 +176,16 @@ export function AnnualDashboard({ summary, activity, onSelectMonth }: Props) {
               onClick={() => onSelectMonth(best.m, year)}
             >
               <span className={styles.highlightMonth}>{best.label}</span>
-              <span className={`${styles.highlightValue} ${styles.up}`}>
-                {fmtBRL(best.liq)}
-              </span>
+              <div className={styles.highlightValueWrap}>
+                <FitText
+                  className={`${styles.highlightValue} ${styles.up}`}
+                  baseFontSize={28}
+                  minFontSize={13}
+                  watchKey={best.liq}
+                >
+                  {fmtBRL(best.liq)}
+                </FitText>
+              </div>
               <span className={styles.highlightHint}>
                 {best.count} lançamentos · ver detalhes →
               </span>
@@ -174,11 +200,16 @@ export function AnnualDashboard({ summary, activity, onSelectMonth }: Props) {
                 onClick={() => onSelectMonth(worst.m, year)}
               >
                 <span className={styles.highlightMonth}>{worst.label}</span>
-                <span
-                  className={`${styles.highlightValue} ${worst.liq >= 0 ? styles.up : styles.down}`}
-                >
-                  {fmtBRL(worst.liq)}
-                </span>
+                <div className={styles.highlightValueWrap}>
+                  <FitText
+                    className={`${styles.highlightValue} ${worst.liq >= 0 ? styles.up : styles.down}`}
+                    baseFontSize={28}
+                    minFontSize={13}
+                    watchKey={worst.liq}
+                  >
+                    {fmtBRL(worst.liq)}
+                  </FitText>
+                </div>
                 <span className={styles.highlightHint}>
                   {worst.count} lançamentos · ver detalhes →
                 </span>
@@ -209,17 +240,22 @@ export function AnnualDashboard({ summary, activity, onSelectMonth }: Props) {
                   aria-label={`Ver ${b.label} de ${year}`}
                 >
                   <span className={styles.monthLabel}>{b.label}</span>
-                  <span
-                    className={`${styles.monthValue} ${
-                      !hasData
-                        ? styles.monthEmpty
-                        : b.liq < 0
-                          ? styles.down
-                          : ""
-                    }`}
-                  >
-                    {hasData ? fmtBRL(b.liq) : "—"}
-                  </span>
+                  <div className={styles.monthValueWrap}>
+                    <FitText
+                      className={`${styles.monthValue} ${
+                        !hasData
+                          ? styles.monthEmpty
+                          : b.liq < 0
+                            ? styles.down
+                            : ""
+                      }`}
+                      baseFontSize={18}
+                      minFontSize={10}
+                      watchKey={b.liq}
+                    >
+                      {hasData ? fmtBRL(b.liq) : "—"}
+                    </FitText>
+                  </div>
                   <span
                     className={styles.monthBar}
                     style={{
