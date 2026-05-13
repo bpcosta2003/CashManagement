@@ -31,9 +31,15 @@
 
 @media (min-width: 768px) {
   .bar {
-    flex-direction: row;
-    align-items: center;
-    padding: 12px 20px;
+    padding: 16px 24px;
+    gap: 14px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .bar {
+    padding: 20px 28px;
+    gap: 16px;
   }
 }
 
@@ -107,6 +113,13 @@
   flex-shrink: 0;
 }
 
+@media (min-width: 768px) {
+  .arrow {
+    width: 44px;
+    height: 44px;
+  }
+}
+
 .arrow:hover,
 .arrow:focus-visible {
   background: var(--accent-soft);
@@ -167,5 +180,14 @@
   }
   .valueSub {
     font-size: var(--t-body-lg);
+  }
+}
+
+@media (min-width: 1024px) {
+  .valueMain {
+    font-size: var(--t-h1);
+  }
+  .valueSub {
+    font-size: var(--t-h3);
   }
 }

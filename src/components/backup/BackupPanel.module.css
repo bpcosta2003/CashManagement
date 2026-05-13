@@ -117,29 +117,71 @@
   font-weight: 700;
 }
 
+.actionTextWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
 .actionTitle {
   font-weight: 600;
   font-size: var(--t-body);
   color: var(--text);
+  line-height: 1.2;
+  display: block;
 }
 
 .actionDesc {
   font-size: var(--t-caption);
   color: var(--text-muted);
-  margin-top: 4px;
-  line-height: 1.45;
+  line-height: 1.5;
+  display: block;
 }
 
-.meta {
-  font-size: var(--t-meta);
-  color: var(--text-muted);
-  display: flex;
-  justify-content: space-between;
-  padding: 10px 14px;
+/* ─── Stats card ─── */
+.stats {
+  list-style: none;
+  margin: 0;
+  padding: 0;
   background: var(--surface-2);
   border: 1px solid var(--border-soft);
   border-radius: var(--radius-sm);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  overflow: hidden;
+}
+
+.statItem {
+  background: var(--surface-2);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.statLabel {
+  font-size: var(--t-eyebrow);
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.statValue {
+  font-size: var(--t-meta);
+  font-weight: 600;
+  color: var(--text);
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .danger {

@@ -1,10 +1,31 @@
 import { useCallback, useEffect, useState } from "react";
 
 export type Theme = "light" | "dark";
-export type Accent = "bordo" | "esmeralda" | "indigo" | "terracota" | "ouro";
+export type Accent =
+  | "bordo"
+  | "esmeralda"
+  | "indigo"
+  | "terracota"
+  | "ouro"
+  | "grafite"
+  | "oceano"
+  | "lavanda"
+  | "rosa";
 
 const THEME_KEY = "controle-caixa:theme";
 const ACCENT_KEY = "controle-caixa:accent";
+
+const ALLOWED_ACCENTS: Accent[] = [
+  "bordo",
+  "esmeralda",
+  "indigo",
+  "terracota",
+  "ouro",
+  "grafite",
+  "oceano",
+  "lavanda",
+  "rosa",
+];
 
 export const ACCENT_LABELS: Record<Accent, string> = {
   bordo: "Bordô",
@@ -12,6 +33,10 @@ export const ACCENT_LABELS: Record<Accent, string> = {
   indigo: "Índigo",
   terracota: "Terracota",
   ouro: "Ouro",
+  grafite: "Grafite",
+  oceano: "Oceano",
+  lavanda: "Lavanda",
+  rosa: "Rosa",
 };
 
 /** Cor representativa de cada accent (usada nos swatches do seletor). */
@@ -21,6 +46,10 @@ export const ACCENT_PREVIEW: Record<Accent, string> = {
   indigo: "#2e3f6b",
   terracota: "#8a4530",
   ouro: "#7a5a1f",
+  grafite: "#3a3a3e",
+  oceano: "#226c7a",
+  lavanda: "#5e3f72",
+  rosa: "#964060",
 };
 
 function readTheme(): Theme {
@@ -38,14 +67,8 @@ function readAccent(): Accent {
   if (typeof document === "undefined") return "bordo";
   try {
     const saved = localStorage.getItem(ACCENT_KEY);
-    if (
-      saved === "bordo" ||
-      saved === "esmeralda" ||
-      saved === "indigo" ||
-      saved === "terracota" ||
-      saved === "ouro"
-    ) {
-      return saved;
+    if (saved && (ALLOWED_ACCENTS as string[]).includes(saved)) {
+      return saved as Accent;
     }
   } catch {
     /* ignore */

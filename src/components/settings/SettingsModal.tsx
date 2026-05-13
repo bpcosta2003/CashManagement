@@ -20,10 +20,14 @@ interface Props {
 
 const ACCENT_ORDER: Accent[] = [
   "bordo",
-  "esmeralda",
-  "indigo",
+  "rosa",
   "terracota",
   "ouro",
+  "esmeralda",
+  "oceano",
+  "indigo",
+  "lavanda",
+  "grafite",
 ];
 
 export function SettingsModal({

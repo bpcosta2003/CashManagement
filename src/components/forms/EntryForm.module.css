@@ -283,11 +283,9 @@
 .actions {
   display: flex;
   gap: 10px;
-  position: sticky;
-  bottom: 0;
-  background: linear-gradient(180deg, transparent, var(--surface) 30%);
+  margin-top: 8px;
   padding-top: 12px;
-  margin-top: 4px;
+  border-top: 1px solid var(--border-soft);
 }
 
 .btnSecondary,

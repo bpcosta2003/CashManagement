@@ -2,6 +2,8 @@ import { useState } from "react";
 import type { CalculatedRow, Client } from "../../types";
 import { fmtBRL } from "../../lib/calc";
 import { MESES_SHORT } from "../../constants";
+import { formatPhoneBR } from "../../lib/phone";
+import { InfoTooltip } from "../feedback/InfoTooltip";
 import styles from "./ClientForm.module.css";
 
 interface Props {
@@ -33,7 +35,7 @@ export function ClientForm({
   onCancel,
 }: Props) {
   const [name, setName] = useState(initial.name);
-  const [phone, setPhone] = useState(initial.phone ?? "");
+  const [phone, setPhone] = useState(formatPhoneBR(initial.phone ?? ""));
   const [error, setError] = useState<string | null>(null);
 
   const submit = (e: React.FormEvent) => {
@@ -77,12 +79,12 @@ export function ClientForm({
           id="cf-phone"
           className={styles.input}
           value={phone}
-          onChange={(e) => setPhone(e.target.value)}
+          onChange={(e) => setPhone(formatPhoneBR(e.target.value))}
           placeholder="(11) 90000-0000"
           inputMode="tel"
           type="tel"
           autoComplete="tel"
-          maxLength={20}
+          maxLength={16}
         />
       </div>
 
@@ -96,11 +98,17 @@ export function ClientForm({
           </header>
           <div className={styles.metricsGrid}>
             <div className={styles.metricCard}>
-              <span className={styles.metricLabel}>Ticket médio</span>
+              <span className={styles.metricLabel}>
+                Ticket médio
+                <InfoTooltip text="Valor médio que esse cliente costuma gastar por atendimento. Calculado dividindo o total faturado pelo número de atendimentos." />
+              </span>
               <span className={styles.metricValue}>{fmtBRL(ticketMedio)}</span>
             </div>
             <div className={styles.metricCard}>
-              <span className={styles.metricLabel}>LTV (bruto)</span>
+              <span className={styles.metricLabel}>
+                LTV (bruto)
+                <InfoTooltip text="Lifetime Value — total faturado bruto com esse cliente desde o primeiro atendimento. Ajuda a identificar clientes mais valiosos." />
+              </span>
               <span className={`${styles.metricValue} ${styles.metricAccent}`}>
                 {fmtBRL(ltv)}
               </span>
