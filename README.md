@@ -1,3 +1,5 @@
+<img width="1395" height="584" alt="image" src="https://github.com/user-attachments/assets/b6162353-6f89-48cf-a25e-9c313faa2367" />
+
 # Controle de Caixa 🗄️
 
 > Controle financeiro premium pro seu negócio — rápido no celular, completo no desktop, seus dados sempre com você.
