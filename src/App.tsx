@@ -23,6 +23,8 @@ import { ClientsView } from "./components/clients/ClientsView";
 import { FAB } from "./components/mobile/FAB";
 import { Sheet } from "./components/forms/Sheet";
 import { EntryForm } from "./components/forms/EntryForm";
+import { InsightsBanner } from "./components/feedback/InsightsBanner";
+import { useInsights } from "./hooks/useInsights";
 import { BackupPanel } from "./components/backup/BackupPanel";
 import { Toaster, useToast } from "./components/feedback/Toaster";
 import { BackupReminder } from "./components/feedback/BackupReminder";
@@ -138,6 +140,16 @@ export default function App() {
   const annual = useAnnual(state.rows, ano, activeBusinessId);
   const activity = useActivity(state.rows, state.clients, ano, activeBusinessId);
   const clientStats = useClients(state.clients, state.rows, activeBusinessId);
+
+  // Insights heurísticos do mês atual (lançamentos do empreendimento ativo)
+  const businessRows = useMemo(
+    () =>
+      state.rows.filter(
+        (r) => !activeBusinessId || r.businessId === activeBusinessId,
+      ),
+    [state.rows, activeBusinessId],
+  );
+  const insights = useInsights({ rows: businessRows, mes, ano });
 
   // Sugestões de serviço pro autocomplete do EntryForm — únicos do
   // empreendimento ativo, ordenados pelo uso mais recente.
@@ -371,6 +383,7 @@ export default function App() {
             breakdown={paymentBreakdown}
             sparkline={sparkline}
           />
+          <InsightsBanner insights={insights} />
           <EntryList
             rows={monthRows}
             summary={summary}
@@ -406,6 +419,9 @@ export default function App() {
             isNew={sheetMode?.kind === "create"}
             clients={activeClients}
             servicoSuggestions={servicoSuggestions}
+            allRows={state.rows.filter(
+              (r) => !activeBusinessId || r.businessId === activeBusinessId,
+            )}
             onSave={handleSave}
             onDelete={
               sheetMode?.kind === "edit" ? handleDeleteFromSheet : undefined
