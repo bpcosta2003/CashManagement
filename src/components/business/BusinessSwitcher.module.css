@@ -495,3 +495,106 @@
     transform: scale(1);
   }
 }
+
+/* ─── Comparativo entre empreendimentos ─── */
+.consolidated {
+  background: var(--surface-2);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.consolidatedHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.consolidatedEyebrow {
+  font-size: var(--t-eyebrow);
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+.consolidatedCount {
+  font-size: var(--t-caption);
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.consolidatedKpis {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.consolidatedKpi {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.consolidatedLabel {
+  font-size: var(--t-caption);
+  color: var(--text-muted);
+}
+
+.consolidatedValue {
+  font-family: var(--font-mono);
+  font-size: var(--t-body);
+  color: var(--text);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.consolidatedValueNeg {
+  color: var(--negative);
+}
+
+/* ─── Stats por item da lista ─── */
+.itemStats {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  font-size: var(--t-caption);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.itemStatsValue {
+  font-family: var(--font-mono);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.itemStatsLiq {
+  font-family: var(--font-mono);
+  color: var(--positive);
+}
+
+.itemStatsLiqNeg {
+  color: var(--negative);
+}
+
+.itemStatsCount {
+  color: var(--text-dim);
+}
+
+.itemStatsDot {
+  color: var(--text-dim);
+}

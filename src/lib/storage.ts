@@ -4,7 +4,7 @@ import { uid } from "./calc";
 const STORAGE_KEY = "controle-caixa:v1";
 const LAST_BACKUP_KEY = "controle-caixa:last-backup";
 const FIRST_USE_KEY = "controle-caixa:first-use-acked";
-const CURRENT_VERSION = 3;
+const CURRENT_VERSION = 4;
 
 function defaultSettings(): AppSettings {
   return { autoBackupConsent: null };
@@ -65,6 +65,7 @@ function migrate(state: AppState): AppState {
   if (!state.settings) state.settings = defaultSettings();
   if (!state.clients) state.clients = [];
   if (!state.catalog) state.catalog = [];
+  if (!state.goals) state.goals = [];
   if (!state.businesses) state.businesses = [];
   if (typeof state.activeBusinessId !== "string") state.activeBusinessId = "";
 
@@ -115,6 +116,12 @@ function migrate(state: AppState): AppState {
     ];
     state.catalog = merged;
     state.version = 3;
+  }
+
+  if (state.version < 4) {
+    // v3 → v4: introduz state.goals[]. Default vazio (sem metas).
+    state.goals = state.goals ?? [];
+    state.version = 4;
   }
 
   return state;
@@ -177,6 +184,7 @@ export function initialState(): AppState {
     rows: [],
     clients: [],
     catalog: [],
+    goals: [],
     businesses: [],
     activeBusinessId: "",
     lastModified: new Date().toISOString(),

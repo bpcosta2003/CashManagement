@@ -6,6 +6,7 @@ import type {
   BusinessType,
   CatalogItem,
   Client,
+  MonthGoal,
   Row,
 } from "../types";
 import { autoTaxa, uid } from "../lib/calc";
@@ -213,10 +214,11 @@ export function useStorage() {
           ...prev,
           businesses: remaining,
           activeBusinessId: newActive,
-          // Remove rows + clients + catalog órfãos
+          // Remove rows + clients + catalog + goals órfãos
           rows: prev.rows.filter((r) => r.businessId !== id),
           clients: prev.clients.filter((c) => c.businessId !== id),
           catalog: prev.catalog.filter((c) => c.businessId !== id),
+          goals: prev.goals.filter((g) => g.businessId !== id),
         };
       });
     },
@@ -407,6 +409,54 @@ export function useStorage() {
     [mutate],
   );
 
+  /* ── Metas mensais ────────────────────────────────────────────── */
+
+  /**
+   * Cria ou atualiza a meta de (businessId, mes, ano).
+   * Passar target<=0 ou NaN equivale a remover (cleanup).
+   */
+  const setMonthGoal = useCallback(
+    (businessId: string, mes: number, ano: number, target: number) => {
+      if (!businessId) return;
+      const validTarget = Number.isFinite(target) && target > 0 ? target : 0;
+      const now = new Date().toISOString();
+      mutate((prev) => {
+        const existing = prev.goals.find(
+          (g) => g.businessId === businessId && g.mes === mes && g.ano === ano,
+        );
+        // target == 0 → remove
+        if (validTarget === 0) {
+          if (!existing) return prev;
+          return {
+            ...prev,
+            goals: prev.goals.filter((g) => g.id !== existing.id),
+          };
+        }
+        if (existing) {
+          return {
+            ...prev,
+            goals: prev.goals.map((g) =>
+              g.id === existing.id
+                ? { ...g, target: validTarget, updatedAt: now }
+                : g,
+            ),
+          };
+        }
+        const newGoal: MonthGoal = {
+          id: uid(),
+          businessId,
+          mes,
+          ano,
+          target: validTarget,
+          createdAt: now,
+          updatedAt: now,
+        };
+        return { ...prev, goals: [...prev.goals, newGoal] };
+      });
+    },
+    [mutate],
+  );
+
   /* ── Settings ─────────────────────────────────────────────────── */
   const setSettings = useCallback(
     (update: Partial<AppSettings>) => {
@@ -447,6 +497,7 @@ export function useStorage() {
     upsertCatalogItem,
     updateCatalogItem,
     deleteCatalogItem,
+    setMonthGoal,
     setSettings,
     replaceState,
   };

@@ -50,6 +50,22 @@ export interface CatalogItem {
   createdAt: string;
 }
 
+/**
+ * Meta de faturamento bruto de um mês específico.
+ * Chaveada por (businessId, mes, ano). Quando ausente, o card de meta
+ * mostra um CTA "Definir meta".
+ */
+export interface MonthGoal {
+  id: string;
+  businessId: string;
+  mes: number;
+  ano: number;
+  /** Valor alvo em BRL. Sempre > 0 quando persistido. */
+  target: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Row {
   id: string;
   /** Empreendimento dono deste lançamento. */
@@ -94,6 +110,8 @@ export interface AppState {
   /** Catálogo de serviços/produtos por empreendimento.
    *  Alimentado pelos lançamentos + CRUD em Preferências. */
   catalog: CatalogItem[];
+  /** Metas mensais de faturamento bruto por (businessId, mes, ano). */
+  goals: MonthGoal[];
   /** Lista de empreendimentos do usuário. */
   businesses: Business[];
   /** ID do empreendimento atualmente ativo (vazio = nenhum). */
