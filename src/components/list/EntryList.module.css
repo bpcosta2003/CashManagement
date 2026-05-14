@@ -2,19 +2,19 @@
   width: 100%;
   max-width: var(--container-max);
   margin: 18px auto 0;
-  padding: 0 var(--container-pad-mobile) 120px;
+  padding: 0 var(--container-pad-mobile) var(--nav-clearance);
 }
 
 @media (min-width: 721px) {
   .section {
     margin-top: 16px;
-    padding: 0 var(--container-pad-tablet) 8px;
+    padding: 0 var(--container-pad-tablet) var(--nav-clearance);
   }
 }
 
 @media (min-width: 1024px) {
   .section {
-    padding: 0 var(--container-pad-desktop) 8px;
+    padding: 0 var(--container-pad-desktop) var(--nav-clearance);
   }
 }
 

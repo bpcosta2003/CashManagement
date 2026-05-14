@@ -374,10 +374,10 @@
   letter-spacing: 0.16em;
 }
 
-.historyCount {
+.historyHint {
   font-size: var(--t-caption);
   color: var(--text-dim);
-  font-variant-numeric: tabular-nums;
+  font-style: italic;
 }
 
 .historyList {
@@ -394,11 +394,33 @@
   grid-template-columns: 44px minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 10px;
-  padding: 7px 10px;
+  padding: 8px 10px;
   background: var(--surface);
+  border: 1px solid transparent;
   border-radius: var(--radius-sm);
   font-size: var(--t-caption);
+  width: 100%;
   min-width: 0;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  transition: background 0.15s var(--ease), border-color 0.15s var(--ease),
+    transform 0.06s var(--ease);
+}
+
+.historyItem:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.historyItem:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.historyItem:active {
+  transform: scale(0.99);
 }
 
 .historyDate {
@@ -459,38 +481,3 @@
   text-align: right;
 }
 
-/* ─── Sugestão de preço pelo histórico do serviço ─── */
-.priceHint {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  background: transparent;
-  border: 1px dashed var(--border);
-  border-radius: var(--radius-sm);
-  padding: 6px 10px;
-  margin-top: 4px;
-  cursor: pointer;
-  font: inherit;
-  text-align: left;
-  transition: background 0.15s var(--ease), border-color 0.15s var(--ease);
-}
-
-.priceHint:hover {
-  border-color: var(--accent);
-  background: var(--accent-soft);
-}
-
-.priceHintLabel {
-  font-size: var(--t-caption);
-  color: var(--text-muted);
-  font-variant-numeric: tabular-nums;
-}
-
-.priceHintAction {
-  font-size: var(--t-caption);
-  font-weight: 600;
-  color: var(--accent);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}

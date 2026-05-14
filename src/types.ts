@@ -33,6 +33,23 @@ export interface Client {
   createdAt: string;
 }
 
+/**
+ * Item do catálogo de serviços/produtos do empreendimento.
+ * Garante consistência de nomes (evita "corte" vs "Corte" vs "córte")
+ * e permite valor sugerido — populado automaticamente ao selecionar.
+ */
+export interface CatalogItem {
+  id: string;
+  businessId: string;
+  name: string;
+  /** Valor padrão sugerido. Quando o usuário seleciona este item no
+   *  formulário, o campo Valor é prefilhado com esse número (se ainda
+   *  estiver vazio). */
+  defaultValue?: number;
+  lastUsedAt: string;
+  createdAt: string;
+}
+
 export interface Row {
   id: string;
   /** Empreendimento dono deste lançamento. */
@@ -74,6 +91,9 @@ export interface AppState {
   rows: Row[];
   /** Catálogo de clientes por empreendimento. */
   clients: Client[];
+  /** Catálogo de serviços/produtos por empreendimento.
+   *  Alimentado pelos lançamentos + CRUD em Preferências. */
+  catalog: CatalogItem[];
   /** Lista de empreendimentos do usuário. */
   businesses: Business[];
   /** ID do empreendimento atualmente ativo (vazio = nenhum). */

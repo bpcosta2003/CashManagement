@@ -78,6 +78,9 @@ export default function App() {
     upsertClient,
     updateClient,
     deleteClient,
+    upsertCatalogItem,
+    updateCatalogItem,
+    deleteCatalogItem,
     setSettings,
     replaceState,
   } = useStorage();
@@ -151,24 +154,15 @@ export default function App() {
   );
   const insights = useInsights({ rows: businessRows, mes, ano });
 
-  // Sugestões de serviço pro autocomplete do EntryForm — únicos do
-  // empreendimento ativo, ordenados pelo uso mais recente.
-  const servicoSuggestions = useMemo(() => {
-    if (!activeBusinessId) return [];
-    const seen = new Map<string, string>();
-    const scoped = state.rows.filter(
-      (r) => r.businessId === activeBusinessId && r.servico.trim(),
-    );
-    // Mais recentes primeiro
-    [...scoped]
-      .sort((a, b) => (a.criadoEm < b.criadoEm ? 1 : -1))
-      .forEach((r) => {
-        const trimmed = r.servico.trim();
-        const key = trimmed.toLowerCase();
-        if (!seen.has(key)) seen.set(key, trimmed);
-      });
-    return Array.from(seen.values()).slice(0, 30);
-  }, [state.rows, activeBusinessId]);
+  // Catálogo do empreendimento ativo — fonte canônica de serviços/produtos.
+  // Usado pelo ServicoCombobox no EntryForm e pelo gerenciador do catálogo.
+  const activeCatalog = useMemo(
+    () =>
+      state.catalog.filter(
+        (c) => !activeBusinessId || c.businessId === activeBusinessId,
+      ),
+    [state.catalog, activeBusinessId],
+  );
 
   const handleSelectMonthFromAnnual = useCallback((m: number, y: number) => {
     setMes(m);
@@ -248,6 +242,11 @@ export default function App() {
     if (!sheetMode) return;
     // Upsert cliente: tanto na criação quanto na edição.
     upsertClient(row.cliente, clientPhone);
+    // Upsert catálogo: garante que o serviço fica salvo, e o último
+    // valor usado vira o defaultValue (overrideDefaultValue = true).
+    if (row.servico.trim() && typeof row.valor === "number" && row.valor > 0) {
+      upsertCatalogItem(row.servico, row.valor, true);
+    }
 
     if (sheetMode.kind === "create") {
       commitRow(row);
@@ -418,7 +417,7 @@ export default function App() {
             initial={editingRow}
             isNew={sheetMode?.kind === "create"}
             clients={activeClients}
-            servicoSuggestions={servicoSuggestions}
+            catalog={activeCatalog}
             allRows={state.rows.filter(
               (r) => !activeBusinessId || r.businessId === activeBusinessId,
             )}
@@ -514,10 +513,16 @@ export default function App() {
         theme={theme}
         accent={accent}
         settings={state.settings}
+        catalog={activeCatalog}
         onClose={() => setSettingsOpen(false)}
         onToggleTheme={toggleTheme}
         onSetAccent={setAccent}
         onSetSettings={setSettings}
+        onCatalogAdd={(name, defaultValue) =>
+          upsertCatalogItem(name, defaultValue, true)
+        }
+        onCatalogUpdate={updateCatalogItem}
+        onCatalogDelete={deleteCatalogItem}
       />
 
       <FirstUseModal

@@ -33,12 +33,12 @@ export function ProjectionSection({ projecao }: Props) {
             <article className={styles.card} key={p.lbl}>
               <header className={styles.cardHeader}>
                 <span className={styles.month}>{p.lbl}</span>
-                <div style={{ textAlign: "right" }}>
+                <div className={styles.cardHeaderRight}>
                   <div className={styles.totals}>{fmtBRL(p.liq)}</div>
                   <div className={styles.bruto}>bruto {fmtBRL(p.bruto)}</div>
                 </div>
               </header>
-              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <div className={styles.itemList}>
                 {p.items.slice(0, 6).map((it, i) => (
                   <div className={styles.item} key={i}>
                     <div className={styles.itemMain}>
@@ -47,7 +47,7 @@ export function ProjectionSection({ projecao }: Props) {
                         {it.servico} · {it.label}
                       </span>
                     </div>
-                    <div>
+                    <div className={styles.itemRight}>
                       <div className={styles.itemValue}>{fmtBRL(it.liq)}</div>
                       <div className={styles.itemLabel}>
                         bruto {fmtBRL(it.bruto)}

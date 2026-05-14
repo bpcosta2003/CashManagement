@@ -1,10 +1,10 @@
-import type { AppSettings, AppState } from "../types";
+import type { AppSettings, AppState, CatalogItem } from "../types";
 import { uid } from "./calc";
 
 const STORAGE_KEY = "controle-caixa:v1";
 const LAST_BACKUP_KEY = "controle-caixa:last-backup";
 const FIRST_USE_KEY = "controle-caixa:first-use-acked";
-const CURRENT_VERSION = 2;
+const CURRENT_VERSION = 3;
 
 function defaultSettings(): AppSettings {
   return { autoBackupConsent: null };
@@ -64,6 +64,7 @@ function migrate(state: AppState): AppState {
   // Defaults seguros (não bagunçam migração)
   if (!state.settings) state.settings = defaultSettings();
   if (!state.clients) state.clients = [];
+  if (!state.catalog) state.catalog = [];
   if (!state.businesses) state.businesses = [];
   if (typeof state.activeBusinessId !== "string") state.activeBusinessId = "";
 
@@ -95,7 +96,79 @@ function migrate(state: AppState): AppState {
     state.version = 2;
   }
 
+  if (state.version < 3) {
+    // v2 → v3: cria o catálogo a partir das linhas existentes.
+    // Para cada (businessId, nome de serviço normalizado), cria um
+    // CatalogItem com o nome mais usado e o valor mais recente como
+    // sugestão. Linhas com servico vazio são ignoradas.
+    const seeded = seedCatalogFromRows(state.rows);
+    // Preserva itens já existentes (idempotente) — se o usuário tiver
+    // adicionado manualmente algo em v2.5, não derruba.
+    const existingKeys = new Set(
+      state.catalog.map((c) => catalogKey(c.businessId, c.name)),
+    );
+    const merged = [
+      ...state.catalog,
+      ...seeded.filter(
+        (c) => !existingKeys.has(catalogKey(c.businessId, c.name)),
+      ),
+    ];
+    state.catalog = merged;
+    state.version = 3;
+  }
+
   return state;
+}
+
+function catalogKey(businessId: string, name: string) {
+  return `${businessId}|${name.trim().toLowerCase()}`;
+}
+
+/**
+ * A partir de uma lista de Row, monta o catálogo inicial:
+ * agrupa por (businessId, serviço normalizado), preserva a grafia mais
+ * recente, e sugere o último valor lançado como defaultValue.
+ */
+function seedCatalogFromRows(rows: AppState["rows"]): CatalogItem[] {
+  type Agg = {
+    businessId: string;
+    name: string;
+    defaultValue?: number;
+    lastUsedAt: string;
+    createdAt: string;
+  };
+  const byKey = new Map<string, Agg>();
+  // Ordena do mais antigo pro mais novo pra que o "último valor" sobrescreva.
+  const sorted = [...rows].sort((a, b) =>
+    a.criadoEm < b.criadoEm ? -1 : 1,
+  );
+  for (const r of sorted) {
+    const name = r.servico.trim();
+    if (!name || !r.businessId) continue;
+    const key = catalogKey(r.businessId, name);
+    const existing = byKey.get(key);
+    const value = typeof r.valor === "number" && r.valor > 0 ? r.valor : undefined;
+    if (existing) {
+      byKey.set(key, {
+        ...existing,
+        name,
+        defaultValue: value ?? existing.defaultValue,
+        lastUsedAt: r.criadoEm,
+      });
+    } else {
+      byKey.set(key, {
+        businessId: r.businessId,
+        name,
+        defaultValue: value,
+        lastUsedAt: r.criadoEm,
+        createdAt: r.criadoEm,
+      });
+    }
+  }
+  return Array.from(byKey.values()).map((a) => ({
+    id: uid(),
+    ...a,
+  }));
 }
 
 export function initialState(): AppState {
@@ -103,6 +176,7 @@ export function initialState(): AppState {
     version: CURRENT_VERSION,
     rows: [],
     clients: [],
+    catalog: [],
     businesses: [],
     activeBusinessId: "",
     lastModified: new Date().toISOString(),

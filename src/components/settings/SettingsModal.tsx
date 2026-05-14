@@ -4,7 +4,8 @@ import {
   type Accent,
   type Theme,
 } from "../../hooks/useAppearance";
-import type { AppSettings } from "../../types";
+import type { AppSettings, CatalogItem } from "../../types";
+import { CatalogManager } from "./CatalogManager";
 import styles from "./SettingsModal.module.css";
 
 interface Props {
@@ -12,10 +13,18 @@ interface Props {
   theme: Theme;
   accent: Accent;
   settings: AppSettings | undefined;
+  /** Catálogo do empreendimento ativo. */
+  catalog: CatalogItem[];
   onClose: () => void;
   onToggleTheme: () => void;
   onSetAccent: (a: Accent) => void;
   onSetSettings: (patch: Partial<AppSettings>) => void;
+  onCatalogAdd: (name: string, defaultValue?: number) => void;
+  onCatalogUpdate: (
+    id: string,
+    patch: { name?: string; defaultValue?: number },
+  ) => void;
+  onCatalogDelete: (id: string) => void;
 }
 
 const ACCENT_ORDER: Accent[] = [
@@ -38,10 +47,14 @@ export function SettingsModal({
   theme,
   accent,
   settings,
+  catalog,
   onClose,
   onToggleTheme,
   onSetAccent,
   onSetSettings,
+  onCatalogAdd,
+  onCatalogUpdate,
+  onCatalogDelete,
 }: Props) {
   if (!open) return null;
 
@@ -176,6 +189,30 @@ export function SettingsModal({
                 </button>
               ))}
             </div>
+          </section>
+
+          {/* ─── Catálogo de serviços/produtos ─── */}
+          <section className={styles.section}>
+            <span className={styles.sectionLabel}>Catálogo</span>
+            <div className={styles.row}>
+              <div className={styles.rowText}>
+                <span className={styles.rowTitle}>
+                  Serviços e produtos
+                </span>
+                <span className={styles.rowDesc}>
+                  Cadastre os itens recorrentes com valor padrão. Ao criar
+                  um lançamento, selecione direto da lista — assim você
+                  evita variações de grafia (ex: "Corte" vs "corte") nos
+                  relatórios.
+                </span>
+              </div>
+            </div>
+            <CatalogManager
+              items={catalog}
+              onAdd={onCatalogAdd}
+              onUpdate={onCatalogUpdate}
+              onDelete={onCatalogDelete}
+            />
           </section>
 
           {/* ─── Notificações ─── */}
