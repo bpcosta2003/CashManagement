@@ -1,8 +1,13 @@
+import { useMemo, useState } from "react";
 import type { Ref } from "react";
-import type { CalculatedRow, Summary } from "../../types";
+import type { CalculatedRow, FormaPagamento, Summary } from "../../types";
+import { FORMAS_PAGAMENTO } from "../../constants";
 import { fmtBRL, fmtPct } from "../../lib/calc";
 import { BrandMark } from "../layout/Brand";
 import styles from "./EntryList.module.css";
+
+type FormaFilter = "todas" | FormaPagamento;
+type StatusFilter = "todos" | "Pago" | "Pendente";
 
 interface Props {
   rows: CalculatedRow[];
@@ -35,6 +40,30 @@ export function EntryList({
   addBtnRef,
 }: Props) {
   const liqPositive = summary.liq >= 0;
+
+  const [formaFilter, setFormaFilter] = useState<FormaFilter>("todas");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("todos");
+
+  const filteredRows = useMemo(() => {
+    return rows.filter((r) => {
+      if (formaFilter !== "todas" && r.forma !== formaFilter) return false;
+      if (statusFilter !== "todos" && r.status !== statusFilter) return false;
+      return true;
+    });
+  }, [rows, formaFilter, statusFilter]);
+
+  const isFiltered = formaFilter !== "todas" || statusFilter !== "todos";
+  const filteredBruto = useMemo(
+    () => filteredRows.reduce((s, r) => s + r.v, 0),
+    [filteredRows],
+  );
+  const filteredLiq = useMemo(
+    () => filteredRows.reduce((s, r) => s + r.liq, 0),
+    [filteredRows],
+  );
+  const filteredMargem = filteredBruto > 0
+    ? (filteredLiq / filteredBruto) * 100
+    : 0;
 
   return (
     <section className={styles.section} aria-label="Lançamentos do mês">
@@ -69,6 +98,79 @@ export function EntryList({
           </button>
         </header>
 
+        {rows.length > 0 && (
+          <div className={styles.filters} role="toolbar" aria-label="Filtros">
+            <div className={styles.filterGroup}>
+              <span className={styles.filterLabel}>Forma</span>
+              <div className={styles.pillRow}>
+                <button
+                  type="button"
+                  className={styles.pill}
+                  data-active={formaFilter === "todas"}
+                  onClick={() => setFormaFilter("todas")}
+                >
+                  Todas
+                </button>
+                {FORMAS_PAGAMENTO.map((f) => (
+                  <button
+                    type="button"
+                    key={f}
+                    className={styles.pill}
+                    data-active={formaFilter === f}
+                    data-forma={f}
+                    onClick={() => setFormaFilter(f)}
+                  >
+                    {f}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className={styles.filterGroup}>
+              <span className={styles.filterLabel}>Status</span>
+              <div className={styles.pillRow}>
+                <button
+                  type="button"
+                  className={styles.pill}
+                  data-active={statusFilter === "todos"}
+                  onClick={() => setStatusFilter("todos")}
+                >
+                  Todos
+                </button>
+                <button
+                  type="button"
+                  className={styles.pill}
+                  data-active={statusFilter === "Pago"}
+                  data-status="pago"
+                  onClick={() => setStatusFilter("Pago")}
+                >
+                  Pago
+                </button>
+                <button
+                  type="button"
+                  className={styles.pill}
+                  data-active={statusFilter === "Pendente"}
+                  data-status="pendente"
+                  onClick={() => setStatusFilter("Pendente")}
+                >
+                  Pendente
+                </button>
+              </div>
+            </div>
+            {isFiltered && (
+              <button
+                type="button"
+                className={styles.filterClear}
+                onClick={() => {
+                  setFormaFilter("todas");
+                  setStatusFilter("todos");
+                }}
+              >
+                Limpar filtros
+              </button>
+            )}
+          </div>
+        )}
+
         {rows.length === 0 ? (
           <div className={styles.empty}>
             <div className={styles.emptyArt} aria-hidden="true">
@@ -85,10 +187,26 @@ export function EntryList({
               Toque em <strong>+ Novo</strong> para adicionar
             </span>
           </div>
+        ) : filteredRows.length === 0 ? (
+          <div className={styles.emptyFiltered}>
+            <span className={styles.emptyFilteredText}>
+              Nenhum lançamento atende aos filtros selecionados.
+            </span>
+            <button
+              type="button"
+              className={styles.filterClear}
+              onClick={() => {
+                setFormaFilter("todas");
+                setStatusFilter("todos");
+              }}
+            >
+              Limpar filtros
+            </button>
+          </div>
         ) : (
           <>
             <div className={styles.list}>
-              {rows.map((r) => {
+              {filteredRows.map((r) => {
                 const isPaid = r.status === "Pago";
                 const liqPos = r.liq >= 0;
                 return (
@@ -175,19 +293,31 @@ export function EntryList({
             </div>
             <div className={styles.totals}>
               <span className={styles.totalsLabel}>
-                Total bruto · {rows.length}{" "}
-                {rows.length === 1 ? "lançamento" : "lançamentos"}
+                {isFiltered ? "Subtotal filtrado" : "Total bruto"} ·{" "}
+                {filteredRows.length}{" "}
+                {filteredRows.length === 1 ? "lançamento" : "lançamentos"}
+                {isFiltered && (
+                  <span className={styles.totalsHint}>
+                    {" "}
+                    de {rows.length}
+                  </span>
+                )}
               </span>
-              <span className={styles.totalsValue}>{fmtBRL(summary.bruto)}</span>
+              <span className={styles.totalsValue}>
+                {fmtBRL(isFiltered ? filteredBruto : summary.bruto)}
+              </span>
               <span className={styles.totalsLabel}>
-                Líquido · margem {fmtPct(summary.margem)}
+                Líquido · margem{" "}
+                {fmtPct(isFiltered ? filteredMargem : summary.margem)}
               </span>
               <span
                 className={`${styles.totalsLiq} ${
-                  !liqPositive ? styles.totalsLiqNeg : ""
+                  (isFiltered ? filteredLiq < 0 : !liqPositive)
+                    ? styles.totalsLiqNeg
+                    : ""
                 }`}
               >
-                {fmtBRL(summary.liq)}
+                {fmtBRL(isFiltered ? filteredLiq : summary.liq)}
               </span>
             </div>
           </>

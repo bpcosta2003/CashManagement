@@ -346,3 +346,151 @@
 .btnPrimary:active {
   transform: scale(0.985);
 }
+
+/* ─── Histórico do cliente (mostrado quando há lançamentos anteriores) ─── */
+.history {
+  background: var(--surface-2);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.historyHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.historyTitle {
+  font-size: var(--t-eyebrow);
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+.historyCount {
+  font-size: var(--t-caption);
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.historyList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.historyItem {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  font-size: var(--t-caption);
+  min-width: 0;
+}
+
+.historyDate {
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.historyService {
+  color: var(--text);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.historyForma {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: var(--radius-pill);
+  color: var(--text-muted);
+  background: var(--surface-2);
+  white-space: nowrap;
+}
+
+.historyForma[data-forma="Pix"] {
+  color: var(--pay-pix);
+  background: color-mix(in srgb, var(--pay-pix) 14%, transparent);
+}
+
+.historyForma[data-forma="Dinheiro"] {
+  color: var(--pay-dinheiro);
+  background: color-mix(in srgb, var(--pay-dinheiro) 14%, transparent);
+}
+
+.historyForma[data-forma="Débito"] {
+  color: var(--pay-debito);
+  background: color-mix(in srgb, var(--pay-debito) 14%, transparent);
+}
+
+.historyForma[data-forma="Crédito"] {
+  color: var(--pay-credito);
+  background: color-mix(in srgb, var(--pay-credito) 14%, transparent);
+}
+
+.historyValue {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  text-align: right;
+}
+
+/* ─── Sugestão de preço pelo histórico do serviço ─── */
+.priceHint {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: transparent;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  margin-top: 4px;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  transition: background 0.15s var(--ease), border-color 0.15s var(--ease);
+}
+
+.priceHint:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.priceHintLabel {
+  font-size: var(--t-caption);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.priceHintAction {
+  font-size: var(--t-caption);
+  font-weight: 600;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}

@@ -14,6 +14,8 @@ interface Props {
   clients: Client[];
   /** Serviços já lançados no empreendimento ativo (ordenados por uso). */
   servicoSuggestions?: string[];
+  /** Todos os lançamentos do empreendimento ativo — usados pra histórico. */
+  allRows?: Row[];
   onSave: (row: Row, clientPhone?: string) => void;
   onDelete?: () => void;
   onCancel: () => void;
@@ -61,6 +63,7 @@ export function EntryForm({
   isNew = false,
   clients,
   servicoSuggestions = [],
+  allRows = [],
   onSave,
   onDelete,
   onCancel,
@@ -76,6 +79,42 @@ export function EntryForm({
     () => findClient(clients, draft.cliente),
     [clients, draft.cliente],
   );
+
+  // Histórico do cliente: últimos 3 atendimentos (mais recentes primeiro),
+  // excluindo o lançamento atual quando está em modo edição.
+  const clientHistory = useMemo(() => {
+    const name = draft.cliente.trim().toLowerCase();
+    if (!name) return [] as Row[];
+    return allRows
+      .filter(
+        (r) =>
+          r.cliente.trim().toLowerCase() === name &&
+          r.id !== initial.id &&
+          +r.valor > 0,
+      )
+      .sort((a, b) => (a.criadoEm < b.criadoEm ? 1 : -1))
+      .slice(0, 3);
+  }, [allRows, draft.cliente, initial.id]);
+
+  // Estatística histórica do serviço atual — usada pra sugestão de preço.
+  // Só sugere se houver ≥2 lançamentos passados desse serviço.
+  const servicoStats = useMemo(() => {
+    const s = draft.servico.trim().toLowerCase();
+    if (!s) return null;
+    const matches = allRows
+      .filter(
+        (r) =>
+          r.servico.trim().toLowerCase() === s &&
+          r.id !== initial.id &&
+          +r.valor > 0,
+      )
+      .map((r) => +r.valor);
+    if (matches.length < 2) return null;
+    const min = Math.min(...matches);
+    const max = Math.max(...matches);
+    const avg = matches.reduce((s, v) => s + v, 0) / matches.length;
+    return { min, max, avg, count: matches.length };
+  }, [allRows, draft.servico, initial.id]);
 
   useEffect(() => {
     setDraft(initial);
@@ -190,6 +229,42 @@ export function EntryForm({
         />
       </div>
 
+      {clientHistory.length > 0 && (
+        <div className={styles.history} aria-label="Histórico do cliente">
+          <div className={styles.historyHead}>
+            <span className={styles.historyTitle}>Últimos atendimentos</span>
+            <span className={styles.historyCount}>
+              {clientHistory.length === 1
+                ? "1 atendimento"
+                : `${clientHistory.length} atendimentos`}
+            </span>
+          </div>
+          <ul className={styles.historyList}>
+            {clientHistory.map((r) => {
+              const calc = calcRow(r);
+              const date = new Date(r.criadoEm);
+              const dateLbl = isNaN(date.getTime())
+                ? "—"
+                : `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}`;
+              return (
+                <li key={r.id} className={styles.historyItem}>
+                  <span className={styles.historyDate}>{dateLbl}</span>
+                  <span className={styles.historyService} title={r.servico}>
+                    {r.servico || "—"}
+                  </span>
+                  <span className={styles.historyForma} data-forma={r.forma}>
+                    {r.forma}
+                  </span>
+                  <span className={styles.historyValue} title={fmtBRL(calc.v)}>
+                    {fmtBRL(calc.v)}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
+
       <div className={styles.field}>
         <label htmlFor="ef-servico" className={styles.label}>
           Serviço
@@ -238,6 +313,24 @@ export function EntryForm({
             <span id="ef-valor-err" className={styles.errorMsg}>
               {errors.valor}
             </span>
+          )}
+          {servicoStats && (
+            <button
+              type="button"
+              className={styles.priceHint}
+              onClick={() => update("valor", +servicoStats.avg.toFixed(2))}
+              title={`Aplicar a média (${servicoStats.count} lançamentos)`}
+            >
+              <span className={styles.priceHintLabel}>
+                Histórico:{" "}
+                {servicoStats.min === servicoStats.max
+                  ? fmtBRL(servicoStats.avg)
+                  : `${fmtBRL(servicoStats.min)}–${fmtBRL(servicoStats.max)}`}
+              </span>
+              <span className={styles.priceHintAction}>
+                usar média {fmtBRL(servicoStats.avg)} →
+              </span>
+            </button>
           )}
         </div>
         <div className={styles.field}>
