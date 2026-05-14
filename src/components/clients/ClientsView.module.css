@@ -46,10 +46,9 @@
 .head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   padding: 14px 18px;
   border-bottom: 1px solid var(--border-soft);
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
@@ -68,6 +67,8 @@
   display: inline-flex;
   align-items: baseline;
   gap: 8px;
+  flex: 1;
+  min-width: 0;
 }
 
 .count {
@@ -77,12 +78,24 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Mobile: a busca quebra pra linha inteira ABAIXO do botão criar
+   (via flex-basis:100% + order alto pra ir pro fim do flex row).
+   Desktop: vira inline à esquerda do botão criar (título flex:1
+   absorve o espaço, empurrando search+addBtn pra direita). */
 .search {
   position: relative;
   display: inline-flex;
   align-items: center;
-  flex-shrink: 0;
-  min-width: 180px;
+  flex: 1 1 100%;
+  order: 99;
+  min-width: 0;
+}
+
+@media (min-width: 768px) {
+  .search {
+    flex: 0 1 280px;
+    order: 0;
+  }
 }
 
 .searchIcon {
@@ -350,6 +363,13 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  order: 1;
+}
+
+@media (min-width: 768px) {
+  .headAddBtn {
+    order: 2;
+  }
 }
 
 :root[data-theme="dark"] .headAddBtn {

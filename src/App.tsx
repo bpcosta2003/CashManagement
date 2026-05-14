@@ -379,8 +379,9 @@ export default function App() {
       />
       <TaxBar visible={taxBarOpen} />
 
-      {/* PeriodNav só faz sentido em visões com tempo (não em Clientes) */}
-      {tab !== "clientes" && (
+      {/* PeriodNav só faz sentido em visões com tempo
+          (não em Clientes nem em Catálogo) */}
+      {tab !== "clientes" && tab !== "catalogo" && (
         <PeriodNav
           period={period}
           mes={mes}

@@ -46,7 +46,6 @@
 .head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   padding: 14px 18px;
   border-bottom: 1px solid var(--border-soft);
   gap: 10px;
@@ -68,7 +67,8 @@
   display: inline-flex;
   align-items: baseline;
   gap: 8px;
-  flex-shrink: 0;
+  flex: 1;
+  min-width: 0;
 }
 
 .count {
@@ -78,12 +78,23 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Mobile: search ocupa linha inteira ABAIXO do botão criar.
+   Desktop: search ao lado esquerdo do botão (título flex:1 empurra
+   ambos pro fim da linha). */
 .search {
   position: relative;
   display: inline-flex;
   align-items: center;
-  flex: 1;
-  min-width: 140px;
+  flex: 1 1 100%;
+  order: 99;
+  min-width: 0;
+}
+
+@media (min-width: 768px) {
+  .search {
+    flex: 0 1 280px;
+    order: 0;
+  }
 }
 
 .searchIcon {
@@ -134,6 +145,13 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  order: 1;
+}
+
+@media (min-width: 768px) {
+  .addBtn {
+    order: 2;
+  }
 }
 
 :root[data-theme="dark"] .addBtn {
