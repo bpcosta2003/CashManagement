@@ -332,3 +332,162 @@
   color: var(--text-muted);
   line-height: 1.55;
 }
+
+/* ─── Botão "+ Novo" no header + form inline ─── */
+.headAddBtn {
+  background: var(--accent);
+  color: var(--accent-on);
+  border: none;
+  padding: 9px 16px;
+  border-radius: var(--radius-pill);
+  font-size: var(--t-meta);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s var(--ease), transform 0.06s var(--ease);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(90, 46, 63, 0.16);
+  flex-shrink: 0;
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+:root[data-theme="dark"] .headAddBtn {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(199, 164, 106, 0.18);
+}
+
+.headAddBtn:hover {
+  background: var(--accent-strong);
+}
+
+.headAddBtn:active {
+  transform: scale(0.98);
+}
+
+@media (max-width: 480px) {
+  .headAddBtnLabel {
+    display: none;
+  }
+  .headAddBtn {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    justify-content: center;
+  }
+}
+
+.addRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto auto;
+  gap: 8px;
+  padding: 12px 18px;
+  background: var(--accent-soft);
+  border-bottom: 1px solid var(--border-soft);
+  align-items: center;
+}
+
+@media (max-width: 480px) {
+  .addRow {
+    grid-template-columns: 1fr 1fr;
+  }
+  .addRowPrimary,
+  .addRowSecondary {
+    grid-column: span 1;
+  }
+}
+
+@media (min-width: 768px) {
+  .addRow {
+    padding: 14px 22px;
+  }
+}
+
+.addRowInput {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--input-border);
+  background: var(--input-bg);
+  border-radius: var(--radius-sm);
+  padding: 9px 12px;
+  font: inherit;
+  font-size: 14px;
+  color: var(--text);
+  min-height: 38px;
+  transition: border-color 0.18s var(--ease), box-shadow 0.18s var(--ease);
+}
+
+.addRowInput:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.addRowInput::placeholder {
+  color: var(--text-dim);
+}
+
+.addRowPrimary {
+  background: var(--accent);
+  color: var(--accent-on);
+  border: none;
+  padding: 0 14px;
+  border-radius: var(--radius-pill);
+  font-size: var(--t-meta);
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 38px;
+  white-space: nowrap;
+  transition: background 0.15s var(--ease);
+}
+
+.addRowPrimary:hover:not(:disabled) {
+  background: var(--accent-strong);
+}
+
+.addRowPrimary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.addRowSecondary {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 0 14px;
+  border-radius: var(--radius-pill);
+  font-size: var(--t-meta);
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 38px;
+  white-space: nowrap;
+  transition: border-color 0.15s var(--ease), color 0.15s var(--ease);
+}
+
+.addRowSecondary:hover {
+  border-color: var(--text-muted);
+  color: var(--text);
+}
+
+/* ─── Empty CTA ─── */
+.emptyCta {
+  background: var(--accent);
+  color: var(--accent-on);
+  border: none;
+  padding: 10px 18px;
+  border-radius: var(--radius-pill);
+  font-size: var(--t-meta);
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 16px;
+  transition: background 0.15s var(--ease), transform 0.06s var(--ease);
+}
+
+.emptyCta:hover {
+  background: var(--accent-strong);
+}
+
+.emptyCta:active {
+  transform: scale(0.98);
+}

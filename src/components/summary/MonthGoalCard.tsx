@@ -75,6 +75,7 @@ export function MonthGoalCard({
   // ─── Editor inline ────────────────────────────────────────────
   if (editing) {
     return (
+      <div className={styles.section}>
       <section className={styles.card} aria-label="Editar meta do mês">
         <div className={styles.editor}>
           <span className={styles.editorLabel}>
@@ -125,12 +126,14 @@ export function MonthGoalCard({
           </span>
         </div>
       </section>
+      </div>
     );
   }
 
   // ─── Sem meta ────────────────────────────────────────────────
   if (!hasGoal) {
     return (
+      <div className={styles.section}>
       <section className={styles.card} aria-label="Definir meta do mês">
         <button
           type="button"
@@ -155,6 +158,7 @@ export function MonthGoalCard({
           </span>
         </button>
       </section>
+      </div>
     );
   }
 
@@ -170,6 +174,7 @@ export function MonthGoalCard({
       : `Faltam ${fmtBRL(remaining)}`;
 
   return (
+    <div className={styles.section}>
     <section className={styles.card} aria-label="Meta do mês">
       <div className={styles.head}>
         <div className={styles.headText}>
@@ -226,5 +231,6 @@ export function MonthGoalCard({
         </span>
       </div>
     </section>
+    </div>
   );
 }

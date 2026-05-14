@@ -26,6 +26,7 @@ import { EntryForm } from "./components/forms/EntryForm";
 import { InsightsBanner } from "./components/feedback/InsightsBanner";
 import { useInsights } from "./hooks/useInsights";
 import { MonthGoalCard } from "./components/summary/MonthGoalCard";
+import { CatalogView } from "./components/catalog/CatalogView";
 import { exportMonthPdf } from "./lib/pdf";
 import { BackupPanel } from "./components/backup/BackupPanel";
 import { Toaster, useToast } from "./components/feedback/Toaster";
@@ -393,8 +394,18 @@ export default function App() {
       {tab === "clientes" ? (
         <ClientsView
           clients={clientStats}
+          onCreate={(name, phone) => upsertClient(name, phone)}
           onUpdate={updateClient}
           onDelete={deleteClient}
+        />
+      ) : tab === "catalogo" ? (
+        <CatalogView
+          items={activeCatalog}
+          onAdd={(name, defaultValue) =>
+            upsertCatalogItem(name, defaultValue, true)
+          }
+          onUpdate={updateCatalogItem}
+          onDelete={deleteCatalogItem}
         />
       ) : period === "year" ? (
         <AnnualDashboard
@@ -570,16 +581,10 @@ export default function App() {
         theme={theme}
         accent={accent}
         settings={state.settings}
-        catalog={activeCatalog}
         onClose={() => setSettingsOpen(false)}
         onToggleTheme={toggleTheme}
         onSetAccent={setAccent}
         onSetSettings={setSettings}
-        onCatalogAdd={(name, defaultValue) =>
-          upsertCatalogItem(name, defaultValue, true)
-        }
-        onCatalogUpdate={updateCatalogItem}
-        onCatalogDelete={deleteCatalogItem}
       />
 
       <FirstUseModal
