@@ -15,6 +15,8 @@ interface Props {
   onAdd: () => void;
   onSelect: (id: string) => void;
   onDelete: (id: string, cliente: string) => void;
+  /** Disponível quando há pelo menos 1 lançamento e business ativo. */
+  onExportPdf?: () => void;
   /** Ref atribuído ao botão "+ Novo" — usado pelo App pra controlar o FAB. */
   addBtnRef?: Ref<HTMLButtonElement>;
 }
@@ -37,6 +39,7 @@ export function EntryList({
   onAdd,
   onSelect,
   onDelete,
+  onExportPdf,
   addBtnRef,
 }: Props) {
   const liqPositive = summary.liq >= 0;
@@ -75,27 +78,56 @@ export function EntryList({
               <span className={styles.count}>· {rows.length}</span>
             )}
           </span>
-          <button
-            ref={addBtnRef}
-            className={styles.addBtn}
-            onClick={onAdd}
-            aria-label="Novo lançamento"
-          >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              aria-hidden="true"
+          <div className={styles.headActions}>
+            {onExportPdf && rows.length > 0 && (
+              <button
+                type="button"
+                className={styles.pdfBtn}
+                onClick={onExportPdf}
+                aria-label="Exportar relatório do mês em PDF"
+                title="Exportar PDF"
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="12" y1="18" x2="12" y2="12" />
+                  <polyline points="9 15 12 18 15 15" />
+                </svg>
+                <span className={styles.pdfBtnLabel}>PDF</span>
+              </button>
+            )}
+            <button
+              ref={addBtnRef}
+              className={styles.addBtn}
+              onClick={onAdd}
+              aria-label="Novo lançamento"
             >
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-            <span className={styles.addBtnLabel}>Novo</span>
-          </button>
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                aria-hidden="true"
+              >
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              <span className={styles.addBtnLabel}>Novo</span>
+            </button>
+          </div>
         </header>
 
         {rows.length > 0 && (

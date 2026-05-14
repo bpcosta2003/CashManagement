@@ -2,13 +2,13 @@
   width: 100%;
   max-width: var(--container-max);
   margin: 18px auto 0;
-  padding: 0 var(--container-pad-mobile) 100px;
+  padding: 0 var(--container-pad-mobile) var(--nav-clearance);
 }
 
 @media (min-width: 768px) {
   .section {
     margin-top: 16px;
-    padding: 0 var(--container-pad-tablet) 24px;
+    padding: 0 var(--container-pad-tablet) var(--nav-clearance);
   }
 }
 
@@ -62,12 +62,18 @@
 }
 
 .cardHeader {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: baseline;
+  gap: 12px;
   position: relative;
   padding-bottom: 12px;
   margin-bottom: 4px;
+}
+
+.cardHeaderRight {
+  text-align: right;
+  min-width: 0;
 }
 
 .cardHeader::after {
@@ -92,6 +98,10 @@
   text-transform: capitalize;
   letter-spacing: -0.01em;
   color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 
 .totals {
@@ -100,24 +110,39 @@
   color: var(--positive);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .bruto {
   font-size: var(--t-caption);
   color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.itemList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .item {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
   font-size: var(--t-meta);
   gap: 12px;
   padding: 4px 0;
+  min-width: 0;
 }
 
 .itemMain {
   display: flex;
   flex-direction: column;
+  min-width: 0;
+}
+
+.itemRight {
+  text-align: right;
   min-width: 0;
 }
 
@@ -127,6 +152,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   color: var(--text);
+  min-width: 0;
 }
 
 .servico {
@@ -135,6 +161,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  min-width: 0;
 }
 
 .itemValue {
@@ -194,6 +221,6 @@
 
 @media (min-width: 1024px) {
   .section {
-    padding: 0 var(--container-pad-desktop) 80px;
+    padding: 0 var(--container-pad-desktop) var(--nav-clearance);
   }
 }

@@ -1,9 +1,16 @@
-import { useEffect, useMemo, useState } from "react";
-import type { Client, FormaPagamento, Row, StatusPagamento } from "../../types";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import type {
+  CatalogItem,
+  Client,
+  FormaPagamento,
+  Row,
+  StatusPagamento,
+} from "../../types";
 import { FORMAS_PAGAMENTO, STATUS_OPTIONS } from "../../constants";
 import { autoTaxa, calcRow, fmtBRL, fmtPct } from "../../lib/calc";
 import { formatPhoneBR } from "../../lib/phone";
 import { ClientCombobox } from "./ClientCombobox";
+import { ServicoCombobox } from "./ServicoCombobox";
 import styles from "./EntryForm.module.css";
 
 interface Props {
@@ -12,8 +19,8 @@ interface Props {
   isNew?: boolean;
   /** Clientes do empreendimento ativo — usados pra autocomplete. */
   clients: Client[];
-  /** Serviços já lançados no empreendimento ativo (ordenados por uso). */
-  servicoSuggestions?: string[];
+  /** Catálogo de serviços/produtos do empreendimento ativo. */
+  catalog: CatalogItem[];
   /** Todos os lançamentos do empreendimento ativo — usados pra histórico. */
   allRows?: Row[];
   onSave: (row: Row, clientPhone?: string) => void;
@@ -62,7 +69,7 @@ export function EntryForm({
   initial,
   isNew = false,
   clients,
-  servicoSuggestions = [],
+  catalog,
   allRows = [],
   onSave,
   onDelete,
@@ -96,25 +103,30 @@ export function EntryForm({
       .slice(0, 3);
   }, [allRows, draft.cliente, initial.id]);
 
-  // Estatística histórica do serviço atual — usada pra sugestão de preço.
-  // Só sugere se houver ≥2 lançamentos passados desse serviço.
-  const servicoStats = useMemo(() => {
-    const s = draft.servico.trim().toLowerCase();
-    if (!s) return null;
-    const matches = allRows
-      .filter(
-        (r) =>
-          r.servico.trim().toLowerCase() === s &&
-          r.id !== initial.id &&
-          +r.valor > 0,
-      )
-      .map((r) => +r.valor);
-    if (matches.length < 2) return null;
-    const min = Math.min(...matches);
-    const max = Math.max(...matches);
-    const avg = matches.reduce((s, v) => s + v, 0) / matches.length;
-    return { min, max, avg, count: matches.length };
-  }, [allRows, draft.servico, initial.id]);
+  // Aplica os dados de um atendimento histórico no rascunho atual.
+  // Preserva cliente/telefone/status/data atuais — só copia o que define
+  // a natureza do lançamento (serviço, valor, forma, parcelas, taxa,
+  // custo, desconto). Marca a taxa como tocada pra não auto-recalcular.
+  const applyHistoryEntry = useCallback((entry: Row) => {
+    setDraft((prev) => ({
+      ...prev,
+      servico: entry.servico,
+      valor: entry.valor,
+      forma: entry.forma,
+      parc: entry.parc,
+      taxa: entry.taxa,
+      custo: entry.custo,
+      desconto: entry.desconto,
+    }));
+    setTaxaTouched(true);
+    setErrors((prev) => {
+      const next = { ...prev };
+      delete next.valor;
+      delete next.parc;
+      delete next.taxa;
+      return next;
+    });
+  }, []);
 
   useEffect(() => {
     setDraft(initial);
@@ -133,6 +145,35 @@ export function EntryForm({
       setPhone((prev) => (prev ? prev : formatPhoneBR(knownClient.phone ?? "")));
     }
   }, [knownClient]);
+
+  // Data do lançamento → ISO local (yyyy-mm-dd) pro <input type="date">.
+  // Usamos meio-dia local pra evitar deslocamento de timezone ao formatar.
+  const dateInputValue = useMemo(() => {
+    const d = new Date(draft.criadoEm);
+    if (isNaN(d.getTime())) return "";
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  }, [draft.criadoEm]);
+
+  const setDate = (iso: string) => {
+    if (!iso) return;
+    const [y, m, d] = iso.split("-").map(Number);
+    if (!y || !m || !d) return;
+    // Preserva hora original (se houver) pra não embaralhar lançamentos
+    // criados no mesmo dia ao reordenar por criadoEm.
+    const orig = new Date(draft.criadoEm);
+    const hh = isNaN(orig.getTime()) ? 12 : orig.getHours();
+    const mi = isNaN(orig.getTime()) ? 0 : orig.getMinutes();
+    const next = new Date(y, m - 1, d, hh, mi, 0);
+    setDraft((prev) => ({
+      ...prev,
+      criadoEm: next.toISOString(),
+      mes: next.getMonth(),
+      ano: next.getFullYear(),
+    }));
+  };
 
   const update = <K extends keyof Row>(field: K, value: Row[K]) => {
     setDraft((prev) => {
@@ -212,31 +253,68 @@ export function EntryForm({
         )}
       </div>
 
-      <div className={styles.field}>
-        <label htmlFor="ef-phone" className={styles.label}>
-          Telefone <span className={styles.labelHintSoft}>· opcional</span>
-        </label>
-        <input
-          id="ef-phone"
-          className={styles.input}
-          value={phone}
-          onChange={(e) => setPhone(formatPhoneBR(e.target.value))}
-          placeholder="(11) 90000-0000"
-          inputMode="tel"
-          type="tel"
-          autoComplete="tel"
-          maxLength={16}
-        />
+      <div className={styles.row}>
+        <div className={styles.field}>
+          <label htmlFor="ef-phone" className={styles.label}>
+            Telefone <span className={styles.labelHintSoft}>· opcional</span>
+          </label>
+          <input
+            id="ef-phone"
+            className={styles.input}
+            value={phone}
+            onChange={(e) => setPhone(formatPhoneBR(e.target.value))}
+            placeholder="(11) 90000-0000"
+            inputMode="tel"
+            type="tel"
+            autoComplete="tel"
+            maxLength={16}
+          />
+        </div>
+        <div className={styles.field}>
+          <label htmlFor="ef-data" className={styles.label}>
+            Data
+            {(() => {
+              const today = new Date();
+              const isToday =
+                today.getFullYear() === draft.ano &&
+                today.getMonth() === draft.mes &&
+                today.getDate() === new Date(draft.criadoEm).getDate();
+              return isToday ? (
+                <span className={styles.labelHintSoft}>· hoje</span>
+              ) : (
+                <span className={styles.labelHint}>
+                  ·{" "}
+                  {new Date(draft.criadoEm).toLocaleDateString("pt-BR", {
+                    month: "long",
+                    year: "numeric",
+                  })}
+                </span>
+              );
+            })()}
+          </label>
+          <input
+            id="ef-data"
+            className={styles.input}
+            type="date"
+            value={dateInputValue}
+            onChange={(e) => setDate(e.target.value)}
+            max={(() => {
+              // Permite escolher datas passadas livremente, mas trava no
+              // futuro pra evitar registro errado (ex: dedo escorregou
+              // pra 2027).
+              const d = new Date();
+              return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+            })()}
+          />
+        </div>
       </div>
 
       {clientHistory.length > 0 && (
         <div className={styles.history} aria-label="Histórico do cliente">
           <div className={styles.historyHead}>
             <span className={styles.historyTitle}>Últimos atendimentos</span>
-            <span className={styles.historyCount}>
-              {clientHistory.length === 1
-                ? "1 atendimento"
-                : `${clientHistory.length} atendimentos`}
+            <span className={styles.historyHint}>
+              toque pra repetir
             </span>
           </div>
           <ul className={styles.historyList}>
@@ -247,17 +325,24 @@ export function EntryForm({
                 ? "—"
                 : `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}`;
               return (
-                <li key={r.id} className={styles.historyItem}>
-                  <span className={styles.historyDate}>{dateLbl}</span>
-                  <span className={styles.historyService} title={r.servico}>
-                    {r.servico || "—"}
-                  </span>
-                  <span className={styles.historyForma} data-forma={r.forma}>
-                    {r.forma}
-                  </span>
-                  <span className={styles.historyValue} title={fmtBRL(calc.v)}>
-                    {fmtBRL(calc.v)}
-                  </span>
+                <li key={r.id}>
+                  <button
+                    type="button"
+                    className={styles.historyItem}
+                    onClick={() => applyHistoryEntry(r)}
+                    title="Preencher o formulário com este atendimento"
+                  >
+                    <span className={styles.historyDate}>{dateLbl}</span>
+                    <span className={styles.historyService} title={r.servico}>
+                      {r.servico || "—"}
+                    </span>
+                    <span className={styles.historyForma} data-forma={r.forma}>
+                      {r.forma}
+                    </span>
+                    <span className={styles.historyValue} title={fmtBRL(calc.v)}>
+                      {fmtBRL(calc.v)}
+                    </span>
+                  </button>
                 </li>
               );
             })}
@@ -267,26 +352,28 @@ export function EntryForm({
 
       <div className={styles.field}>
         <label htmlFor="ef-servico" className={styles.label}>
-          Serviço
+          Serviço / produto
         </label>
-        <input
+        <ServicoCombobox
           id="ef-servico"
-          className={styles.input}
           value={draft.servico}
-          onChange={(e) => update("servico", e.target.value)}
-          placeholder="Ex: Corte + escova"
-          autoComplete="off"
-          list={
-            servicoSuggestions.length > 0 ? "ef-servico-suggestions" : undefined
-          }
+          onChange={(v) => update("servico", v)}
+          catalog={catalog}
+          onPickItem={(item) => {
+            // Preenche serviço (já feito no onChange) e o valor
+            // sugerido — só sobrescreve se o campo ainda estiver vazio,
+            // pra não atropelar um valor que o usuário já digitou.
+            const empty = draft.valor === "" || draft.valor === 0;
+            if (
+              empty &&
+              typeof item.defaultValue === "number" &&
+              item.defaultValue > 0
+            ) {
+              update("valor", item.defaultValue);
+            }
+          }}
+          placeholder="Ex: Corte feminino"
         />
-        {servicoSuggestions.length > 0 && (
-          <datalist id="ef-servico-suggestions">
-            {servicoSuggestions.map((s) => (
-              <option key={s} value={s} />
-            ))}
-          </datalist>
-        )}
       </div>
 
       <div className={styles.row}>
@@ -313,24 +400,6 @@ export function EntryForm({
             <span id="ef-valor-err" className={styles.errorMsg}>
               {errors.valor}
             </span>
-          )}
-          {servicoStats && (
-            <button
-              type="button"
-              className={styles.priceHint}
-              onClick={() => update("valor", +servicoStats.avg.toFixed(2))}
-              title={`Aplicar a média (${servicoStats.count} lançamentos)`}
-            >
-              <span className={styles.priceHintLabel}>
-                Histórico:{" "}
-                {servicoStats.min === servicoStats.max
-                  ? fmtBRL(servicoStats.avg)
-                  : `${fmtBRL(servicoStats.min)}–${fmtBRL(servicoStats.max)}`}
-              </span>
-              <span className={styles.priceHintAction}>
-                usar média {fmtBRL(servicoStats.avg)} →
-              </span>
-            </button>
           )}
         </div>
         <div className={styles.field}>

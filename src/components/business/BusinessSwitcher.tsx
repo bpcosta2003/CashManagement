@@ -1,12 +1,26 @@
 import { useRef, useState } from "react";
 import type { Business, BusinessType } from "../../types";
+import { fmtBRL } from "../../lib/calc";
+import { MESES_FULL } from "../../constants";
 import { resizeImageToDataUrl } from "../../lib/imageResize";
 import styles from "./BusinessSwitcher.module.css";
+
+/** KPIs do mês corrente por empreendimento — calculados no App. */
+export interface BusinessMonthStats {
+  bruto: number;
+  liq: number;
+  count: number;
+}
 
 interface Props {
   open: boolean;
   businesses: Business[];
   activeBusinessId: string;
+  /** Stats do mês corrente por businessId (id → { bruto, liq, count }). */
+  monthStats: Record<string, BusinessMonthStats>;
+  /** Mês/ano em foco — usados pra rotular o card consolidado. */
+  mes: number;
+  ano: number;
   onClose: () => void;
   onSelect: (id: string) => void;
   onCreate: (data: {
@@ -57,6 +71,9 @@ export function BusinessSwitcher({
   open,
   businesses,
   activeBusinessId,
+  monthStats,
+  mes,
+  ano,
   onClose,
   onSelect,
   onCreate,
@@ -128,6 +145,9 @@ export function BusinessSwitcher({
             <BusinessList
               businesses={businesses}
               activeId={activeBusinessId}
+              monthStats={monthStats}
+              mes={mes}
+              ano={ano}
               onSelect={handleSelect}
               onEdit={(b) => setView({ mode: "edit", business: b })}
               onCreate={() => setView({ mode: "create" })}
@@ -192,6 +212,9 @@ export function BusinessSwitcher({
 interface ListProps {
   businesses: Business[];
   activeId: string;
+  monthStats: Record<string, BusinessMonthStats>;
+  mes: number;
+  ano: number;
   onSelect: (id: string) => void;
   onEdit: (b: Business) => void;
   onCreate: () => void;
@@ -200,15 +223,70 @@ interface ListProps {
 function BusinessList({
   businesses,
   activeId,
+  monthStats,
+  mes,
+  ano,
   onSelect,
   onEdit,
   onCreate,
 }: ListProps) {
+  // Total consolidado do mês — só mostra se há ≥2 empreendimentos
+  // E pelo menos um deles tem dados, pra evitar card vazio.
+  const showConsolidated = businesses.length >= 2;
+  const consolidated = businesses.reduce(
+    (acc, b) => {
+      const s = monthStats[b.id];
+      if (!s) return acc;
+      return {
+        bruto: acc.bruto + s.bruto,
+        liq: acc.liq + s.liq,
+        count: acc.count + s.count,
+      };
+    },
+    { bruto: 0, liq: 0, count: 0 } as BusinessMonthStats,
+  );
+  const consolidatedHasData = consolidated.count > 0;
+  const monthLabel = MESES_FULL[mes];
+
   return (
     <>
+      {showConsolidated && consolidatedHasData && (
+        <div className={styles.consolidated} aria-label="Total consolidado do mês">
+          <div className={styles.consolidatedHead}>
+            <span className={styles.consolidatedEyebrow}>
+              Consolidado · {monthLabel} {ano}
+            </span>
+            <span className={styles.consolidatedCount}>
+              {consolidated.count}{" "}
+              {consolidated.count === 1 ? "lançamento" : "lançamentos"}
+            </span>
+          </div>
+          <div className={styles.consolidatedKpis}>
+            <div className={styles.consolidatedKpi}>
+              <span className={styles.consolidatedLabel}>Bruto</span>
+              <span className={styles.consolidatedValue}>
+                {fmtBRL(consolidated.bruto)}
+              </span>
+            </div>
+            <div className={styles.consolidatedKpi}>
+              <span className={styles.consolidatedLabel}>Líquido</span>
+              <span
+                className={`${styles.consolidatedValue} ${
+                  consolidated.liq < 0 ? styles.consolidatedValueNeg : ""
+                }`}
+              >
+                {fmtBRL(consolidated.liq)}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
       <ul className={styles.list}>
         {businesses.map((b) => {
           const active = b.id === activeId;
+          const stats = monthStats[b.id];
+          const hasData = stats && stats.count > 0;
           return (
             <li key={b.id} className={styles.item} data-active={active}>
               <button
@@ -230,7 +308,29 @@ function BusinessList({
                 </span>
                 <span className={styles.itemText}>
                   <span className={styles.itemName}>{b.name}</span>
-                  <span className={styles.itemType}>{TYPE_LABEL[b.type]}</span>
+                  {hasData ? (
+                    <span className={styles.itemStats}>
+                      <span className={styles.itemStatsValue}>
+                        {fmtBRL(stats.bruto)}
+                      </span>
+                      <span className={styles.itemStatsDot}>·</span>
+                      <span
+                        className={`${styles.itemStatsLiq} ${
+                          stats.liq < 0 ? styles.itemStatsLiqNeg : ""
+                        }`}
+                      >
+                        líq {fmtBRL(stats.liq)}
+                      </span>
+                      <span className={styles.itemStatsDot}>·</span>
+                      <span className={styles.itemStatsCount}>
+                        {stats.count}
+                      </span>
+                    </span>
+                  ) : (
+                    <span className={styles.itemType}>
+                      {TYPE_LABEL[b.type]} · sem lançamentos no mês
+                    </span>
+                  )}
                 </span>
                 {active && (
                   <span className={styles.itemCheck} aria-label="ativo">

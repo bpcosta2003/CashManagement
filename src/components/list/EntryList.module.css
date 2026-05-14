@@ -2,19 +2,19 @@
   width: 100%;
   max-width: var(--container-max);
   margin: 18px auto 0;
-  padding: 0 var(--container-pad-mobile) 120px;
+  padding: 0 var(--container-pad-mobile) var(--nav-clearance);
 }
 
 @media (min-width: 721px) {
   .section {
     margin-top: 16px;
-    padding: 0 var(--container-pad-tablet) 8px;
+    padding: 0 var(--container-pad-tablet) var(--nav-clearance);
   }
 }
 
 @media (min-width: 1024px) {
   .section {
-    padding: 0 var(--container-pad-desktop) 8px;
+    padding: 0 var(--container-pad-desktop) var(--nav-clearance);
   }
 }
 
@@ -543,4 +543,45 @@
 .totalsHint {
   color: var(--text-dim);
   font-weight: 400;
+}
+
+.headActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.pdfBtn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 8px 12px;
+  border-radius: var(--radius-pill);
+  font-size: var(--t-meta);
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 36px;
+  transition: background 0.15s var(--ease), border-color 0.15s var(--ease),
+    color 0.15s var(--ease);
+}
+
+.pdfBtn:hover {
+  border-color: var(--text-muted);
+  color: var(--text);
+  background: var(--surface-2);
+}
+
+@media (max-width: 480px) {
+  .pdfBtnLabel {
+    display: none;
+  }
+  .pdfBtn {
+    width: 36px;
+    padding: 0;
+    justify-content: center;
+  }
 }

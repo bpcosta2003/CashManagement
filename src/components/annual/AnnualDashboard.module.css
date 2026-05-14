@@ -2,7 +2,7 @@
   width: 100%;
   max-width: var(--container-max);
   margin: 0 auto;
-  padding: 18px var(--container-pad-mobile) 120px;
+  padding: 18px var(--container-pad-mobile) var(--nav-clearance);
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -11,14 +11,14 @@
 
 @media (min-width: 768px) {
   .section {
-    padding: 20px var(--container-pad-tablet) 32px;
+    padding: 20px var(--container-pad-tablet) var(--nav-clearance);
     gap: 16px;
   }
 }
 
 @media (min-width: 1024px) {
   .section {
-    padding: 20px var(--container-pad-desktop) 40px;
+    padding: 20px var(--container-pad-desktop) var(--nav-clearance);
   }
 }
 

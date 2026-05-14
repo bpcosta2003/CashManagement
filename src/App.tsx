@@ -25,6 +25,8 @@ import { Sheet } from "./components/forms/Sheet";
 import { EntryForm } from "./components/forms/EntryForm";
 import { InsightsBanner } from "./components/feedback/InsightsBanner";
 import { useInsights } from "./hooks/useInsights";
+import { MonthGoalCard } from "./components/summary/MonthGoalCard";
+import { exportMonthPdf } from "./lib/pdf";
 import { BackupPanel } from "./components/backup/BackupPanel";
 import { Toaster, useToast } from "./components/feedback/Toaster";
 import { BackupReminder } from "./components/feedback/BackupReminder";
@@ -34,7 +36,7 @@ import { LoginPanel } from "./components/auth/LoginPanel";
 import { SyncStatus } from "./components/auth/SyncStatus";
 import { BusinessSwitcher } from "./components/business/BusinessSwitcher";
 import { requestPersistentStorage } from "./lib/storage";
-import { uid } from "./lib/calc";
+import { calcRow, uid } from "./lib/calc";
 import type { BusinessProfile, Row } from "./types";
 
 type SheetMode =
@@ -78,6 +80,10 @@ export default function App() {
     upsertClient,
     updateClient,
     deleteClient,
+    upsertCatalogItem,
+    updateCatalogItem,
+    deleteCatalogItem,
+    setMonthGoal,
     setSettings,
     replaceState,
   } = useStorage();
@@ -151,24 +157,44 @@ export default function App() {
   );
   const insights = useInsights({ rows: businessRows, mes, ano });
 
-  // Sugestões de serviço pro autocomplete do EntryForm — únicos do
-  // empreendimento ativo, ordenados pelo uso mais recente.
-  const servicoSuggestions = useMemo(() => {
-    if (!activeBusinessId) return [];
-    const seen = new Map<string, string>();
-    const scoped = state.rows.filter(
-      (r) => r.businessId === activeBusinessId && r.servico.trim(),
+  // Catálogo do empreendimento ativo — fonte canônica de serviços/produtos.
+  // Usado pelo ServicoCombobox no EntryForm e pelo gerenciador do catálogo.
+  const activeCatalog = useMemo(
+    () =>
+      state.catalog.filter(
+        (c) => !activeBusinessId || c.businessId === activeBusinessId,
+      ),
+    [state.catalog, activeBusinessId],
+  );
+
+  // Meta do mês atual pro empreendimento ativo. null = sem meta definida.
+  const currentGoal = useMemo(() => {
+    if (!activeBusinessId) return null;
+    const g = state.goals.find(
+      (g) =>
+        g.businessId === activeBusinessId && g.mes === mes && g.ano === ano,
     );
-    // Mais recentes primeiro
-    [...scoped]
-      .sort((a, b) => (a.criadoEm < b.criadoEm ? 1 : -1))
-      .forEach((r) => {
-        const trimmed = r.servico.trim();
-        const key = trimmed.toLowerCase();
-        if (!seen.has(key)) seen.set(key, trimmed);
-      });
-    return Array.from(seen.values()).slice(0, 30);
-  }, [state.rows, activeBusinessId]);
+    return g ? g.target : null;
+  }, [state.goals, activeBusinessId, mes, ano]);
+
+  // Stats do mês corrente por businessId — alimenta o BusinessSwitcher
+  // pra mostrar mini-KPIs e o consolidado.
+  const businessMonthStats = useMemo(() => {
+    const stats: Record<string, { bruto: number; liq: number; count: number }> = {};
+    for (const b of state.businesses) {
+      stats[b.id] = { bruto: 0, liq: 0, count: 0 };
+    }
+    for (const r of state.rows) {
+      if (r.mes !== mes || r.ano !== ano) continue;
+      if (!stats[r.businessId]) continue;
+      const c = calcRow(r);
+      if (c.v <= 0) continue;
+      stats[r.businessId].bruto += c.v;
+      stats[r.businessId].liq += c.liq;
+      stats[r.businessId].count += 1;
+    }
+    return stats;
+  }, [state.businesses, state.rows, mes, ano]);
 
   const handleSelectMonthFromAnnual = useCallback((m: number, y: number) => {
     setMes(m);
@@ -248,6 +274,11 @@ export default function App() {
     if (!sheetMode) return;
     // Upsert cliente: tanto na criação quanto na edição.
     upsertClient(row.cliente, clientPhone);
+    // Upsert catálogo: garante que o serviço fica salvo, e o último
+    // valor usado vira o defaultValue (overrideDefaultValue = true).
+    if (row.servico.trim() && typeof row.valor === "number" && row.valor > 0) {
+      upsertCatalogItem(row.servico, row.valor, true);
+    }
 
     if (sheetMode.kind === "create") {
       commitRow(row);
@@ -379,6 +410,15 @@ export default function App() {
             liqDelta={liqDelta}
             prevMonthLabel={prevMonthLabel}
           />
+          <MonthGoalCard
+            realized={summary.bruto}
+            target={currentGoal}
+            mes={mes}
+            disabled={!activeBusinessId}
+            onSave={(target) =>
+              setMonthGoal(activeBusinessId, mes, ano, target)
+            }
+          />
           <PaymentBreakdown
             breakdown={paymentBreakdown}
             sparkline={sparkline}
@@ -390,6 +430,19 @@ export default function App() {
             onAdd={handleAddSheet}
             onSelect={handleEditSheet}
             onDelete={handleDeleteInline}
+            onExportPdf={() => {
+              const business =
+                state.businesses.find((b) => b.id === activeBusinessId) ??
+                null;
+              exportMonthPdf({
+                business,
+                rows: monthRows,
+                summary,
+                mes,
+                ano,
+              });
+              pushToast("PDF gerado");
+            }}
             addBtnRef={addBtnRef}
           />
         </>
@@ -418,7 +471,7 @@ export default function App() {
             initial={editingRow}
             isNew={sheetMode?.kind === "create"}
             clients={activeClients}
-            servicoSuggestions={servicoSuggestions}
+            catalog={activeCatalog}
             allRows={state.rows.filter(
               (r) => !activeBusinessId || r.businessId === activeBusinessId,
             )}
@@ -502,6 +555,9 @@ export default function App() {
         open={switcherOpen}
         businesses={state.businesses}
         activeBusinessId={activeBusinessId}
+        monthStats={businessMonthStats}
+        mes={mes}
+        ano={ano}
         onClose={() => setSwitcherOpen(false)}
         onSelect={setActiveBusinessId}
         onCreate={(data) => addBusiness(data)}
@@ -514,10 +570,16 @@ export default function App() {
         theme={theme}
         accent={accent}
         settings={state.settings}
+        catalog={activeCatalog}
         onClose={() => setSettingsOpen(false)}
         onToggleTheme={toggleTheme}
         onSetAccent={setAccent}
         onSetSettings={setSettings}
+        onCatalogAdd={(name, defaultValue) =>
+          upsertCatalogItem(name, defaultValue, true)
+        }
+        onCatalogUpdate={updateCatalogItem}
+        onCatalogDelete={deleteCatalogItem}
       />
 
       <FirstUseModal

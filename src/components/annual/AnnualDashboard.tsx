@@ -3,6 +3,7 @@ import { fmtBRL, fmtPct } from "../../lib/calc";
 import type { AnnualSummary } from "../../hooks/useAnnual";
 import type { MonthActivity } from "../../hooks/useActivity";
 import { ActivityTimeline } from "./ActivityTimeline";
+import { YearBarChart } from "./YearBarChart";
 import { BrandMark } from "../layout/Brand";
 import { FitText } from "../feedback/FitText";
 import styles from "./AnnualDashboard.module.css";
@@ -218,6 +219,13 @@ export function AnnualDashboard({ summary, activity, onSelectMonth }: Props) {
           )}
         </div>
       )}
+
+      {/* Gráfico de barras vertical (bruto + líquido por mês) */}
+      <YearBarChart
+        monthly={monthly}
+        year={year}
+        onSelectMonth={onSelectMonth}
+      />
 
       {/* Grid 12 meses */}
       <div className={styles.shellWrap}>

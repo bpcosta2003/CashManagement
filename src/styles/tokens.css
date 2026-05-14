@@ -96,6 +96,12 @@
   --container-pad-tablet: 24px;
   --container-pad-desktop: 32px;
 
+  /* — Folga inferior pra não ficar atrás do BottomNav fixo.
+       BottomNav: ~56-60px altura + safe-area inset. Desktop: rola pra
+       72px (52px nav + 16px bottom + folga). Aplicado nas sections
+       roláveis do app. — */
+  --nav-clearance: 120px;
+
   /* — Z — */
   --z-fab: 40; --z-sheet: 50; --z-overlay: 60;
 
