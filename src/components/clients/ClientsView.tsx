@@ -107,32 +107,30 @@ export function ClientsView({ clients, onCreate, onUpdate, onDelete }: Props) {
           <span className={styles.title}>
             Clientes <span className={styles.count}>· {total}</span>
           </span>
-          {total > 4 && (
-            <div className={styles.search}>
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-                className={styles.searchIcon}
-              >
-                <circle cx="11" cy="11" r="8" />
-                <path d="M21 21l-4.35-4.35" />
-              </svg>
-              <input
-                type="search"
-                className={styles.searchInput}
-                placeholder="Buscar cliente"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-              />
-            </div>
-          )}
+          <div className={styles.search}>
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+              className={styles.searchIcon}
+            >
+              <circle cx="11" cy="11" r="8" />
+              <path d="M21 21l-4.35-4.35" />
+            </svg>
+            <input
+              type="search"
+              className={styles.searchInput}
+              placeholder="Buscar cliente"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+          </div>
           <button
             type="button"
             className={styles.headAddBtn}
