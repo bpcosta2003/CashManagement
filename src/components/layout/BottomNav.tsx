@@ -1,6 +1,11 @@
 import styles from "./BottomNav.module.css";
 
-export type MobileTab = "lancamentos" | "projecao" | "clientes" | "backup";
+export type MobileTab =
+  | "lancamentos"
+  | "projecao"
+  | "clientes"
+  | "catalogo"
+  | "backup";
 
 interface Props {
   active: MobileTab;
@@ -11,6 +16,7 @@ const TABS: { id: MobileTab; label: string; icon: string }[] = [
   { id: "lancamentos", label: "Lançamentos", icon: "📋" },
   { id: "projecao", label: "Projeção", icon: "📈" },
   { id: "clientes", label: "Clientes", icon: "👥" },
+  { id: "catalogo", label: "Catálogo", icon: "🏷️" },
   { id: "backup", label: "Backup", icon: "💾" },
 ];
 

@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import type { Client } from "../../types";
 import type { ClientStats } from "../../hooks/useClients";
 import { fmtBRL } from "../../lib/calc";
+import { formatPhoneBR } from "../../lib/phone";
 import { BrandMark } from "../layout/Brand";
 import { Sheet } from "../forms/Sheet";
 import { ClientForm } from "./ClientForm";
@@ -15,6 +16,8 @@ interface EditingState {
 
 interface Props {
   clients: ClientStats[];
+  /** Cria/atualiza cliente. Retorna o id (string) ou null. */
+  onCreate: (name: string, phone?: string) => string | null;
   onUpdate: (id: string, patch: Partial<Pick<Client, "name" | "phone">>) => void;
   onDelete: (id: string) => void;
 }
@@ -34,9 +37,22 @@ function formatRelativeDate(iso: string | null): string {
   return `há ${years} ${years === 1 ? "ano" : "anos"}`;
 }
 
-export function ClientsView({ clients, onUpdate, onDelete }: Props) {
+export function ClientsView({ clients, onCreate, onUpdate, onDelete }: Props) {
   const [query, setQuery] = useState("");
   const [editing, setEditing] = useState<EditingState | null>(null);
+  const [adding, setAdding] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newPhone, setNewPhone] = useState("");
+
+  const submitNewClient = (e?: React.FormEvent) => {
+    e?.preventDefault();
+    const trimmed = newName.trim();
+    if (!trimmed) return;
+    onCreate(trimmed, newPhone.trim() || undefined);
+    setNewName("");
+    setNewPhone("");
+    setAdding(false);
+  };
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -58,7 +74,7 @@ export function ClientsView({ clients, onUpdate, onDelete }: Props) {
     onDelete(id);
   };
 
-  if (total === 0) {
+  if (total === 0 && !adding) {
     return (
       <section className={styles.section} aria-label="Clientes">
         <div className={styles.empty}>
@@ -69,9 +85,16 @@ export function ClientsView({ clients, onUpdate, onDelete }: Props) {
             Nenhum cliente cadastrado ainda
           </span>
           <p className={styles.emptyText}>
-            Os clientes são salvos automaticamente quando você lança um
-            atendimento. Quanto mais lança, mais o autocomplete fica útil.
+            Cadastre um cliente aqui — ou lance um atendimento que o
+            cliente é salvo automaticamente.
           </p>
+          <button
+            type="button"
+            className={styles.emptyCta}
+            onClick={() => setAdding(true)}
+          >
+            + Cadastrar primeiro cliente
+          </button>
         </div>
       </section>
     );
@@ -110,7 +133,70 @@ export function ClientsView({ clients, onUpdate, onDelete }: Props) {
               />
             </div>
           )}
+          <button
+            type="button"
+            className={styles.headAddBtn}
+            onClick={() => setAdding(true)}
+            aria-label="Novo cliente"
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              aria-hidden="true"
+            >
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            <span className={styles.headAddBtnLabel}>Novo</span>
+          </button>
         </header>
+
+        {adding && (
+          <form className={styles.addRow} onSubmit={submitNewClient}>
+            <input
+              autoFocus
+              className={styles.addRowInput}
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              placeholder="Nome do cliente"
+              aria-label="Nome"
+            />
+            <input
+              className={styles.addRowInput}
+              value={newPhone}
+              onChange={(e) => setNewPhone(formatPhoneBR(e.target.value))}
+              placeholder="(11) 90000-0000"
+              type="tel"
+              inputMode="tel"
+              autoComplete="tel"
+              maxLength={16}
+              aria-label="Telefone"
+            />
+            <button
+              type="submit"
+              className={styles.addRowPrimary}
+              disabled={!newName.trim()}
+            >
+              Adicionar
+            </button>
+            <button
+              type="button"
+              className={styles.addRowSecondary}
+              onClick={() => {
+                setAdding(false);
+                setNewName("");
+                setNewPhone("");
+              }}
+            >
+              Cancelar
+            </button>
+          </form>
+        )}
 
         {filtered.length === 0 ? (
           <div className={styles.noResults}>

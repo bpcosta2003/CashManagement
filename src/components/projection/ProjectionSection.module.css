@@ -123,6 +123,8 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+  /* Altura padrão para 5 items: 5 * 44px (linha) + 4 * 6px (gap) ≈ 244px */
+  min-height: 244px;
 }
 
 .item {
@@ -133,11 +135,18 @@
   gap: 12px;
   padding: 4px 0;
   min-width: 0;
+  min-height: 38px;
+}
+
+.itemEmpty {
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .itemMain {
   display: flex;
   flex-direction: column;
+  gap: 1px;
   min-width: 0;
 }
 
@@ -155,13 +164,29 @@
   min-width: 0;
 }
 
-.servico {
-  color: var(--text-muted);
+/** Linha "serviço · parcela": serviço (encolhe com ellipsis) + parcela (sempre visível). */
+.servicoLine {
+  display: inline-flex;
+  align-items: baseline;
   font-size: var(--t-caption);
+  color: var(--text-muted);
+  min-width: 0;
+  gap: 4px;
+}
+
+.servicoName {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   min-width: 0;
+  flex-shrink: 1;
+}
+
+.parcLabel {
+  color: var(--accent);
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .itemValue {
@@ -176,6 +201,60 @@
 .itemLabel {
   font-size: var(--t-caption);
   color: var(--text-dim);
+  white-space: nowrap;
+}
+
+/* ─── Linha de "Ver mais" / expand ─── */
+.expandRow {
+  margin-top: 8px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border-soft);
+}
+
+.expandBtn,
+.expandBtnGhost {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  justify-content: space-between;
+  background: transparent;
+  border: none;
+  padding: 4px 0;
+  font: inherit;
+  font-size: var(--t-caption);
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: color 0.15s var(--ease), transform 0.15s var(--ease);
+  text-align: left;
+}
+
+.expandBtn {
+  color: var(--accent);
+}
+
+.expandBtn:hover {
+  color: var(--accent-strong);
+}
+
+.expandBtnGhost {
+  color: var(--text-dim);
+  font-weight: 500;
+}
+
+.expandBtnGhost:hover {
+  color: var(--accent);
+}
+
+.expandArrow {
+  font-size: 14px;
+  transition: transform 0.15s var(--ease);
+}
+
+.expandBtn:hover .expandArrow,
+.expandBtnGhost:hover .expandArrow {
+  transform: translateX(2px);
 }
 
 .empty {
