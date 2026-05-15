@@ -302,68 +302,10 @@
   margin-top: 4px;
 }
 
-.testRow {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 10px 12px;
-  margin-top: 4px;
-  background: var(--surface-2);
-  border: 1px dashed var(--border-soft);
-  border-radius: var(--radius-sm);
-}
-
-.testLabel {
-  font-size: var(--t-caption);
-  color: var(--text-muted);
-}
-
-.testActions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.testBtn {
-  appearance: none;
-  background: var(--surface);
-  border: 1px solid var(--border-soft);
-  border-radius: var(--radius-sm);
-  padding: 6px 12px;
-  font-family: inherit;
-  font-size: var(--t-meta);
-  font-weight: 600;
-  color: var(--text);
-  cursor: pointer;
-  transition: background 0.18s var(--ease), border-color 0.18s var(--ease);
-}
-
-.testBtn:hover:not(:disabled) {
-  background: var(--accent-soft);
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.testBtn:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
-.testMessage {
-  font-size: var(--t-caption);
-  line-height: 1.5;
-}
-
-.testMessage[data-tone="ok"] {
-  color: var(--accent);
-}
-
-.testMessage[data-tone="error"] {
-  color: #b3261e;
-}
-
-.testMessage[data-tone="sending"] {
-  color: var(--text-muted);
+a.actionBtn {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
 }
 
 @keyframes fadeIn {
