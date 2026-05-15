@@ -260,26 +260,17 @@ export function SettingsModal({ open, theme, accent, settings, onClose, onToggle
               />
             </label>
 
-            {/* Teste de envio de email */}
-            {/* <div className={styles.testRow}>
-              <span className={styles.testLabel}>
-                Enviar teste pro seu email:
-              </span>
+            <div className={styles.testRow}>
+              <span className={styles.testLabel}>Enviar teste pro seu email:</span>
               <div className={styles.testActions}>
-                <button
-                  type="button"
-                  className={styles.testBtn}
-                  onClick={() => handleTestEmail("firstDay")}
-                  disabled={testStatus === "sending"}
-                >
+                <button type="button" className={styles.testBtn} onClick={() => handleTestEmail("firstDay")} disabled={testStatus === "sending"}>
                   1º do mês
                 </button>
                 <button
                   type="button"
                   className={styles.testBtn}
                   onClick={() => handleTestEmail("lastBusinessDay")}
-                  disabled={testStatus === "sending"}
-                >
+                  disabled={testStatus === "sending"}>
                   Fim do mês
                 </button>
               </div>
@@ -288,7 +279,7 @@ export function SettingsModal({ open, theme, accent, settings, onClose, onToggle
                   {testMessage}
                 </span>
               )}
-            </div> */}
+            </div>
           </section>
 
           {/* ─── App ─── */}
