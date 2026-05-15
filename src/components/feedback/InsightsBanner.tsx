@@ -23,7 +23,11 @@ export function InsightsBanner({ insights, initialCount = 2 }: Props) {
   const hidden = insights.length - shown.length;
 
   return (
-    <section className={styles.section} aria-label="Insights do período">
+    <section
+      className={styles.section}
+      aria-label="Insights do período"
+      data-tour="insights"
+    >
       <ul className={styles.list}>
         {shown.map((i) => (
           <li

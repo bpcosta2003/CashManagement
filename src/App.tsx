@@ -126,6 +126,41 @@ export default function App() {
     setFirstUseOpen(needsOnboarding);
   }, [needsOnboarding]);
 
+  // Tour de boas-vindas — dispara depois que o FirstUseModal fecha,
+  // somente se o usuário ainda não viu (ou pediu pra refazer).
+  const [tourPending, setTourPending] = useState(false);
+  useEffect(() => {
+    if (firstUseOpen) return;
+    if (state.settings?.tourCompleted) return;
+    if (state.businesses.length === 0) return;
+    setTourPending(true);
+  }, [firstUseOpen, state.settings?.tourCompleted, state.businesses.length]);
+
+  useEffect(() => {
+    if (!tourPending) return;
+    let cancelled = false;
+    // Delay curto pra UI estabilizar antes de medir posições.
+    const t = setTimeout(() => {
+      if (cancelled) return;
+      import("./lib/tour").then(({ startTour }) => {
+        if (cancelled) return;
+        startTour(() => {
+          setSettings({ tourCompleted: true });
+          setTourPending(false);
+        });
+      });
+    }, 400);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+  }, [tourPending, setSettings]);
+
+  const startTour = useCallback(() => {
+    setSettings({ tourCompleted: false });
+    setTourPending(true);
+  }, [setSettings]);
+
   // Clientes do empreendimento ativo (passados pro autocomplete)
   const activeClients = useMemo(
     () =>
@@ -347,6 +382,7 @@ export default function App() {
               onClick={() => setSettingsOpen(true)}
               aria-label="Preferências"
               title="Preferências"
+              data-tour="settings"
             >
               <svg
                 width="16"
@@ -600,6 +636,7 @@ export default function App() {
         onToggleTheme={toggleTheme}
         onSetAccent={setAccent}
         onSetSettings={setSettings}
+        onRestartTour={startTour}
       />
 
       <FirstUseModal

@@ -257,6 +257,51 @@
   transform: translateX(18px);
 }
 
+.actionBtn {
+  appearance: none;
+  background: var(--surface-2);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-family: inherit;
+  font-size: var(--t-meta);
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.18s var(--ease), border-color 0.18s var(--ease);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.actionBtn:hover:not(:disabled) {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+.actionBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.actionBtnPrimary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-on);
+}
+
+.actionBtnPrimary:hover:not(:disabled) {
+  background: var(--accent-strong, var(--accent));
+  border-color: var(--accent-strong, var(--accent));
+}
+
+.installHint {
+  font-size: var(--t-caption);
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin-top: 4px;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;

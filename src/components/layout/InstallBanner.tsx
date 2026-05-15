@@ -1,29 +1,11 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useInstallPrompt } from "../../hooks/useInstallPrompt";
 import styles from "./InstallBanner.module.css";
-
-interface BeforeInstallPromptEvent extends Event {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
-}
 
 const DISMISS_KEY = "controle-caixa:install-dismissed";
 
-function isIos(): boolean {
-  if (typeof navigator === "undefined") return false;
-  return /iPad|iPhone|iPod/.test(navigator.userAgent) && !("MSStream" in window);
-}
-
-function isStandalone(): boolean {
-  if (typeof window === "undefined") return false;
-  return (
-    window.matchMedia("(display-mode: standalone)").matches ||
-    (navigator as Navigator & { standalone?: boolean }).standalone === true
-  );
-}
-
 export function InstallBanner() {
-  const [prompt, setPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [showIos, setShowIos] = useState(false);
+  const status = useInstallPrompt();
   const [dismissed, setDismissed] = useState(() => {
     try {
       return localStorage.getItem(DISMISS_KEY) === "1";
@@ -32,28 +14,12 @@ export function InstallBanner() {
     }
   });
 
-  useEffect(() => {
-    if (dismissed || isStandalone()) return;
-
-    const handler = (e: Event) => {
-      e.preventDefault();
-      setPrompt(e as BeforeInstallPromptEvent);
-    };
-    window.addEventListener("beforeinstallprompt", handler);
-
-    if (isIos()) setShowIos(true);
-
-    return () => window.removeEventListener("beforeinstallprompt", handler);
-  }, [dismissed]);
-
-  if (dismissed || isStandalone()) return null;
-  if (!prompt && !showIos) return null;
+  if (dismissed) return null;
+  if (status.kind === "installed" || status.kind === "unavailable") return null;
 
   const handleInstall = async () => {
-    if (!prompt) return;
-    await prompt.prompt();
-    const { outcome } = await prompt.userChoice;
-    setPrompt(null);
+    if (status.kind !== "available") return;
+    const outcome = await status.install();
     if (outcome === "accepted") {
       try {
         localStorage.setItem(DISMISS_KEY, "1");
@@ -73,16 +39,18 @@ export function InstallBanner() {
     setDismissed(true);
   };
 
+  const isAvailable = status.kind === "available";
+
   return (
     <div className={styles.banner}>
       <span className={styles.icon}>📲</span>
       <span className={styles.text}>
-        {prompt
+        {isAvailable
           ? "Instale o app para acesso rápido pelo celular"
           : "No Safari: toque em Compartilhar → Adicionar à Tela Inicial"}
       </span>
       <div className={styles.actions}>
-        {prompt && (
+        {isAvailable && (
           <button className={styles.btn} onClick={handleInstall}>
             Instalar
           </button>
@@ -91,7 +59,7 @@ export function InstallBanner() {
           className={`${styles.btn} ${styles.btnGhost}`}
           onClick={handleDismiss}
         >
-          {prompt ? "Agora não" : "OK"}
+          {isAvailable ? "Agora não" : "OK"}
         </button>
       </div>
     </div>

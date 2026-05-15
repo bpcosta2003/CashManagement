@@ -44,7 +44,11 @@ export function PeriodNav({
   const nextYear = () => onChangeAno(ano + 1);
 
   return (
-    <nav className={styles.section} aria-label="Navegação de período">
+    <nav
+      className={styles.section}
+      aria-label="Navegação de período"
+      data-tour="filter"
+    >
       <div className={styles.bar}>
         <div className={styles.toggle} role="tablist" aria-label="Tipo de período">
           <button
