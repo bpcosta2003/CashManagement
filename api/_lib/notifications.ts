@@ -14,6 +14,7 @@ import {
   sendEmail,
   renderEmailHtml,
   renderEmailText,
+  SUBJECT_PREFIX,
   type EmailBlock,
 } from "./email";
 
@@ -119,17 +120,18 @@ export async function processFirstDayUser(
 
   const params = {
     preheader: `Lembrete: defina suas metas de ${monthName}`,
-    greeting: "Bom dia",
-    intro: `Mês novo, página em branco. Antes de mais nada, vale tirar 2 minutos pra cadastrar a meta de ${monthName}.`,
+    eyebrow: `Lembrete de Metas`,
+    greeting: "Olá,",
+    intro: `Mês novo, página em branco. Antes de mais nada, vale tirar 2 minutos pra cadastrar a meta de ${monthName} — ela vai te guiar nas decisões do mês inteiro.`,
     blocks,
     cta: { label: "Cadastrar metas", href: env.appUrl },
-    footer:
-      "Você recebe este email porque ativou notificações em Preferências. Pra cancelar, abra o app e desative em Lembretes → Notificações por email.",
+    disclaimer:
+      "Você recebe este e-mail porque ativou notificações em Preferências → Lembretes → Notificações por email. Pra cancelar, é só desligar a opção no app.",
   };
 
   await sendEmail({
     to: email,
-    subject: `🎯 Lembrete: meta de ${monthName}`,
+    subject: `${SUBJECT_PREFIX}Lembrete: meta de ${monthName}`,
     html: renderEmailHtml(params),
     text: renderEmailText(params),
   });
@@ -204,17 +206,18 @@ export async function processLastDayUser(
 
   const params = {
     preheader: `Resumo de ${monthName} — pendências e insights`,
-    greeting: "Olá!",
+    eyebrow: `Resumo do Mês`,
+    greeting: "Olá,",
     intro: `Hoje é o último dia útil de ${monthName}. Antes de fechar o mês, dei uma olhada nos seus dados e separei o que pede atenção.`,
     blocks,
     cta: { label: "Abrir resumo do mês", href: env.appUrl },
-    footer:
-      "Você recebe este email porque ativou notificações em Preferências. Pra cancelar, abra o app e desative em Lembretes → Notificações por email.",
+    disclaimer:
+      "Você recebe este e-mail porque ativou notificações em Preferências → Lembretes → Notificações por email. Pra cancelar, é só desligar a opção no app.",
   };
 
   await sendEmail({
     to: email,
-    subject: `📊 Resumo de ${monthName} — pendências e insights`,
+    subject: `${SUBJECT_PREFIX}Resumo de ${monthName}`,
     html: renderEmailHtml(params),
     text: renderEmailText(params),
   });
