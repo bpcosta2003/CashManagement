@@ -28,6 +28,33 @@ interface Props {
 
 const MIN_ROWS_FOR_VALUE = 1;
 
+/**
+ * Retorna o último dia útil (seg-sex) do mês informado.
+ * Considera apenas fins de semana — feriados não são checados pra evitar
+ * dependência de tabela regional; o impacto é no máximo 1 dia.
+ */
+function lastBusinessDayOfMonth(ano: number, mes: number): Date {
+  const last = new Date(ano, mes + 1, 0);
+  while (last.getDay() === 0 || last.getDay() === 6) {
+    last.setDate(last.getDate() - 1);
+  }
+  return last;
+}
+
+type MonthTiming = "past" | "ready" | "early";
+
+function classifyMonthTiming(ano: number, mes: number, today = new Date()): MonthTiming {
+  const monthStart = new Date(ano, mes, 1);
+  const monthEnd = new Date(ano, mes + 1, 0, 23, 59, 59, 999);
+  if (today > monthEnd) return "past";
+  if (today < monthStart) return "early";
+  const cutoff = lastBusinessDayOfMonth(ano, mes);
+  cutoff.setHours(0, 0, 0, 0);
+  const todayStart = new Date(today);
+  todayStart.setHours(0, 0, 0, 0);
+  return todayStart >= cutoff ? "ready" : "early";
+}
+
 export function AiAnalysisCard(props: Props) {
   const {
     business,
@@ -71,8 +98,16 @@ export function AiAnalysisCard(props: Props) {
   ).length;
   const hasMinData = monthRowCount >= MIN_ROWS_FOR_VALUE;
 
+  const monthTiming = useMemo(() => classifyMonthTiming(ano, mes), [ano, mes]);
+
   const handleGenerate = async (force = false) => {
     if (!context || !business) return;
+    if (monthTiming === "early") {
+      const ok = window.confirm(
+        "O mês ainda não terminou. A análise vai usar só os dados lançados até hoje — pode faltar informação importante.\n\nO ideal é gerar no último dia útil do mês.\n\nDeseja continuar mesmo assim?",
+      );
+      if (!ok) return;
+    }
     await analyze({
       businessId: business.id,
       businessName: business.name,
@@ -148,7 +183,9 @@ export function AiAnalysisCard(props: Props) {
           {status === "loading" &&
             "Estou olhando seu mês, comparando com o anterior e procurando padrões. Leva alguns segundos."}
           {status === "empty" &&
-            "Vou comparar com o mês anterior, identificar padrões e sugerir ações práticas. Privacidade: só os dados deste empreendimento são enviados."}
+            (monthTiming === "early"
+              ? "Recomendo gerar no último dia útil do mês, quando todos os lançamentos já estão registrados. Você ainda pode gerar agora, mas com dados parciais."
+              : "Vou comparar com o mês anterior, identificar padrões e sugerir ações práticas. Privacidade: só os dados deste empreendimento são enviados.")}
           {status === "ready" &&
             (result?.cached
               ? `Gerada com base nos dados atuais. Reabra pra rever.`
