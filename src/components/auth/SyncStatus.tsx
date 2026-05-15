@@ -40,6 +40,7 @@ export function SyncStatus({ configured, signedIn, status, onClick }: Props) {
       onClick={onClick}
       aria-label={`Status de sincronização: ${label}`}
       title={label}
+      data-tour="sync-status"
     >
       <span className={`${styles.dot} ${styles[dotKey]}`} />
       <span className={styles.label}>{label}</span>

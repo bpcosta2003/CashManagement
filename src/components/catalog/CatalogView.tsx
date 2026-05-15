@@ -64,7 +64,7 @@ export function CatalogView({ items, onAdd, onUpdate, onDelete }: Props) {
   // ─── Empty inicial — sem nenhum item ────────────────────────
   if (total === 0 && !adding) {
     return (
-      <section className={styles.section} aria-label="Catálogo">
+      <section className={styles.section} aria-label="Catálogo" data-tour="catalog-tab">
         <div className={styles.empty}>
           <div className={styles.emptyArt} aria-hidden="true">
             <BrandMark size={64} />

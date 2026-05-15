@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { Client, Row } from "../../types";
+import type { CatalogItem, Client, Row } from "../../types";
 import type { ImportResult } from "../../lib/excel";
 import {
   clearState,
@@ -17,9 +17,18 @@ interface Props {
   open: boolean;
   rows: Row[];
   clients: Client[];
+  catalog: CatalogItem[];
   onClose: () => void;
-  onImportMerge: (rows: Row[], clients: Client[]) => void;
-  onImportReplace: (rows: Row[], clients: Client[]) => void;
+  onImportMerge: (
+    rows: Row[],
+    clients: Client[],
+    catalog: CatalogItem[],
+  ) => void;
+  onImportReplace: (
+    rows: Row[],
+    clients: Client[],
+    catalog: CatalogItem[],
+  ) => void;
   onClearAll: () => void;
   onToast?: (msg: string) => void;
 }
@@ -33,6 +42,7 @@ export function BackupPanel({
   open,
   rows,
   clients,
+  catalog,
   onClose,
   onImportMerge,
   onImportReplace,
@@ -61,7 +71,7 @@ export function BackupPanel({
   const handleExport = async () => {
     try {
       const { exportToExcel } = await loadExcel();
-      exportToExcel(rows, clients);
+      exportToExcel(rows, clients, catalog);
       setLastBackup();
       onToast?.("Backup exportado com sucesso");
     } catch (e) {
@@ -147,6 +157,14 @@ export function BackupPanel({
                 <span className={styles.statValue}>{rows.length}</span>
               </li>
               <li className={styles.statItem}>
+                <span className={styles.statLabel}>Clientes</span>
+                <span className={styles.statValue}>{clients.length}</span>
+              </li>
+              <li className={styles.statItem}>
+                <span className={styles.statLabel}>Catálogo</span>
+                <span className={styles.statValue}>{catalog.length}</span>
+              </li>
+              <li className={styles.statItem}>
                 <span className={styles.statLabel}>Tamanho</span>
                 <span className={styles.statValue}>{getStorageSize()} KB</span>
               </li>
@@ -220,12 +238,19 @@ export function BackupPanel({
                   <button
                     className={`${styles.previewBtn} ${styles.previewBtnPrimary}`}
                     onClick={() => {
-                      onImportMerge(preview.result.rows, preview.result.clients);
+                      onImportMerge(
+                        preview.result.rows,
+                        preview.result.clients,
+                        preview.result.catalog,
+                      );
                       const cliPart = preview.result.clients.length
                         ? ` + ${preview.result.clients.length} clientes`
                         : "";
+                      const catPart = preview.result.catalog.length
+                        ? ` + ${preview.result.catalog.length} itens de catálogo`
+                        : "";
                       onToast?.(
-                        `${totalImport} lançamentos${cliPart} adicionados (duplicados ignorados)`,
+                        `${totalImport} lançamentos${cliPart}${catPart} adicionados (duplicados ignorados)`,
                       );
                       onClose();
                     }}
@@ -258,12 +283,16 @@ export function BackupPanel({
                       onImportReplace(
                         preview.result.rows,
                         preview.result.clients,
+                        preview.result.catalog,
                       );
                       const cliPart = preview.result.clients.length
                         ? ` + ${preview.result.clients.length} clientes`
                         : "";
+                      const catPart = preview.result.catalog.length
+                        ? ` + ${preview.result.catalog.length} itens de catálogo`
+                        : "";
                       onToast?.(
-                        `Dados substituídos: ${totalImport} lançamentos${cliPart} importados`,
+                        `Dados substituídos: ${totalImport} lançamentos${cliPart}${catPart} importados`,
                       );
                       onClose();
                     }}

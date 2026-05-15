@@ -41,6 +41,7 @@ export function Header({
             className={styles.actionBtn}
             onClick={onToggleTaxBar}
             aria-label="Ver taxas"
+            data-tour="taxbar-toggle"
           >
             <span className={styles.actionGlyph}>%</span>
             <span className={styles.actionLabel}>Taxas</span>
@@ -49,6 +50,7 @@ export function Header({
             className={styles.actionBtn}
             onClick={onOpenBackup}
             aria-label="Backup"
+            data-tour="backup-tab"
           >
             <svg
               width="14"
