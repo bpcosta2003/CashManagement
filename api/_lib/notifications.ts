@@ -1,7 +1,6 @@
 /**
- * Helpers de envio compartilhados entre o cron diário e o endpoint de
- * teste manual (/api/admin/test-notification). Mantém o template e a
- * lógica de composição num só lugar.
+ * Helpers de envio compartilhados com o cron diário. Mantém o template
+ * e a lógica de composição num só lugar.
  */
 import { env } from "./env";
 import {
@@ -125,8 +124,7 @@ export async function processFirstDayUser(
     intro: `Mês novo, página em branco. Antes de mais nada, vale tirar 2 minutos pra cadastrar a meta de ${monthName} — ela vai te guiar nas decisões do mês inteiro.`,
     blocks,
     cta: { label: "Cadastrar metas", href: env.appUrl },
-    disclaimer:
-      "Você recebe este e-mail porque ativou notificações em Preferências → Lembretes → Notificações por email. Pra cancelar, é só desligar a opção no app.",
+    disclaimer: `Você recebe este e-mail porque ativou notificações em Preferências → Lembretes → Notificações por email. Pra cancelar, é só desligar a opção no app. Dúvidas ou feedback: ${env.supportEmail}.`,
   };
 
   await sendEmail({
@@ -211,8 +209,7 @@ export async function processLastDayUser(
     intro: `Hoje é o último dia útil de ${monthName}. Antes de fechar o mês, dei uma olhada nos seus dados e separei o que pede atenção.`,
     blocks,
     cta: { label: "Abrir resumo do mês", href: env.appUrl },
-    disclaimer:
-      "Você recebe este e-mail porque ativou notificações em Preferências → Lembretes → Notificações por email. Pra cancelar, é só desligar a opção no app.",
+    disclaimer: `Você recebe este e-mail porque ativou notificações em Preferências → Lembretes → Notificações por email. Pra cancelar, é só desligar a opção no app. Dúvidas ou feedback: ${env.supportEmail}.`,
   };
 
   await sendEmail({

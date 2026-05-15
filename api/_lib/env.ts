@@ -41,15 +41,20 @@ export const env = {
     return required("RESEND_API_KEY");
   },
   /** Remetente das notificações — deve ser um domínio verificado no Resend
-   *  (ex.: "Cash Management <noreply@seudominio.com>"). Sem domínio
-   *  verificado, use "onboarding@resend.dev" pra testes (só envia pro
-   *  email da sua conta Resend). */
+   *  (ex.: "Controle de Caixa <noreply@mycashmanagement.app>"). */
   get fromEmail() {
-    return optional("FROM_EMAIL", "Cash Management <onboarding@resend.dev>");
+    return optional(
+      "FROM_EMAIL",
+      "Controle de Caixa <noreply@mycashmanagement.app>",
+    );
   },
   /** Origem do link do app — usada nos CTAs do email. */
   get appUrl() {
-    return optional("APP_URL", "https://cashmanagement.vercel.app");
+    return optional("APP_URL", "https://mycashmanagement.app");
+  },
+  /** Endereço pra contato/feedback exibido nos emails e no app. */
+  get supportEmail() {
+    return optional("SUPPORT_EMAIL", "contact@mycashmanagement.app");
   },
   /** Secret pra autenticar invocações do cron. Vercel injeta automatica-
    *  mente via `CRON_SECRET` no Authorization header (`Bearer <secret>`).
