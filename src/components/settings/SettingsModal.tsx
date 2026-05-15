@@ -1,9 +1,11 @@
+import { useState } from "react";
 import {
   ACCENT_LABELS,
   ACCENT_PREVIEW,
   type Accent,
   type Theme,
 } from "../../hooks/useAppearance";
+import { useInstallPrompt } from "../../hooks/useInstallPrompt";
 import type { AppSettings } from "../../types";
 import styles from "./SettingsModal.module.css";
 
@@ -16,6 +18,9 @@ interface Props {
   onToggleTheme: () => void;
   onSetAccent: (a: Accent) => void;
   onSetSettings: (patch: Partial<AppSettings>) => void;
+  /** Reinicia o tour de primeiro acesso, mesmo que o usuário já tenha
+   *  completado/pulado. */
+  onRestartTour: () => void;
 }
 
 const ACCENT_ORDER: Accent[] = [
@@ -42,11 +47,26 @@ export function SettingsModal({
   onToggleTheme,
   onSetAccent,
   onSetSettings,
+  onRestartTour,
 }: Props) {
+  const install = useInstallPrompt();
+  const [installing, setInstalling] = useState(false);
+
   if (!open) return null;
 
   const dailyReminder = settings?.dailyReminder ?? false;
+  const emailNotifications = settings?.emailNotifications ?? false;
   const autoBackup = settings?.autoBackupConsent ?? null;
+
+  const handleInstall = async () => {
+    if (install.kind !== "available") return;
+    setInstalling(true);
+    try {
+      await install.install();
+    } finally {
+      setInstalling(false);
+    }
+  };
 
   return (
     <div className={styles.backdrop} onClick={onClose}>
@@ -219,6 +239,84 @@ export function SettingsModal({
                 }
               />
             </label>
+
+            <label className={styles.switchRow}>
+              <div className={styles.rowText}>
+                <span className={styles.rowTitle}>Notificações por email</span>
+                <span className={styles.rowDesc}>
+                  No último dia útil do mês envio um resumo com pendências e
+                  inconsistências. No 1º dia do mês, lembro de cadastrar a meta.
+                  Pra cancelar, é só desligar aqui.
+                </span>
+              </div>
+              <input
+                type="checkbox"
+                className={styles.switch}
+                checked={emailNotifications}
+                onChange={(e) =>
+                  onSetSettings({ emailNotifications: e.target.checked })
+                }
+              />
+            </label>
+          </section>
+
+          {/* ─── App ─── */}
+          <section className={styles.section}>
+            <span className={styles.sectionLabel}>App</span>
+
+            <div className={styles.row}>
+              <div className={styles.rowText}>
+                <span className={styles.rowTitle}>Instalar no dispositivo</span>
+                <span className={styles.rowDesc}>
+                  {install.kind === "installed" &&
+                    "Você já está usando o app instalado. Tudo certo."}
+                  {install.kind === "available" &&
+                    "Adiciona o app à tela inicial. Funciona offline e abre direto, sem barra do navegador."}
+                  {install.kind === "ios-manual" &&
+                    "No Safari, toque em Compartilhar → Adicionar à Tela Inicial."}
+                  {install.kind === "unavailable" &&
+                    "Seu navegador não oferece instalação automática. Use Chrome ou Edge no desktop, ou o navegador nativo no celular."}
+                </span>
+              </div>
+              {install.kind === "available" && (
+                <button
+                  type="button"
+                  className={`${styles.actionBtn} ${styles.actionBtnPrimary}`}
+                  onClick={handleInstall}
+                  disabled={installing}
+                >
+                  {installing ? "Instalando…" : "Instalar app"}
+                </button>
+              )}
+              {install.kind === "installed" && (
+                <button
+                  type="button"
+                  className={styles.actionBtn}
+                  disabled
+                >
+                  Instalado
+                </button>
+              )}
+            </div>
+
+            <div className={styles.row}>
+              <div className={styles.rowText}>
+                <span className={styles.rowTitle}>Refazer tour de boas-vindas</span>
+                <span className={styles.rowDesc}>
+                  Apresenta novamente as principais funcionalidades do app.
+                </span>
+              </div>
+              <button
+                type="button"
+                className={styles.actionBtn}
+                onClick={() => {
+                  onRestartTour();
+                  onClose();
+                }}
+              >
+                Refazer tour
+              </button>
+            </div>
           </section>
         </div>
       </div>

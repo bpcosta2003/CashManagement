@@ -73,6 +73,7 @@ export function SummaryCards({
       key={monthKey}
       className={styles.section}
       aria-label="Resumo do mês"
+      data-tour="summary"
     >
       <div className={styles.hero}>
         <div className={styles.heroHead}>

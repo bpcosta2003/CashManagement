@@ -26,7 +26,7 @@ export function Header({
   return (
     <header className={styles.header}>
       <div className={styles.inner}>
-        <div className={styles.brandWrap}>
+        <div className={styles.brandWrap} data-tour="business-switcher">
           <Brand
             size="sm"
             businessName={businessName}

@@ -10,6 +10,7 @@ export function FAB({ onClick }: Props) {
       className={styles.fab}
       onClick={onClick}
       aria-label="Novo lançamento"
+      data-tour="add-row"
     >
       +
     </button>

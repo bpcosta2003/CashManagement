@@ -37,4 +37,24 @@ export const env = {
   get userMonthlyLimit() {
     return optionalInt("AI_USER_MONTHLY_LIMIT", 3);
   },
+  get resendApiKey() {
+    return required("RESEND_API_KEY");
+  },
+  /** Remetente das notificações — deve ser um domínio verificado no Resend
+   *  (ex.: "Cash Management <noreply@seudominio.com>"). Sem domínio
+   *  verificado, use "onboarding@resend.dev" pra testes (só envia pro
+   *  email da sua conta Resend). */
+  get fromEmail() {
+    return optional("FROM_EMAIL", "Cash Management <onboarding@resend.dev>");
+  },
+  /** Origem do link do app — usada nos CTAs do email. */
+  get appUrl() {
+    return optional("APP_URL", "https://cashmanagement.vercel.app");
+  },
+  /** Secret pra autenticar invocações do cron. Vercel injeta automatica-
+   *  mente via `CRON_SECRET` no Authorization header (`Bearer <secret>`).
+   *  Definir manualmente em projetos self-hosted. */
+  get cronSecret() {
+    return optional("CRON_SECRET", "");
+  },
 };

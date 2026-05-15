@@ -146,7 +146,7 @@ export function AiAnalysisCard(props: Props) {
             : "empty";
 
   return (
-    <div className={styles.section}>
+    <div className={styles.section} data-tour="ai-card">
       <section className={styles.card} aria-label="Análise IA do mês">
         <div className={styles.head}>
           <div className={styles.headText}>

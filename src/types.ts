@@ -100,6 +100,11 @@ export interface AppSettings {
   autoBackupConsent: "yes" | "no" | null;
   /** Lembrete diário ativado — checa ao abrir o app. */
   dailyReminder?: boolean;
+  /** Notificações por email (insights no último dia do mês + lembrete de
+   *  metas no primeiro dia). Opt-in. */
+  emailNotifications?: boolean;
+  /** Tour de primeiro acesso já completado/pulado — não mostra de novo. */
+  tourCompleted?: boolean;
 }
 
 export interface AppState {
