@@ -91,14 +91,25 @@ export function AiAnalysisCard(props: Props) {
     });
   }, [business, rows, clients, goal, mes, ano, summary]);
 
+  const monthTiming = useMemo(() => classifyMonthTiming(ano, mes), [ano, mes]);
+
+  // ─── Tratamento de erro: alguns viram toast, outros ficam visíveis ──
+  useEffect(() => {
+    if (!error) return;
+    if (
+      error.code === "user_quota_exceeded" ||
+      error.code === "service_budget_exceeded"
+    ) {
+      onToast(error.message, 5000);
+    }
+  }, [error, onToast]);
+
   if (!enabled || !business) return null;
 
   const monthRowCount = rows.filter(
     (r) => r.businessId === business.id && r.mes === mes && r.ano === ano,
   ).length;
   const hasMinData = monthRowCount >= MIN_ROWS_FOR_VALUE;
-
-  const monthTiming = useMemo(() => classifyMonthTiming(ano, mes), [ano, mes]);
 
   const handleGenerate = async (force = false) => {
     if (!context || !business) return;
@@ -120,17 +131,6 @@ export function AiAnalysisCard(props: Props) {
     });
     setModalOpen(true);
   };
-
-  // ─── Tratamento de erro: alguns viram toast, outros ficam visíveis ──
-  useEffect(() => {
-    if (!error) return;
-    if (
-      error.code === "user_quota_exceeded" ||
-      error.code === "service_budget_exceeded"
-    ) {
-      onToast(error.message, 5000);
-    }
-  }, [error, onToast]);
 
   // ─── Estados visuais ───────────────────────────────────────────────
   const quota = result?.quota ?? error?.quota;
