@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { env } from "./env.js";
+import { env } from "./env";
 
 let client: Anthropic | null = null;
 

@@ -1,8 +1,8 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getUserFromRequest } from "../_lib/auth.js";
-import { getSupabaseAdmin } from "../_lib/supabaseAdmin.js";
-import { generateAnalysis } from "../_lib/anthropic.js";
-import { env } from "../_lib/env.js";
+import { getUserFromRequest } from "../_lib/auth";
+import { getSupabaseAdmin } from "../_lib/supabaseAdmin";
+import { generateAnalysis } from "../_lib/anthropic";
+import { env } from "../_lib/env";
 
 interface AnalyzeBody {
   businessId: string;
