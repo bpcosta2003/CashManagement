@@ -13,9 +13,7 @@ function getClient(): Resend {
 export interface EmailMessage {
   to: string;
   subject: string;
-  /** HTML completo do corpo do email. */
   html: string;
-  /** Texto plano (fallback). */
   text: string;
 }
 
@@ -35,36 +33,47 @@ export async function sendEmail(msg: EmailMessage): Promise<void> {
 
 /* ─── Template ──────────────────────────────────────────────────────
  *
- * Replica o visual do magic link do Supabase: card branco centralizado,
- * cabeçalho com nome do produto, conteúdo em sans-serif e CTA em
- * accent color. Tudo inline pra compatibilidade com clients de email.
+ * Espelha exatamente o template do magic link (docs/email-template-
+ * magic-link.html): hero escuro com logo+título+eyebrow, hairline
+ * champagne, conteúdo em sans-serif, CTA pill em wine, footer fora do
+ * card. Mantém compatibilidade com clientes legados via tabelas e
+ * inline styles.
  */
-
-interface RenderParams {
-  /** "Resumo de Maio" ou "Lembrete: meta de Junho", etc. */
-  preheader: string;
-  /** Saudação personalizada ("Olá, Bruno"). */
-  greeting: string;
-  /** Texto introdutório curto. */
-  intro: string;
-  /** Blocos de conteúdo em ordem. */
-  blocks: EmailBlock[];
-  /** Texto + URL do botão principal. */
-  cta: { label: string; href: string };
-  /** Linha final (assinatura, opt-out). */
-  footer: string;
-}
 
 export type EmailBlock =
   | { kind: "section"; title: string; body: string }
   | { kind: "list"; title: string; items: string[] }
   | { kind: "warning"; title: string; body: string };
 
-const PRIMARY = "#7a1f2b"; // bordo padrão — accent default do app
-const SOFT = "#fcf7f6";
-const BORDER = "#e8d8d4";
-const TEXT = "#241317";
-const MUTED = "#7a6a6e";
+interface RenderParams {
+  /** Texto curto exibido na barra de preview do client (oculto no corpo). */
+  preheader: string;
+  /** Eyebrow em uppercase no hero ("RESUMO DO MÊS", "LEMBRETE DE METAS"). */
+  eyebrow: string;
+  /** Saudação ("Olá," / "Bom dia,"). */
+  greeting: string;
+  /** Parágrafo introdutório (pode conter HTML inline simples — usar com cuidado). */
+  intro: string;
+  /** Blocos de conteúdo em ordem. */
+  blocks: EmailBlock[];
+  /** Texto + URL do botão principal. */
+  cta: { label: string; href: string };
+  /** Linha final em itálico/cinza, dentro do card. Tipicamente o opt-out. */
+  disclaimer: string;
+}
+
+/* Paleta — replica magic-link.html */
+const PAGE_BG = "#f5f0e8";
+const CARD_BG = "#fffdfc";
+const CARD_BORDER = "#e7ded2";
+const HERO_BG = "#2e2623";
+const HERO_TITLE = "#f5efe7";
+const HERO_EYEBROW = "#b8aca3";
+const HAIRLINE = "#b89a63";
+const TEXT = "#2e2623";
+const MUTED_2 = "#9a928c";
+const CTA_BG = "#5a2e3f";
+const ACCENT_SOFT = "#f0e6e3";
 
 function escape(s: string): string {
   return s
@@ -79,71 +88,132 @@ function renderBlock(b: EmailBlock): string {
     const items = b.items
       .map(
         (it) =>
-          `<li style="margin: 6px 0; line-height: 1.55;">${escape(it)}</li>`,
+          `<li style="margin:6px 0;line-height:1.6;font-size:14px;color:${TEXT};">${escape(it)}</li>`,
       )
       .join("");
     return `
-      <div style="margin: 24px 0;">
-        <h3 style="font-size: 15px; font-weight: 600; color: ${TEXT}; margin: 0 0 8px;">${escape(b.title)}</h3>
-        <ul style="margin: 0; padding-left: 20px; color: ${TEXT}; font-size: 14px;">${items}</ul>
-      </div>`;
+      <tr>
+        <td style="padding:0 32px 18px;">
+          <p style="margin:0 0 8px;font-size:14px;font-weight:600;color:${TEXT};line-height:1.5;">${escape(b.title)}</p>
+          <ul style="margin:0;padding-left:20px;color:${TEXT};">${items}</ul>
+        </td>
+      </tr>`;
   }
   if (b.kind === "warning") {
     return `
-      <div style="margin: 24px 0; padding: 14px 16px; background: ${SOFT}; border: 1px solid ${BORDER}; border-radius: 10px; border-left: 3px solid ${PRIMARY};">
-        <strong style="display: block; color: ${TEXT}; font-size: 14px; margin-bottom: 4px;">${escape(b.title)}</strong>
-        <span style="color: ${TEXT}; font-size: 14px; line-height: 1.55;">${escape(b.body)}</span>
-      </div>`;
-  }
-  return `
-    <div style="margin: 24px 0;">
-      <h3 style="font-size: 15px; font-weight: 600; color: ${TEXT}; margin: 0 0 8px;">${escape(b.title)}</h3>
-      <p style="margin: 0; color: ${TEXT}; font-size: 14px; line-height: 1.6;">${escape(b.body)}</p>
-    </div>`;
-}
-
-export function renderEmailHtml(p: RenderParams): string {
-  const blocks = p.blocks.map(renderBlock).join("");
-  return `<!DOCTYPE html>
-<html lang="pt-BR">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>${escape(p.preheader)}</title>
-  </head>
-  <body style="margin: 0; padding: 0; background: ${SOFT}; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: ${TEXT};">
-    <span style="display: none; visibility: hidden; opacity: 0; height: 0; width: 0; overflow: hidden;">${escape(p.preheader)}</span>
-    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background: ${SOFT};">
       <tr>
-        <td align="center" style="padding: 32px 16px;">
-          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width: 520px; background: #ffffff; border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,0.04); overflow: hidden;">
+        <td style="padding:0 32px 18px;">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:${ACCENT_SOFT};border-radius:12px;border-left:3px solid ${CTA_BG};">
             <tr>
-              <td style="padding: 28px 32px 12px; border-bottom: 1px solid ${BORDER};">
-                <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 20px; font-weight: 600; color: ${PRIMARY}; letter-spacing: -0.01em;">Cash Management</div>
-              </td>
-            </tr>
-            <tr>
-              <td style="padding: 28px 32px 8px;">
-                <h1 style="font-size: 20px; font-weight: 600; color: ${TEXT}; margin: 0 0 12px; letter-spacing: -0.01em;">${escape(p.greeting)}</h1>
-                <p style="font-size: 15px; color: ${TEXT}; margin: 0; line-height: 1.6;">${escape(p.intro)}</p>
-              </td>
-            </tr>
-            <tr>
-              <td style="padding: 0 32px;">
-                ${blocks}
-              </td>
-            </tr>
-            <tr>
-              <td align="center" style="padding: 16px 32px 32px;">
-                <a href="${escape(p.cta.href)}" style="display: inline-block; background: ${PRIMARY}; color: #ffffff; text-decoration: none; padding: 12px 22px; border-radius: 999px; font-weight: 600; font-size: 14px;">${escape(p.cta.label)}</a>
-              </td>
-            </tr>
-            <tr>
-              <td style="padding: 20px 32px 28px; border-top: 1px solid ${BORDER}; background: ${SOFT};">
-                <p style="font-size: 12px; color: ${MUTED}; margin: 0; line-height: 1.55;">${escape(p.footer)}</p>
+              <td style="padding:14px 16px;">
+                <p style="margin:0 0 6px;font-size:14px;font-weight:600;color:${TEXT};line-height:1.5;">${escape(b.title)}</p>
+                <p style="margin:0;font-size:14px;color:${TEXT};line-height:1.6;">${escape(b.body).replace(/\n/g, "<br>")}</p>
               </td>
             </tr>
           </table>
+        </td>
+      </tr>`;
+  }
+  return `
+    <tr>
+      <td style="padding:0 32px 18px;">
+        <p style="margin:0 0 6px;font-size:14px;font-weight:600;color:${TEXT};line-height:1.5;">${escape(b.title)}</p>
+        ${b.body ? `<p style="margin:0;font-size:14px;color:${TEXT};line-height:1.6;">${escape(b.body)}</p>` : ""}
+      </td>
+    </tr>`;
+}
+
+export function renderEmailHtml(p: RenderParams): string {
+  const logoUrl = `${env.appUrl.replace(/\/$/, "")}/brand-dark.png`;
+  const blocks = p.blocks.map(renderBlock).join("");
+  return `<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="supported-color-schemes" content="light dark" />
+    <title>${escape(p.preheader)}</title>
+  </head>
+  <body style="margin:0;padding:0;background:${PAGE_BG};font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;color:${TEXT};-webkit-font-smoothing:antialiased;">
+    <span style="display:none;visibility:hidden;opacity:0;height:0;width:0;overflow:hidden;">${escape(p.preheader)}</span>
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:${PAGE_BG};padding:32px 16px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:480px;width:100%;background:${CARD_BG};border:1px solid ${CARD_BORDER};border-radius:18px;overflow:hidden;box-shadow:0 6px 24px rgba(70,45,50,0.08);">
+            <!-- Hero escuro com logo -->
+            <tr>
+              <td style="background:${HERO_BG};padding:32px 32px 28px;text-align:center;">
+                <img src="${logoUrl}" width="72" height="72" alt="Controle de Caixa" style="display:inline-block;width:72px;height:72px;border-radius:16px;" />
+                <h1 style="margin:18px 0 6px;font-family:Inter,-apple-system,BlinkMacSystemFont,sans-serif;font-size:22px;font-weight:700;letter-spacing:-0.02em;color:${HERO_TITLE};">
+                  Controle de Caixa
+                </h1>
+                <p style="margin:0;font-size:11px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:${HERO_EYEBROW};">
+                  ${escape(p.eyebrow)}
+                </p>
+              </td>
+            </tr>
+
+            <!-- Hairline champagne -->
+            <tr>
+              <td style="height:1px;background:${HAIRLINE};line-height:0;font-size:0;">&nbsp;</td>
+            </tr>
+
+            <!-- Saudação + intro -->
+            <tr>
+              <td style="padding:32px 32px 8px;">
+                <p style="margin:0 0 16px;font-size:16px;line-height:1.55;color:${TEXT};">
+                  ${escape(p.greeting)}
+                </p>
+                <p style="margin:0 0 24px;font-size:15px;line-height:1.6;color:${TEXT};">
+                  ${escape(p.intro)}
+                </p>
+              </td>
+            </tr>
+
+            <!-- Blocos -->
+            ${blocks}
+
+            <!-- CTA -->
+            <tr>
+              <td style="padding:8px 32px 24px;text-align:center;">
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center">
+                  <tr>
+                    <td style="background:${CTA_BG};border-radius:999px;box-shadow:0 4px 14px rgba(90,46,63,0.22);">
+                      <a href="${escape(p.cta.href)}" style="display:inline-block;padding:14px 32px;font-family:Inter,-apple-system,sans-serif;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:999px;">
+                        ${escape(p.cta.label)}
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Separador -->
+            <tr>
+              <td style="padding:0 32px;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                  <tr>
+                    <td style="height:1px;background:${CARD_BORDER};line-height:0;font-size:0;">&nbsp;</td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Disclaimer -->
+            <tr>
+              <td style="padding:18px 32px 24px;">
+                <p style="margin:0;font-size:12px;line-height:1.55;color:${MUTED_2};text-align:center;">
+                  ${escape(p.disclaimer)}
+                </p>
+              </td>
+            </tr>
+          </table>
+
+          <!-- Footer -->
+          <p style="margin:18px 0 0;font-size:11px;color:${MUTED_2};font-family:Inter,-apple-system,sans-serif;text-align:center;">
+            Controle de Caixa · controle financeiro do seu negócio
+          </p>
         </td>
       </tr>
     </table>
@@ -153,22 +223,28 @@ export function renderEmailHtml(p: RenderParams): string {
 
 export function renderEmailText(p: RenderParams): string {
   const lines: string[] = [];
+  lines.push("CONTROLE DE CAIXA");
+  lines.push(p.eyebrow);
+  lines.push("");
   lines.push(p.greeting);
   lines.push("");
   lines.push(p.intro);
   lines.push("");
   for (const b of p.blocks) {
+    lines.push(b.title);
     if (b.kind === "list") {
-      lines.push(b.title);
       for (const it of b.items) lines.push(`  - ${it}`);
-    } else {
-      lines.push(b.title);
-      lines.push(b.body);
+    } else if (b.kind === "warning" || b.kind === "section") {
+      if (b.body) lines.push(b.body);
     }
     lines.push("");
   }
   lines.push(`${p.cta.label}: ${p.cta.href}`);
   lines.push("");
-  lines.push(p.footer);
+  lines.push("─────────────────");
+  lines.push(p.disclaimer);
   return lines.join("\n");
 }
+
+/** Suffix consistente do subject pra refletir o padrão do magic link. */
+export const SUBJECT_PREFIX = "Controle de Caixa • ";
