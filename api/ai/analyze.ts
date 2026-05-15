@@ -170,9 +170,10 @@ export default async function handler(
     });
   } catch (err) {
     console.error("[ai/analyze] anthropic error", err);
-    return res.status(502).json({
-      error: "ai_provider_error",
-      message: "Não foi possível gerar a análise agora. Tente novamente em instantes.",
+    const mapped = mapAnthropicError(err);
+    return res.status(mapped.status).json({
+      error: mapped.code,
+      message: mapped.message,
     });
   }
 
@@ -246,4 +247,57 @@ async function getQuota(
   const distinct = new Set((data ?? []).map((r) => `${r.ano}-${r.mes}`));
   const used = distinct.size;
   return { used, limit, remaining: Math.max(0, limit - used) };
+}
+
+/**
+ * Traduz erros do SDK da Anthropic em respostas HTTP úteis. Foca em
+ * casos operacionais comuns (sem crédito, chave inválida, rate limit)
+ * pra que a UI possa exibir mensagem clara em vez de "tente de novo".
+ */
+function mapAnthropicError(err: unknown): {
+  status: number;
+  code: string;
+  message: string;
+} {
+  const e = err as { status?: number; message?: string } | null;
+  const status = typeof e?.status === "number" ? e.status : 0;
+  const msg = typeof e?.message === "string" ? e.message.toLowerCase() : "";
+
+  if (status === 400 && msg.includes("credit balance")) {
+    return {
+      status: 503,
+      code: "ai_provider_no_credit",
+      message:
+        "A análise por IA está temporariamente indisponível (sem crédito no provedor). Avise o administrador.",
+    };
+  }
+  if (status === 401) {
+    return {
+      status: 503,
+      code: "ai_provider_unauthorized",
+      message:
+        "A análise por IA está temporariamente indisponível (chave do provedor inválida).",
+    };
+  }
+  if (status === 429) {
+    return {
+      status: 429,
+      code: "ai_provider_rate_limited",
+      message:
+        "O provedor de IA está com muitas requisições. Tente de novo em alguns minutos.",
+    };
+  }
+  if (status === 529 || status === 503) {
+    return {
+      status: 503,
+      code: "ai_provider_overloaded",
+      message:
+        "O provedor de IA está sobrecarregado. Tente novamente em instantes.",
+    };
+  }
+  return {
+    status: 502,
+    code: "ai_provider_error",
+    message: "Não foi possível gerar a análise agora. Tente novamente em instantes.",
+  };
 }
