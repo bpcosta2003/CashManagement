@@ -85,6 +85,8 @@ export default function App() {
     upsertCatalogItem,
     updateCatalogItem,
     deleteCatalogItem,
+    mergeCatalog,
+    replaceAllCatalog,
     setMonthGoal,
     setSettings,
     replaceState,
@@ -144,17 +146,26 @@ export default function App() {
       if (cancelled) return;
       import("./lib/tour").then(({ startTour }) => {
         if (cancelled) return;
-        startTour(() => {
-          setSettings({ tourCompleted: true });
-          setTourPending(false);
-        });
+        startTour(
+          state,
+          replaceState,
+          {
+            setTab,
+            setTaxBarOpen: (open: boolean) => setTaxBarOpen(open),
+          },
+          () => {
+            setSettings({ tourCompleted: true });
+            setTourPending(false);
+          },
+        );
       });
     }, 400);
     return () => {
       cancelled = true;
       clearTimeout(t);
     };
-  }, [tourPending, setSettings]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tourPending]);
 
   const startTour = useCallback(() => {
     setSettings({ tourCompleted: false });
@@ -554,8 +565,11 @@ export default function App() {
         clients={state.clients.filter(
           (c) => !activeBusinessId || c.businessId === activeBusinessId,
         )}
+        catalog={state.catalog.filter(
+          (c) => !activeBusinessId || c.businessId === activeBusinessId,
+        )}
         onClose={() => setBackupOpen(false)}
-        onImportMerge={(rows, clients) => {
+        onImportMerge={(rows, clients, catalog) => {
           mergeRows(
             rows.map((r) => ({
               ...r,
@@ -570,8 +584,16 @@ export default function App() {
               })),
             );
           }
+          if (catalog.length > 0) {
+            mergeCatalog(
+              catalog.map((c) => ({
+                ...c,
+                businessId: c.businessId || activeBusinessId,
+              })),
+            );
+          }
         }}
-        onImportReplace={(rows, clients) => {
+        onImportReplace={(rows, clients, catalog) => {
           // Substitui apenas os do empreendimento ativo, preserva os outros
           const otherRows = state.rows.filter(
             (r) => r.businessId !== activeBusinessId,
@@ -589,6 +611,14 @@ export default function App() {
             businessId: activeBusinessId,
           }));
           replaceAllClients([...otherClients, ...scopedClients]);
+          const otherCatalog = state.catalog.filter(
+            (c) => c.businessId !== activeBusinessId,
+          );
+          const scopedCatalog = catalog.map((c) => ({
+            ...c,
+            businessId: activeBusinessId,
+          }));
+          replaceAllCatalog([...otherCatalog, ...scopedCatalog]);
         }}
         onClearAll={() => {
           const others = state.rows.filter(
@@ -599,6 +629,10 @@ export default function App() {
             (c) => c.businessId !== activeBusinessId,
           );
           replaceAllClients(otherClients);
+          const otherCatalog = state.catalog.filter(
+            (c) => c.businessId !== activeBusinessId,
+          );
+          replaceAllCatalog(otherCatalog);
         }}
         onToast={pushToast}
       />
@@ -632,6 +666,7 @@ export default function App() {
         theme={theme}
         accent={accent}
         settings={state.settings}
+        signedIn={!!auth.user}
         onClose={() => setSettingsOpen(false)}
         onToggleTheme={toggleTheme}
         onSetAccent={setAccent}

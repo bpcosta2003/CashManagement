@@ -1,6 +1,7 @@
 import * as XLSX from "xlsx";
 import type {
   CalculatedRow,
+  CatalogItem,
   Client,
   FormaPagamento,
   Row,
@@ -13,6 +14,7 @@ export interface ImportResult {
   success: boolean;
   rows: Row[];
   clients: Client[];
+  catalog: CatalogItem[];
   errors: string[];
   total: number;
   skipped: number;
@@ -36,7 +38,11 @@ const MESES_MAP: Record<string, number> = {
 
 const FORMAS_VALIDAS: FormaPagamento[] = ["Dinheiro", "Pix", "Débito", "Crédito"];
 
-export function exportToExcel(rows: Row[], clients: Client[] = []): void {
+export function exportToExcel(
+  rows: Row[],
+  clients: Client[] = [],
+  catalog: CatalogItem[] = [],
+): void {
   const wb = XLSX.utils.book_new();
 
   // ── Aba 1: Lançamentos ────────────────────────────────────────────────
@@ -256,6 +262,39 @@ export function exportToExcel(rows: Row[], clients: Client[] = []): void {
     XLSX.utils.book_append_sheet(wb, ws4, "Clientes");
   }
 
+  // ── Aba 5: Catálogo ───────────────────────────────────────────────────
+  if (catalog.length > 0) {
+    const catHeaders = [
+      "Nome",
+      "Valor Sugerido",
+      "Último Uso",
+      "Criado Em",
+      "ID",
+      "Business ID",
+    ];
+    const catData = catalog.map((c) => [
+      c.name,
+      typeof c.defaultValue === "number" ? c.defaultValue : "",
+      c.lastUsedAt,
+      c.createdAt,
+      c.id,
+      c.businessId,
+    ]);
+    const ws5 = XLSX.utils.aoa_to_sheet([catHeaders, ...catData]);
+    ws5["!cols"] = [
+      { wch: 28 },
+      { wch: 16 },
+      { wch: 22 },
+      { wch: 22 },
+      { wch: 14 },
+      { wch: 14 },
+    ];
+    applyNumberFormats(ws5, catData.length, [
+      { col: 1, fmt: '"R$" #,##0.00' },
+    ]);
+    XLSX.utils.book_append_sheet(wb, ws5, "Catálogo");
+  }
+
   // ── Download ──────────────────────────────────────────────────────────
   const dateStr = new Date().toLocaleDateString("pt-BR").replace(/\//g, "-");
   XLSX.writeFile(wb, `controle-caixa-backup-${dateStr}.xlsx`);
@@ -296,6 +335,7 @@ export function importFromExcel(file: File): Promise<ImportResult> {
             success: false,
             rows: [],
             clients: [],
+            catalog: [],
             errors: ["Aba 'Lançamentos' não encontrada no arquivo."],
             total: 0,
             skipped: 0,
@@ -400,10 +440,52 @@ export function importFromExcel(file: File): Promise<ImportResult> {
           });
         }
 
+        // Aba opcional: Catálogo
+        const catalog: CatalogItem[] = [];
+        const catSheetName = wb.SheetNames.find(
+          (n) =>
+            n.toLowerCase().includes("catálogo") ||
+            n.toLowerCase().includes("catalogo"),
+        );
+        if (catSheetName) {
+          const wsCat = wb.Sheets[catSheetName];
+          const rawCat = XLSX.utils.sheet_to_json<Record<string, unknown>>(
+            wsCat,
+            { defval: "" },
+          );
+          rawCat.forEach((c) => {
+            const name = String(c["Nome"] ?? "").trim();
+            if (!name) return;
+            const defaultValueRaw = parseFloat(
+              String(c["Valor Sugerido"] ?? "").replace(",", "."),
+            );
+            const defaultValue =
+              Number.isFinite(defaultValueRaw) && defaultValueRaw > 0
+                ? defaultValueRaw
+                : undefined;
+            const lastUsedAt =
+              String(c["Último Uso"] ?? c["Ultimo Uso"] ?? "") ||
+              new Date().toISOString();
+            const createdAt =
+              String(c["Criado Em"] ?? "") || new Date().toISOString();
+            const id = String(c["ID"] ?? uid());
+            const businessId = String(c["Business ID"] ?? "");
+            catalog.push({
+              id,
+              businessId,
+              name,
+              defaultValue,
+              lastUsedAt,
+              createdAt,
+            });
+          });
+        }
+
         resolve({
           success: true,
           rows,
           clients,
+          catalog,
           errors,
           total: raw.length,
           skipped,
@@ -413,6 +495,7 @@ export function importFromExcel(file: File): Promise<ImportResult> {
           success: false,
           rows: [],
           clients: [],
+          catalog: [],
           errors: [String(err)],
           total: 0,
           skipped: 0,
@@ -424,6 +507,7 @@ export function importFromExcel(file: File): Promise<ImportResult> {
         success: false,
         rows: [],
         clients: [],
+        catalog: [],
         errors: ["Erro ao ler o arquivo."],
         total: 0,
         skipped: 0,

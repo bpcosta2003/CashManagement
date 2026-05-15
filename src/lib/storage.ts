@@ -2,6 +2,7 @@ import type { AppSettings, AppState, CatalogItem } from "../types";
 import { uid } from "./calc";
 
 const STORAGE_KEY = "controle-caixa:v1";
+const PRE_TOUR_SNAPSHOT_KEY = "controle-caixa:v1-pre-tour";
 const LAST_BACKUP_KEY = "controle-caixa:last-backup";
 const FIRST_USE_KEY = "controle-caixa:first-use-acked";
 const CURRENT_VERSION = 4;
@@ -12,6 +13,21 @@ function defaultSettings(): AppSettings {
 
 export function loadState(): AppState | null {
   try {
+    // Se um tour foi interrompido (browser fechado, crash, etc.), o
+    // snapshot do state real estará neste key. Restaura ele e descarta
+    // o state "demo" que ficou em STORAGE_KEY.
+    const snapshot = localStorage.getItem(PRE_TOUR_SNAPSHOT_KEY);
+    if (snapshot) {
+      try {
+        const parsedSnap = JSON.parse(snapshot) as AppState;
+        localStorage.removeItem(PRE_TOUR_SNAPSHOT_KEY);
+        localStorage.setItem(STORAGE_KEY, snapshot);
+        return migrate(parsedSnap);
+      } catch {
+        localStorage.removeItem(PRE_TOUR_SNAPSHOT_KEY);
+      }
+    }
+
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as AppState;

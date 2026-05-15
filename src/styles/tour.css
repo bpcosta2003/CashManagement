@@ -1,0 +1,214 @@
+/* ─── Driver.js popover personalizado pra combinar com a paleta do app ───
+ *
+ * Aplicado via `popoverClass: "cc-tour-popover"` em tour.ts.
+ * Selectors mais específicos pra sobrescrever os estilos default do
+ * driver.js sem precisar de !important em todo lugar.
+ */
+
+.driver-popover.cc-tour-popover {
+  background: var(--surface, #fffdfc);
+  color: var(--text, #2e2623);
+  border: 1px solid var(--border-soft, #e7ded2);
+  border-radius: 18px;
+  box-shadow:
+    0 20px 60px rgba(46, 38, 35, 0.18),
+    0 4px 12px rgba(46, 38, 35, 0.08);
+  padding: 22px 22px 18px;
+  max-width: 380px;
+  font-family: inherit;
+  animation: ccTourPopIn 0.28s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+
+@keyframes ccTourPopIn {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.driver-popover.cc-tour-popover .driver-popover-title {
+  font-family: var(--font-display, Inter, -apple-system, sans-serif);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text, #2e2623);
+  margin: 0 0 8px;
+  padding: 0;
+  line-height: 1.3;
+}
+
+.driver-popover.cc-tour-popover .driver-popover-description {
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--text, #2e2623);
+  margin: 0 0 16px;
+}
+
+.driver-popover.cc-tour-popover .driver-popover-description strong {
+  color: var(--accent, #5a2e3f);
+  font-weight: 600;
+}
+
+/* Header com close + título */
+.driver-popover.cc-tour-popover .driver-popover-close-btn {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--text-muted, #9a928c);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.18s ease, color 0.18s ease;
+  padding: 0;
+}
+
+.driver-popover.cc-tour-popover .driver-popover-close-btn:hover {
+  background: var(--surface-2, #f5f0e8);
+  color: var(--text, #2e2623);
+}
+
+/* Progress bar custom */
+.driver-popover.cc-tour-popover .driver-popover-progress-text {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted, #9a928c);
+  margin-bottom: 12px;
+  display: block;
+}
+
+/* Footer com botões */
+.driver-popover.cc-tour-popover .driver-popover-footer {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.driver-popover.cc-tour-popover .driver-popover-navigation-btns {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.driver-popover.cc-tour-popover .driver-popover-prev-btn,
+.driver-popover.cc-tour-popover .driver-popover-next-btn {
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  padding: 9px 16px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.1s ease;
+  text-shadow: none;
+  box-shadow: none;
+}
+
+.driver-popover.cc-tour-popover .driver-popover-prev-btn {
+  background: transparent;
+  color: var(--text-muted, #9a928c);
+  border-color: transparent;
+}
+
+.driver-popover.cc-tour-popover .driver-popover-prev-btn:hover {
+  background: var(--surface-2, #f5f0e8);
+  color: var(--text, #2e2623);
+}
+
+.driver-popover.cc-tour-popover .driver-popover-next-btn {
+  background: var(--accent, #5a2e3f);
+  color: var(--accent-on, #ffffff);
+  border-color: var(--accent, #5a2e3f);
+  box-shadow: 0 3px 12px rgba(90, 46, 63, 0.25);
+}
+
+.driver-popover.cc-tour-popover .driver-popover-next-btn:hover {
+  background: var(--accent-strong, var(--accent, #5a2e3f));
+  border-color: var(--accent-strong, var(--accent, #5a2e3f));
+  transform: translateY(-1px);
+}
+
+.driver-popover.cc-tour-popover .driver-popover-next-btn:active {
+  transform: translateY(0);
+}
+
+/* Arrow / pointer */
+.driver-popover.cc-tour-popover .driver-popover-arrow-side-top {
+  border-top-color: var(--surface, #fffdfc);
+}
+.driver-popover.cc-tour-popover .driver-popover-arrow-side-bottom {
+  border-bottom-color: var(--surface, #fffdfc);
+}
+.driver-popover.cc-tour-popover .driver-popover-arrow-side-left {
+  border-left-color: var(--surface, #fffdfc);
+}
+.driver-popover.cc-tour-popover .driver-popover-arrow-side-right {
+  border-right-color: var(--surface, #fffdfc);
+}
+
+/* Overlay (escurece o resto da tela) */
+.driver-overlay {
+  fill: rgba(20, 12, 14, 0.62);
+}
+
+/* Stage highlight (caixa em volta do elemento) */
+.driver-active-element {
+  z-index: 10001 !important;
+}
+
+/* ── Dark mode ─────────────────────────────────────────────────────── */
+:root[data-theme="dark"] .driver-popover.cc-tour-popover {
+  background: var(--surface, #1c1715);
+  border-color: var(--border-soft, #3a302b);
+  box-shadow:
+    0 24px 64px rgba(0, 0, 0, 0.55),
+    0 6px 16px rgba(0, 0, 0, 0.35);
+}
+
+:root[data-theme="dark"]
+  .driver-popover.cc-tour-popover
+  .driver-popover-title,
+:root[data-theme="dark"]
+  .driver-popover.cc-tour-popover
+  .driver-popover-description {
+  color: var(--text, #f0e6dc);
+}
+
+:root[data-theme="dark"] .driver-overlay {
+  fill: rgba(0, 0, 0, 0.78);
+}
+
+/* ── Mobile: popover ocupa quase a largura toda ────────────────────── */
+@media (max-width: 480px) {
+  .driver-popover.cc-tour-popover {
+    max-width: calc(100vw - 28px);
+    padding: 20px 18px 16px;
+  }
+
+  .driver-popover.cc-tour-popover .driver-popover-title {
+    font-size: 16px;
+  }
+
+  .driver-popover.cc-tour-popover .driver-popover-description {
+    font-size: 14px;
+  }
+}

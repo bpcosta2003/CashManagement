@@ -222,6 +222,36 @@
   background: var(--surface-2);
 }
 
+.switchRow[data-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.78;
+}
+
+.switchRow[data-disabled="true"]:hover {
+  background: transparent;
+}
+
+.rowWarn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: var(--t-caption);
+  color: var(--accent);
+  background: var(--accent-soft);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  line-height: 1.45;
+  font-weight: 500;
+}
+
+.rowWarn::before {
+  content: "ⓘ";
+  font-weight: 700;
+  font-size: 12px;
+}
+
 .switch {
   appearance: none;
   -webkit-appearance: none;

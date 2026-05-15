@@ -69,7 +69,11 @@ export function EntryList({
     : 0;
 
   return (
-    <section className={styles.section} aria-label="Lançamentos do mês">
+    <section
+      className={styles.section}
+      aria-label="Lançamentos do mês"
+      data-tour="entries"
+    >
       <div className={styles.shell}>
         <header className={styles.head}>
           <span className={styles.title}>
@@ -111,6 +115,7 @@ export function EntryList({
               className={styles.addBtn}
               onClick={onAdd}
               aria-label="Novo lançamento"
+              data-tour="add-row"
             >
               <svg
                 width="14"

@@ -76,7 +76,7 @@ export function ClientsView({ clients, onCreate, onUpdate, onDelete }: Props) {
 
   if (total === 0 && !adding) {
     return (
-      <section className={styles.section} aria-label="Clientes">
+      <section className={styles.section} aria-label="Clientes" data-tour="clients-tab">
         <div className={styles.empty}>
           <div className={styles.emptyArt} aria-hidden="true">
             <BrandMark size={64} />
@@ -101,7 +101,7 @@ export function ClientsView({ clients, onCreate, onUpdate, onDelete }: Props) {
   }
 
   return (
-    <section className={styles.section} aria-label="Clientes">
+    <section className={styles.section} aria-label="Clientes" data-tour="clients-tab">
       <div className={styles.shell}>
         <header className={styles.head}>
           <span className={styles.title}>

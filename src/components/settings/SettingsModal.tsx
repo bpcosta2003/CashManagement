@@ -16,6 +16,9 @@ interface Props {
   theme: Theme;
   accent: Accent;
   settings: AppSettings | undefined;
+  /** Usuário logado no Supabase. Necessário pro envio de notificações
+   *  por email funcionar (cron lê o estado do servidor). */
+  signedIn: boolean;
   onClose: () => void;
   onToggleTheme: () => void;
   onSetAccent: (a: Accent) => void;
@@ -45,6 +48,7 @@ export function SettingsModal({
   theme,
   accent,
   settings,
+  signedIn,
   onClose,
   onToggleTheme,
   onSetAccent,
@@ -242,7 +246,10 @@ export function SettingsModal({
               />
             </label>
 
-            <label className={styles.switchRow}>
+            <label
+              className={styles.switchRow}
+              data-disabled={!signedIn}
+            >
               <div className={styles.rowText}>
                 <span className={styles.rowTitle}>Notificações por email</span>
                 <span className={styles.rowDesc}>
@@ -250,11 +257,18 @@ export function SettingsModal({
                   inconsistências. No 1º dia do mês, lembro de cadastrar a meta.
                   Pra cancelar, é só desligar aqui.
                 </span>
+                {!signedIn && (
+                  <span className={styles.rowWarn}>
+                    Para habilitar, faça login para sincronizar — o envio é
+                    feito a partir dos dados na nuvem.
+                  </span>
+                )}
               </div>
               <input
                 type="checkbox"
                 className={styles.switch}
-                checked={emailNotifications}
+                checked={signedIn && emailNotifications}
+                disabled={!signedIn}
                 onChange={(e) =>
                   onSetSettings({ emailNotifications: e.target.checked })
                 }

@@ -14,7 +14,7 @@ const PREVIEW_LIMIT = 5;
 export function ProjectionSection({ projecao }: Props) {
   const [expanded, setExpanded] = useState<ProjecaoMes | null>(null);
   return (
-    <section className={styles.section}>
+    <section className={styles.section} data-tour="projection">
       <h2 className={styles.title}>
         A receber
         <span className={styles.titleHint}>

@@ -409,6 +409,28 @@ export function useStorage() {
     [mutate],
   );
 
+  /** Substitui o catálogo inteiro (usado por backup/restore e tour). */
+  const replaceAllCatalog = useCallback(
+    (catalog: CatalogItem[]) => {
+      mutate((prev) => ({ ...prev, catalog }));
+    },
+    [mutate],
+  );
+
+  /** Mescla itens de catálogo evitando duplicados por (businessId, nome). */
+  const mergeCatalog = useCallback(
+    (incoming: CatalogItem[]) => {
+      mutate((prev) => {
+        const key = (c: CatalogItem) =>
+          `${c.businessId}|${c.name.trim().toLowerCase()}`;
+        const existingKeys = new Set(prev.catalog.map(key));
+        const fresh = incoming.filter((c) => !existingKeys.has(key(c)));
+        return { ...prev, catalog: [...prev.catalog, ...fresh] };
+      });
+    },
+    [mutate],
+  );
+
   /* ── Metas mensais ────────────────────────────────────────────── */
 
   /**
@@ -497,6 +519,8 @@ export function useStorage() {
     upsertCatalogItem,
     updateCatalogItem,
     deleteCatalogItem,
+    mergeCatalog,
+    replaceAllCatalog,
     setMonthGoal,
     setSettings,
     replaceState,
