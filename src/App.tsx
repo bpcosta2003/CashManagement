@@ -27,6 +27,7 @@ import { InsightsBanner } from "./components/feedback/InsightsBanner";
 import { useInsights } from "./hooks/useInsights";
 import { MonthGoalCard } from "./components/summary/MonthGoalCard";
 import { CatalogView } from "./components/catalog/CatalogView";
+import { AiAnalysisCard } from "./components/ai/AiAnalysisCard";
 import { exportMonthPdf } from "./lib/pdf";
 import { BackupPanel } from "./components/backup/BackupPanel";
 import { Toaster, useToast } from "./components/feedback/Toaster";
@@ -169,14 +170,16 @@ export default function App() {
   );
 
   // Meta do mês atual pro empreendimento ativo. null = sem meta definida.
-  const currentGoal = useMemo(() => {
+  const currentGoalFull = useMemo(() => {
     if (!activeBusinessId) return null;
-    const g = state.goals.find(
-      (g) =>
-        g.businessId === activeBusinessId && g.mes === mes && g.ano === ano,
+    return (
+      state.goals.find(
+        (g) =>
+          g.businessId === activeBusinessId && g.mes === mes && g.ano === ano,
+      ) ?? null
     );
-    return g ? g.target : null;
   }, [state.goals, activeBusinessId, mes, ano]);
+  const currentGoal = currentGoalFull?.target ?? null;
 
   // Stats do mês corrente por businessId — alimenta o BusinessSwitcher
   // pra mostrar mini-KPIs e o consolidado.
@@ -436,6 +439,17 @@ export default function App() {
             sparkline={sparkline}
           />
           <InsightsBanner insights={insights} />
+          <AiAnalysisCard
+            business={activeBusiness}
+            rows={state.rows}
+            clients={activeClients}
+            goal={currentGoalFull}
+            mes={mes}
+            ano={ano}
+            summary={summary}
+            signedIn={!!auth.user}
+            onToast={pushToast}
+          />
           <EntryList
             rows={monthRows}
             summary={summary}
