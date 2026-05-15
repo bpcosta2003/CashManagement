@@ -65,10 +65,27 @@ export default async function handler(
   }
 
   // ─── 1. Auth ──────────────────────────────────────────────────
+  // Validate env vars first so a misconfigured deployment returns 500, not 401.
+  let supabaseOk = true;
+  try {
+    void env.supabaseUrl;
+    void env.supabaseServiceRoleKey;
+  } catch (envErr) {
+    console.error("[ai/analyze] missing env var", envErr);
+    supabaseOk = false;
+  }
+  if (!supabaseOk) {
+    return res.status(500).json({
+      error: "server_misconfigured",
+      message: "Configuração do servidor incompleta. Contate o suporte.",
+    });
+  }
+
   let user;
   try {
     user = await getUserFromRequest(req.headers.authorization);
-  } catch {
+  } catch (authErr) {
+    console.error("[ai/analyze] auth error", authErr);
     return res
       .status(401)
       .json({ error: "unauthorized", message: "Sessão inválida ou expirada." });
