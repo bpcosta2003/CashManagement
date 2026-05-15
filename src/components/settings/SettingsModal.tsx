@@ -6,8 +6,12 @@ import {
   type Theme,
 } from "../../hooks/useAppearance";
 import { useInstallPrompt } from "../../hooks/useInstallPrompt";
+import { getSupabase } from "../../lib/supabase";
 import type { AppSettings } from "../../types";
 import styles from "./SettingsModal.module.css";
+
+type TestKind = "firstDay" | "lastBusinessDay";
+type TestStatus = "idle" | "sending" | "ok" | "error";
 
 interface Props {
   open: boolean;
@@ -51,6 +55,8 @@ export function SettingsModal({
 }: Props) {
   const install = useInstallPrompt();
   const [installing, setInstalling] = useState(false);
+  const [testStatus, setTestStatus] = useState<TestStatus>("idle");
+  const [testMessage, setTestMessage] = useState<string>("");
 
   if (!open) return null;
 
@@ -65,6 +71,61 @@ export function SettingsModal({
       await install.install();
     } finally {
       setInstalling(false);
+    }
+  };
+
+  const handleTestEmail = async (kind: TestKind) => {
+    const supabase = getSupabase();
+    if (!supabase) {
+      setTestStatus("error");
+      setTestMessage("Login Supabase necessário pra testar.");
+      return;
+    }
+    setTestStatus("sending");
+    setTestMessage("Enviando…");
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      if (!token) {
+        setTestStatus("error");
+        setTestMessage("Faça login antes de testar.");
+        return;
+      }
+      const res = await fetch("/api/admin/test-notification", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ kind }),
+      });
+      const json = (await res.json().catch(() => null)) as
+        | Record<string, unknown>
+        | null;
+      if (!res.ok || !json || json.ok !== true) {
+        const msg =
+          typeof json?.message === "string"
+            ? json.message
+            : `Falha (HTTP ${res.status}).`;
+        setTestStatus("error");
+        setTestMessage(msg);
+        return;
+      }
+      if (json.sent === true) {
+        setTestStatus("ok");
+        setTestMessage(`Enviado pra ${json.to}. Confira sua caixa de entrada.`);
+      } else {
+        setTestStatus("ok");
+        const reason =
+          typeof json.skippedReason === "string"
+            ? json.skippedReason
+            : "Email seria pulado pelo cron real.";
+        setTestMessage(reason);
+      }
+    } catch (err) {
+      console.error("[settings] test email error", err);
+      setTestStatus("error");
+      setTestMessage("Falha de rede ao testar.");
     }
   };
 
@@ -258,6 +319,35 @@ export function SettingsModal({
                 }
               />
             </label>
+
+            <div className={styles.testRow}>
+              <span className={styles.testLabel}>
+                Enviar teste pro seu email:
+              </span>
+              <div className={styles.testActions}>
+                <button
+                  type="button"
+                  className={styles.testBtn}
+                  onClick={() => handleTestEmail("firstDay")}
+                  disabled={testStatus === "sending"}
+                >
+                  1º do mês
+                </button>
+                <button
+                  type="button"
+                  className={styles.testBtn}
+                  onClick={() => handleTestEmail("lastBusinessDay")}
+                  disabled={testStatus === "sending"}
+                >
+                  Fim do mês
+                </button>
+              </div>
+              {testMessage && (
+                <span className={styles.testMessage} data-tone={testStatus}>
+                  {testMessage}
+                </span>
+              )}
+            </div>
           </section>
 
           {/* ─── App ─── */}
