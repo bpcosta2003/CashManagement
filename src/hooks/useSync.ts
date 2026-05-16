@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import type { AppState } from "../types";
 import { pullState, pushState } from "../lib/sync";
+import { isTourActive } from "../lib/tour";
 
 export type SyncStatus =
   | "disabled"
@@ -89,6 +90,8 @@ export function useSync({ user, state, replaceState, onError }: Args) {
   /* ── Debounced push on local mutation ────────────────────────────── */
   useEffect(() => {
     if (!user) return;
+    // Durante o tour o state é demo — nunca subir pra nuvem.
+    if (isTourActive()) return;
     if (state.lastModified === syncedLM.current) return;
     if (!navigator.onLine) {
       setStatus("offline");

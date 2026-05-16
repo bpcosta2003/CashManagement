@@ -33,6 +33,27 @@ export function tourAttr(anchor: TourAnchor): { "data-tour": TourAnchor } {
 
 const SNAPSHOT_KEY = "controle-caixa:v1-pre-tour";
 const APP_STATE_KEY = "controle-caixa:v1";
+const TOUR_ACTIVE_KEY = "controle-caixa:tour-active";
+
+/** Marca que o tour está rodando — usado por componentes que disparam
+ *  ações automáticas (auto-backup, sync push, etc.) pra silenciá-los
+ *  enquanto o demo state está injetado. */
+export function isTourActive(): boolean {
+  try {
+    return sessionStorage.getItem(TOUR_ACTIVE_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function setTourActive(active: boolean) {
+  try {
+    if (active) sessionStorage.setItem(TOUR_ACTIVE_KEY, "1");
+    else sessionStorage.removeItem(TOUR_ACTIVE_KEY);
+  } catch {
+    /* ignore */
+  }
+}
 
 /**
  * Salva o state real do usuário antes do tour começar. Chamado pela
@@ -275,6 +296,7 @@ export function startTour(
 ): TourHandle {
   // ── 1. Snapshot + injeta state de demo ────────────────────────────
   saveSnapshot(realState);
+  setTourActive(true);
   const demo = buildDemoState();
   replaceState(demo);
 
@@ -282,6 +304,7 @@ export function startTour(
   const finish = () => {
     const snap = restoreSnapshotIfAny();
     if (snap) replaceState(snap);
+    setTourActive(false);
     onComplete();
   };
 
