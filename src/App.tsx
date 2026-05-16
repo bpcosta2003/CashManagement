@@ -363,7 +363,11 @@ export default function App() {
   );
 
   const handleSubmitBusiness = (profile: BusinessProfile) => {
-    addBusiness({ name: profile.name, type: profile.type });
+    addBusiness({
+      name: profile.name,
+      type: profile.type,
+      ...(profile.logo ? { logo: profile.logo } : {}),
+    });
     setFirstUseOpen(false);
   };
 

@@ -9,10 +9,14 @@ export type BusinessType =
   | "freelancer"
   | "outro";
 
-/** Perfil legado (v1) — preservado pra migração de estado antigo. */
+/** Perfil legado (v1) — preservado pra migração de estado antigo.
+ *  Também usado pelo FirstUseModal pra cadastrar o primeiro
+ *  empreendimento. */
 export interface BusinessProfile {
   name: string;
   type: BusinessType;
+  /** Logo opcional cadastrada no onboarding (data URL). */
+  logo?: string;
 }
 
 export interface Business {

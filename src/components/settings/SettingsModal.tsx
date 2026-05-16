@@ -57,6 +57,7 @@ export function SettingsModal({
 }: Props) {
   const install = useInstallPrompt();
   const [installing, setInstalling] = useState(false);
+  const [showManualInstructions, setShowManualInstructions] = useState(false);
 
   if (!open) return null;
 
@@ -284,14 +285,9 @@ export function SettingsModal({
               <div className={styles.rowText}>
                 <span className={styles.rowTitle}>Instalar no dispositivo</span>
                 <span className={styles.rowDesc}>
-                  {install.kind === "installed" &&
-                    "Você já está usando o app instalado. Tudo certo."}
-                  {install.kind === "available" &&
-                    "Adiciona o app à tela inicial. Funciona offline e abre direto, sem barra do navegador."}
-                  {install.kind === "ios-manual" &&
-                    "No Safari, toque em Compartilhar → Adicionar à Tela Inicial."}
-                  {install.kind === "unavailable" &&
-                    "Seu navegador não oferece instalação automática. Use Chrome ou Edge no desktop, ou o navegador nativo no celular."}
+                  {install.kind === "installed"
+                    ? "Você já está usando o app instalado. Tudo certo."
+                    : "Adiciona o app à tela inicial. Funciona offline e abre direto, sem barra do navegador."}
                 </span>
               </div>
               {install.kind === "available" && (
@@ -313,7 +309,61 @@ export function SettingsModal({
                   Instalado
                 </button>
               )}
+              {(install.kind === "ios-manual" ||
+                install.kind === "unavailable") && (
+                <button
+                  type="button"
+                  className={`${styles.actionBtn} ${styles.actionBtnPrimary}`}
+                  onClick={() => setShowManualInstructions((v) => !v)}
+                >
+                  {showManualInstructions ? "Esconder" : "Como instalar"}
+                </button>
+              )}
             </div>
+
+            {(install.kind === "ios-manual" ||
+              install.kind === "unavailable") &&
+              showManualInstructions && (
+                <div className={styles.installHint}>
+                  {install.kind === "ios-manual" ? (
+                    <>
+                      <strong>No iPhone/iPad (Safari):</strong>
+                      <ol>
+                        <li>
+                          Toque no ícone de <strong>Compartilhar</strong> (
+                          <span aria-hidden="true">⬆️</span>) na barra inferior.
+                        </li>
+                        <li>
+                          Role e selecione{" "}
+                          <strong>Adicionar à Tela Inicial</strong>.
+                        </li>
+                        <li>
+                          Confirme em <strong>Adicionar</strong> no canto
+                          superior direito.
+                        </li>
+                      </ol>
+                    </>
+                  ) : (
+                    <>
+                      <strong>Como instalar:</strong>
+                      <ul>
+                        <li>
+                          <strong>Android:</strong> use o Chrome ou Edge. No
+                          menu (⋮), toque em <strong>Instalar app</strong>.
+                        </li>
+                        <li>
+                          <strong>iPhone/iPad:</strong> abra no Safari → ícone
+                          Compartilhar → <strong>Adicionar à Tela Inicial</strong>.
+                        </li>
+                        <li>
+                          <strong>Desktop:</strong> abra no Chrome ou Edge e
+                          clique no ícone de instalação na barra de endereços.
+                        </li>
+                      </ul>
+                    </>
+                  )}
+                </div>
+              )}
 
             <div className={styles.row}>
               <div className={styles.rowText}>

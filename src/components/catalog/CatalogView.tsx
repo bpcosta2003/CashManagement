@@ -302,26 +302,21 @@ function CatalogEditRow({ item, onSave, onCancel }: EditRowProps) {
             if (e.key === "Escape") onCancel();
           }}
         />
-        <div className={styles.editActions}>
-          <button
-            type="button"
-            className={styles.editPrimary}
-            onClick={save}
-            aria-label="Salvar"
-            title="Salvar"
-          >
-            ✓
-          </button>
-          <button
-            type="button"
-            className={styles.editSecondary}
-            onClick={onCancel}
-            aria-label="Cancelar"
-            title="Cancelar"
-          >
-            ×
-          </button>
-        </div>
+        <button
+          type="button"
+          className={styles.addRowPrimary}
+          onClick={save}
+          disabled={!name.trim()}
+        >
+          Salvar
+        </button>
+        <button
+          type="button"
+          className={styles.addRowSecondary}
+          onClick={onCancel}
+        >
+          Cancelar
+        </button>
       </div>
     </li>
   );
