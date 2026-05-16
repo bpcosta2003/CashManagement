@@ -22,14 +22,33 @@ export interface AiAnalysisError {
   quota?: AiQuota;
 }
 
+/**
+ * Payload enviado pro /api/ai/analyze. Note que NÃO mandamos mais
+ * `contextXml` nem `dataHash`: o servidor é quem reconstrói o XML a
+ * partir dos dados brutos validados, justamente pra fechar o vetor de
+ * prompt injection (qualquer string mandada como contexto seria ignorada
+ * de qualquer jeito).
+ */
 interface AnalyzePayload {
   businessId: string;
-  businessName: string;
+  business: {
+    id: string;
+    name: string;
+    type: string;
+    createdAt?: string;
+  };
   mes: number;
   ano: number;
-  monthLabel: string;
-  dataHash: string;
-  contextXml: string;
+  rows: unknown[];
+  goal?: {
+    id: string;
+    businessId: string;
+    mes: number;
+    ano: number;
+    target: number;
+    createdAt?: string;
+    updatedAt?: string;
+  } | null;
   force?: boolean;
 }
 

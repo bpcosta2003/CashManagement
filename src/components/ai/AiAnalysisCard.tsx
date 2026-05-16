@@ -1,24 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { useAiAnalysis } from "../../hooks/useAiAnalysis";
-import { buildAiContext } from "../../lib/aiContext";
-import type {
-  Business,
-  Client,
-  MonthGoal,
-  Row,
-  Summary,
-} from "../../types";
+import { MESES_FULL } from "../../constants";
+import type { Business, MonthGoal, Row } from "../../types";
 import { AiAnalysisModal } from "./AiAnalysisModal";
 import styles from "./AiAnalysisCard.module.css";
 
 interface Props {
   business: Business | null;
   rows: Row[];
-  clients: Client[];
   goal: MonthGoal | null;
   mes: number;
   ano: number;
-  summary: Summary;
   /** True quando o usuário está autenticado no Supabase. Sem login a IA
    *  não funciona (precisa de JWT pra rate limit por usuário). */
   signedIn: boolean;
@@ -56,17 +48,7 @@ function classifyMonthTiming(ano: number, mes: number, today = new Date()): Mont
 }
 
 export function AiAnalysisCard(props: Props) {
-  const {
-    business,
-    rows,
-    clients,
-    goal,
-    mes,
-    ano,
-    summary,
-    signedIn,
-    onToast,
-  } = props;
+  const { business, rows, goal, mes, ano, signedIn, onToast } = props;
   const { enabled, loading, result, error, analyze, reset } = useAiAnalysis();
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -76,20 +58,12 @@ export function AiAnalysisCard(props: Props) {
     setModalOpen(false);
   }, [mes, ano, business?.id, reset]);
 
-  // Constrói o contexto sempre — barato (memoizado), reaproveitado pelo
-  // botão de gerar e pelo cabeçalho de quota.
-  const context = useMemo(() => {
-    if (!business) return null;
-    return buildAiContext({
-      business,
-      allRows: rows,
-      clients,
-      goal,
-      mes,
-      ano,
-      summary,
-    });
-  }, [business, rows, clients, goal, mes, ano, summary]);
+  // Rótulo amigável do mês — usado só na UI. O XML enviado pra IA é
+  // montado server-side a partir dos dados brutos.
+  const monthLabel = useMemo(
+    () => `${MESES_FULL[mes]}/${ano}`,
+    [mes, ano],
+  );
 
   const monthTiming = useMemo(() => classifyMonthTiming(ano, mes), [ano, mes]);
 
@@ -112,21 +86,45 @@ export function AiAnalysisCard(props: Props) {
   const hasMinData = monthRowCount >= MIN_ROWS_FOR_VALUE;
 
   const handleGenerate = async (force = false) => {
-    if (!context || !business) return;
+    if (!business) return;
     if (monthTiming === "early") {
       const ok = window.confirm(
         "O mês ainda não terminou. A análise vai usar só os dados lançados até hoje — pode faltar informação importante.\n\nO ideal é gerar no último dia útil do mês.\n\nDeseja continuar mesmo assim?",
       );
       if (!ok) return;
     }
+    // Mandamos só os dados brutos do empreendimento — o servidor monta
+    // o XML que vai pro Claude. Não confiamos em texto vindo do navegador.
+    // Filtramos por janela de 7 meses (mês atual + 6 anteriores) porque
+    // é tudo que o contexto da IA usa — reduz payload e o limite do
+    // servidor de forma drástica pra contas com histórico longo.
+    const minWindow = (() => {
+      let m = mes - 6;
+      let y = ano;
+      while (m < 0) {
+        m += 12;
+        y -= 1;
+      }
+      return y * 12 + m;
+    })();
+    const maxWindow = ano * 12 + mes;
+    const businessRows = rows.filter((r) => {
+      if (r.businessId !== business.id) return false;
+      const key = r.ano * 12 + r.mes;
+      return key >= minWindow && key <= maxWindow;
+    });
     await analyze({
       businessId: business.id,
-      businessName: business.name,
+      business: {
+        id: business.id,
+        name: business.name,
+        type: business.type,
+        createdAt: business.createdAt,
+      },
       mes,
       ano,
-      monthLabel: context.monthLabel,
-      dataHash: context.dataHash,
-      contextXml: context.contextXml,
+      rows: businessRows,
+      goal: goal ?? null,
       force,
     });
     setModalOpen(true);
@@ -166,7 +164,7 @@ export function AiAnalysisCard(props: Props) {
               {status === "no-data" && "Adicione lançamentos pra começar"}
               {status === "loading" && "Gerando análise…"}
               {status === "empty" &&
-                `Resumo inteligente de ${context?.monthLabel ?? "este mês"}`}
+                `Resumo inteligente de ${monthLabel}`}
               {status === "ready" && "Análise pronta"}
             </span>
           </div>
@@ -230,7 +228,7 @@ export function AiAnalysisCard(props: Props) {
               type="button"
               className={styles.primary}
               onClick={() => handleGenerate(false)}
-              disabled={loading || !context}
+              disabled={loading || !business}
             >
               Gerar análise
             </button>
@@ -247,7 +245,7 @@ export function AiAnalysisCard(props: Props) {
       {result && (
         <AiAnalysisModal
           open={modalOpen}
-          monthLabel={context?.monthLabel ?? ""}
+          monthLabel={monthLabel}
           businessName={business.name}
           result={result}
           onClose={() => setModalOpen(false)}

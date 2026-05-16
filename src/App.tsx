@@ -504,11 +504,9 @@ export default function App() {
           <AiAnalysisCard
             business={activeBusiness}
             rows={state.rows}
-            clients={activeClients}
             goal={currentGoalFull}
             mes={mes}
             ano={ano}
-            summary={summary}
             signedIn={!!auth.user}
             onToast={pushToast}
           />
