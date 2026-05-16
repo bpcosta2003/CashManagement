@@ -89,21 +89,27 @@ export default async function handler(
   const monthStart = startOfMonthIso();
 
   // ─── 3. Cache hit? ────────────────────────────────────────────
-  // Chave: (user_id, business_id, mes, ano). Comparamos data_hash
-  // (calculado server-side) pra detectar mudanças nos lançamentos.
+  // Chave de lookup: data_hash apenas. O hash é determinístico e cobre
+  // todos os dados que afetam a análise (lançamentos do mês + meta +
+  // mes/ano), mas NÃO inclui user_id nem business_id. Resultado: se dois
+  // usuários submetem o mesmo conjunto de dados, o segundo recebe o
+  // cache do primeiro sem chamar a IA — mitigação contra "criar N contas
+  // pra burlar quota mensal importando o mesmo backup em todas".
+  //
+  // Ordenamos por created_at desc + limit 1 pra pegar a entrada mais
+  // recente (caso haja várias contas com o mesmo hash, vale a mais nova).
   if (!body.force) {
     const { data: cached, error: cacheErr } = await supabase
       .from("ai_analysis_cache")
       .select("content, model, data_hash, created_at")
-      .eq("user_id", user.id)
-      .eq("business_id", body.businessId)
-      .eq("mes", body.mes)
-      .eq("ano", body.ano)
+      .eq("data_hash", context.dataHash)
+      .order("created_at", { ascending: false })
+      .limit(1)
       .maybeSingle();
 
     if (cacheErr) {
       console.error("[ai/analyze] cache lookup error", cacheErr);
-    } else if (cached && cached.data_hash === context.dataHash) {
+    } else if (cached) {
       const quota = await getQuota(supabase, user.id, monthStart);
       const response: AnalyzeResponse = {
         content: cached.content,
