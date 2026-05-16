@@ -264,8 +264,20 @@ function buildSteps(_mobile: boolean): StepDef[] {
 const BASE_CONFIG: Config = {
   showProgress: true,
   smoothScroll: true,
+  /** Permite fechar via botão X. O overlayClickBehavior abaixo neutraliza
+   *  o "clicou fora pra fechar". */
   allowClose: true,
-  overlayOpacity: 0.6,
+  /** Bloqueia clique em qualquer elemento destacado — durante o tour só
+   *  o popover é interativo. Sem isso o usuário consegue clicar em
+   *  qualquer botão real (ex.: abrir um modal de empreendimento) e o
+   *  fluxo do tour fica zoado. */
+  disableActiveInteraction: true,
+  /** Clique fora do popover é no-op (não fecha, não avança). Só o X
+   *  do popover ou o botão "Concluir" terminam o tour. */
+  overlayClickBehavior: () => {
+    /* no-op */
+  },
+  overlayOpacity: 0.65,
   stagePadding: 6,
   stageRadius: 14,
   nextBtnText: "Próximo →",

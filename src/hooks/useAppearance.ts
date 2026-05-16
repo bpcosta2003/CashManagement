@@ -65,14 +65,14 @@ export const ACCENT_PREVIEW: Record<Accent, string> = {
 };
 
 function readTheme(): Theme {
-  if (typeof document === "undefined") return "light";
+  if (typeof document === "undefined") return "dark";
   try {
     const saved = localStorage.getItem(THEME_KEY);
     if (saved === "dark" || saved === "light") return saved;
   } catch {
     /* ignore */
   }
-  return "light";
+  return "dark";
 }
 
 function readAccent(): Accent {

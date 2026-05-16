@@ -196,11 +196,11 @@ export function ClientsView({ clients, onCreate, onUpdate, onDelete }: Props) {
           </form>
         )}
 
-        {filtered.length === 0 ? (
+        {filtered.length === 0 && total > 0 ? (
           <div className={styles.noResults}>
             Nenhum cliente encontrado para "{query}"
           </div>
-        ) : (
+        ) : filtered.length === 0 ? null : (
           <ul className={styles.list}>
             {filtered.map((stats) => {
               const { client, ltv, count, lastEntryAt } = stats;

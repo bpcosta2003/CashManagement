@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { setFirstUseAcked } from "../../lib/storage";
+import { resizeImageToDataUrl } from "../../lib/imageResize";
 import type { BusinessProfile, BusinessType } from "../../types";
 import styles from "./FirstUseModal.module.css";
 
@@ -13,9 +14,9 @@ interface Props {
 }
 
 const BUSINESS_TYPES: { value: BusinessType; label: string; icon: string }[] = [
-  { value: "salao", label: "Salão de beleza", icon: "💇" },
-  { value: "restaurante", label: "Restaurante / bar", icon: "🍽️" },
-  { value: "comercio", label: "Comércio / loja", icon: "🛍️" },
+  { value: "salao", label: "Salão", icon: "💇" },
+  { value: "restaurante", label: "Restaurante", icon: "🍽️" },
+  { value: "comercio", label: "Comércio", icon: "🛍️" },
   { value: "servicos", label: "Serviços", icon: "🔧" },
   { value: "freelancer", label: "Freelancer", icon: "💼" },
   { value: "outro", label: "Outro", icon: "✨" },
@@ -33,7 +34,10 @@ export function FirstUseModal({
   const [type, setType] = useState<BusinessType>(
     initialBusiness?.type ?? "salao",
   );
+  const [logo, setLogo] = useState<string | undefined>(initialBusiness?.logo);
+  const [logoError, setLogoError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
 
   if (!open) return null;
 
@@ -45,7 +49,7 @@ export function FirstUseModal({
       return;
     }
     setFirstUseAcked();
-    onSubmit({ name: trimmed, type });
+    onSubmit({ name: trimmed, type, logo });
     onClose();
   };
 
@@ -56,9 +60,32 @@ export function FirstUseModal({
       return;
     }
     setFirstUseAcked();
-    onSubmit({ name: trimmed, type });
+    onSubmit({ name: trimmed, type, logo });
     onClose();
     onWantsCloud?.();
+  };
+
+  const handleLogoPick = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setLogoError(null);
+    if (!file.type.startsWith("image/")) {
+      setLogoError("Selecione um arquivo de imagem (PNG, JPG, etc.)");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setLogoError("Imagem muito grande — máx. 5 MB");
+      return;
+    }
+    try {
+      const dataUrl = await resizeImageToDataUrl(file, 256);
+      setLogo(dataUrl);
+    } catch (err) {
+      setLogoError(
+        err instanceof Error ? err.message : "Erro ao processar a imagem",
+      );
+    }
   };
 
   return (
@@ -82,7 +109,7 @@ export function FirstUseModal({
         <form className={styles.body} onSubmit={handleSubmit}>
           <div className={styles.field}>
             <label htmlFor="fum-name" className={styles.label}>
-              Nome do empreendimento
+              Nome
             </label>
             <input
               id="fum-name"
@@ -100,7 +127,7 @@ export function FirstUseModal({
           </div>
 
           <div className={styles.field}>
-            <label className={styles.label}>Tipo de negócio</label>
+            <label className={styles.label}>Tipo</label>
             <div className={styles.typeGrid}>
               {BUSINESS_TYPES.map((t) => (
                 <button
@@ -115,6 +142,47 @@ export function FirstUseModal({
                 </button>
               ))}
             </div>
+          </div>
+
+          <div className={styles.field}>
+            <label className={styles.label}>
+              Logo <span className={styles.labelHint}>· opcional</span>
+            </label>
+            <div className={styles.logoRow}>
+              <div className={styles.logoPreview} data-empty={!logo}>
+                {logo ? (
+                  <img src={logo} alt="" className={styles.logoImg} />
+                ) : (
+                  <span className={styles.logoPlaceholder}>—</span>
+                )}
+              </div>
+              <div className={styles.logoActions}>
+                <button
+                  type="button"
+                  className={styles.logoBtn}
+                  onClick={() => logoInputRef.current?.click()}
+                >
+                  {logo ? "Trocar imagem" : "Escolher imagem"}
+                </button>
+                {logo && (
+                  <button
+                    type="button"
+                    className={styles.logoGhost}
+                    onClick={() => setLogo(undefined)}
+                  >
+                    Remover
+                  </button>
+                )}
+                <input
+                  ref={logoInputRef}
+                  type="file"
+                  accept="image/*"
+                  hidden
+                  onChange={handleLogoPick}
+                />
+              </div>
+            </div>
+            {logoError && <span className={styles.error}>{logoError}</span>}
           </div>
 
           {error && <div className={styles.error}>{error}</div>}
