@@ -5,6 +5,7 @@ import {
   getLastBackup,
   setLastBackup,
 } from "../../lib/storage";
+import { isTourActive } from "../../lib/tour";
 import styles from "./BackupReminder.module.css";
 
 const REMIND_AFTER_DAYS = 7;
@@ -64,6 +65,8 @@ export function BackupReminder({
     if (rows.length === 0) return;
     if (days !== null && days < AUTO_EXPORT_AFTER_DAYS) return;
     if (readSession(SESSION_AUTO_FLAG) === "1") return;
+    // Durante o tour, o state é fake — não baixar arquivo de exemplo.
+    if (isTourActive()) return;
 
     writeSession(SESSION_AUTO_FLAG, "1");
     const t = window.setTimeout(async () => {
