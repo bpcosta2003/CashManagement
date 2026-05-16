@@ -152,6 +152,9 @@ export default function App() {
           {
             setTab,
             setTaxBarOpen: (open: boolean) => setTaxBarOpen(open),
+            setMes,
+            setAno,
+            setPeriod,
           },
           () => {
             setSettings({ tourCompleted: true });
@@ -467,6 +470,14 @@ export default function App() {
           summary={annual}
           activity={activity}
           onSelectMonth={handleSelectMonthFromAnnual}
+          onExportPdf={
+            annual.total.count > 0
+              ? async () => {
+                  const { exportYearPdf } = await import("./lib/pdf");
+                  exportYearPdf({ business: activeBusiness, summary: annual });
+                }
+              : undefined
+          }
         />
       ) : tab === "lancamentos" ? (
         <>

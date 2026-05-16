@@ -104,6 +104,14 @@ export interface TourCallbacks {
   setTab?: (tab: "lancamentos" | "projecao" | "clientes" | "catalogo") => void;
   /** Abre/fecha a barra de taxas pra demonstrar. */
   setTaxBarOpen?: (open: boolean) => void;
+  /** Foca o mês onde os dados de demo foram cadastrados (mês corrente). */
+  setMes?: (m: number) => void;
+  /** Foca o ano onde os dados de demo foram cadastrados (ano corrente). */
+  setAno?: (y: number) => void;
+  /** Garante que a visão está em "month" — se o usuário estava em "year",
+   *  o tour seria executado sobre a tela anual e os anchors do mês não
+   *  existiriam no DOM. */
+  setPeriod?: (p: "month" | "year") => void;
 }
 
 interface StepDef extends DriveStep {
@@ -311,6 +319,14 @@ export function startTour(
   setTourActive(true);
   const demo = buildDemoState();
   replaceState(demo);
+
+  // Navega pro mês/ano onde os seeds estão (buildDemoState usa "agora"
+  // como referência). Sem isso, se o usuário tinha deixado a UI num
+  // mês/ano sem dados, o tour rodaria sobre uma tela vazia.
+  const now = new Date();
+  callbacks.setPeriod?.("month");
+  callbacks.setMes?.(now.getMonth());
+  callbacks.setAno?.(now.getFullYear());
 
   // ── 2. Aguarda 2 frames pra DOM repintar antes de medir âncoras ──
   const finish = () => {
