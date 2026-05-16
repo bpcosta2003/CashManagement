@@ -68,6 +68,29 @@
   opacity: 0.45;
 }
 
+/* No dark mode o card de Lucro Líquido usa a mesma superfície dos demais
+   (acompanhando a cor do accent), com uma borda pontilhada sutil pra
+   manter o destaque visual sem reservar uma cor fixa. */
+:root[data-theme="dark"] .hero {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px dashed rgba(255, 255, 255, 0.16);
+  box-shadow: var(--shadow-card);
+}
+
+:root[data-theme="dark"] .hero::before {
+  display: none;
+}
+
+:root[data-theme="dark"] .heroEyebrow,
+:root[data-theme="dark"] .heroDeltaNeutral {
+  color: var(--text-muted);
+}
+
+:root[data-theme="dark"] .heroValue {
+  color: var(--text);
+}
+
 @media (min-width: 768px) {
   .hero {
     padding: 26px 28px 22px;

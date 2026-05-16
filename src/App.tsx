@@ -563,6 +563,7 @@ export default function App() {
 
       <BackupPanel
         open={backupOpen}
+        signedIn={!!auth.user}
         rows={state.rows.filter(
           (r) => !activeBusinessId || r.businessId === activeBusinessId,
         )}

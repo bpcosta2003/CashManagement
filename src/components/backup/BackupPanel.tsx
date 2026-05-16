@@ -18,6 +18,7 @@ interface Props {
   rows: Row[];
   clients: Client[];
   catalog: CatalogItem[];
+  signedIn?: boolean;
   onClose: () => void;
   onImportMerge: (
     rows: Row[],
@@ -43,6 +44,7 @@ export function BackupPanel({
   rows,
   clients,
   catalog,
+  signedIn = false,
   onClose,
   onImportMerge,
   onImportReplace,
@@ -92,7 +94,10 @@ export function BackupPanel({
   };
 
   const handleClear = () => {
-    if (confirm("Apagar TODOS os dados do app? Essa ação não pode ser desfeita.")) {
+    const msg = signedIn
+      ? "Apagar TODOS os dados do app?\n\nVocê está sincronizado — os dados também serão APAGADOS DA NUVEM e não poderão ser recuperados.\n\nEssa ação não pode ser desfeita."
+      : "Apagar TODOS os dados do app? Essa ação não pode ser desfeita.";
+    if (confirm(msg)) {
       clearState();
       onClearAll();
       onToast?.("Todos os dados foram apagados");
@@ -191,6 +196,11 @@ export function BackupPanel({
               <button className={styles.dangerBtn} onClick={handleClear}>
                 🗑 Apagar todos os dados
               </button>
+              {signedIn && (
+                <span className={styles.dangerWarn}>
+                  ⚠ Você está sincronizado. Apagar aqui também remove os dados da nuvem permanentemente.
+                </span>
+              )}
             </div>
           </div>
         ) : (

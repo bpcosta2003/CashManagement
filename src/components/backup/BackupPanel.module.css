@@ -219,6 +219,13 @@
   border-color: var(--negative);
 }
 
+.dangerWarn {
+  font-size: var(--t-caption);
+  color: var(--negative);
+  line-height: 1.45;
+  opacity: 0.85;
+}
+
 /* Preview modal */
 .preview {
   padding: 18px 24px;
