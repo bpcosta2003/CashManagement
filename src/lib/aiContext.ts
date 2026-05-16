@@ -357,8 +357,12 @@ export function buildAiContext(input: AiContextInput): AiContextOutput {
   const contextXml = lines.join("\n");
 
   // ─── Hash de invalidação ──────────────────────────────────────
-  // Inclui só o que afeta a análise: lançamentos do mês + meta.
-  // Inserir/editar/remover lançamento → hash muda → cache invalida.
+  // Inclui só o que afeta a análise: lançamentos do mês + meta + mês/ano.
+  // NÃO inclui businessId nem userId — isso é proposital. Cache global
+  // por conteúdo: se dois usuários submetem o mesmo conjunto de dados
+  // (típico: importaram o mesmo backup), o segundo recebe o resultado
+  // cacheado sem chamar a IA. Mata o ataque "criar N contas pra burlar
+  // a quota mensal" — N × mesma análise = 1 × custo na nossa conta.
   const hashSource = JSON.stringify({
     rows: monthRows
       .map((r) => ({
@@ -378,7 +382,6 @@ export function buildAiContext(input: AiContextInput): AiContextOutput {
     goal: goal?.target ?? 0,
     mes,
     ano,
-    bid: business.id,
   });
   const dataHash = fnv1aHex(hashSource);
 

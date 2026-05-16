@@ -103,6 +103,30 @@
   opacity: 0.45;
 }
 
+/* No dark mode o hero anual acompanha a cor do accent (igual aos demais
+   cards), mantendo o destaque via borda pontilhada sutil. Espelha o
+   tratamento aplicado em SummaryCards. */
+:root[data-theme="dark"] .hero {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px dashed rgba(255, 255, 255, 0.16);
+  box-shadow: var(--shadow-card);
+}
+
+:root[data-theme="dark"] .hero::before {
+  display: none;
+}
+
+:root[data-theme="dark"] .heroEyebrow,
+:root[data-theme="dark"] .heroDeltaNeutral,
+:root[data-theme="dark"] .heroMeta {
+  color: var(--text-muted);
+}
+
+:root[data-theme="dark"] .heroValue {
+  color: var(--text);
+}
+
 @media (min-width: 768px) {
   .hero {
     padding: 26px 28px 22px;
@@ -113,6 +137,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
 }
 
 .heroEyebrow {
@@ -121,6 +146,41 @@
   color: var(--hero-muted);
   text-transform: uppercase;
   letter-spacing: 0.18em;
+}
+
+.heroAction {
+  appearance: none;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--hero-fg);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: var(--radius-pill);
+  padding: 6px 12px;
+  font: inherit;
+  font-size: var(--t-caption);
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background 0.15s var(--ease), border-color 0.15s var(--ease);
+}
+
+.heroAction:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+:root[data-theme="dark"] .heroAction {
+  background: var(--surface-2);
+  color: var(--text);
+  border-color: var(--border);
+}
+
+:root[data-theme="dark"] .heroAction:hover {
+  background: var(--surface-elevated);
+  border-color: var(--text-dim);
 }
 
 .heroEyebrowDot {

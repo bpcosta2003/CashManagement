@@ -15,5 +15,11 @@
     "noFallthroughCasesInSwitch": true,
     "types": ["node"]
   },
-  "include": ["api"]
+  "include": [
+    "api",
+    "src/types.ts",
+    "src/constants.ts",
+    "src/lib/calc.ts",
+    "src/lib/aiContext.ts"
+  ]
 }

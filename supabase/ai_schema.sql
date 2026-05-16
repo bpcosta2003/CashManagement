@@ -30,6 +30,13 @@ create table if not exists public.ai_analysis_cache (
 create index if not exists ai_analysis_cache_user_idx
   on public.ai_analysis_cache(user_id);
 
+-- Lookup global por conteúdo: o handler de /api/ai/analyze busca por
+-- data_hash isoladamente (cross-user) pra deduplicar análises de dados
+-- idênticos — barra a abuso "criar N contas e importar o mesmo backup".
+-- Pega a entrada mais recente, daí (data_hash, created_at desc).
+create index if not exists ai_analysis_cache_hash_idx
+  on public.ai_analysis_cache(data_hash, created_at desc);
+
 alter table public.ai_analysis_cache enable row level security;
 
 drop policy if exists "ai_cache_select_own" on public.ai_analysis_cache;

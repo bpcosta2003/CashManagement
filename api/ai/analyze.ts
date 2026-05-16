@@ -3,18 +3,15 @@ import { getUserFromRequest } from "../_lib/auth";
 import { getSupabaseAdmin } from "../_lib/supabaseAdmin";
 import { generateAnalysis } from "../_lib/anthropic";
 import { env } from "../_lib/env";
+import {
+  validateAndBuildContext,
+  ValidationError,
+  type AnalyzeBody as BuildBody,
+} from "../_lib/aiContextServer";
 
-interface AnalyzeBody {
-  businessId: string;
-  businessName: string;
-  mes: number;
-  ano: number;
-  monthLabel: string;
-  dataHash: string;
-  contextXml: string;
-  /** Quando true, ignora o cache e força nova chamada (ainda respeita
-   *  rate limit e kill switch). */
-  force?: boolean;
+interface AnalyzeBody extends BuildBody {
+  // Mantido por compat com o cliente; o servidor sobrescreve o monthLabel
+  // a partir do mes/ano validados.
 }
 
 interface AnalyzeResponse {
@@ -27,28 +24,6 @@ interface AnalyzeResponse {
     limit: number;
     remaining: number;
   };
-}
-
-function isValidBody(body: unknown): body is AnalyzeBody {
-  if (!body || typeof body !== "object") return false;
-  const b = body as Record<string, unknown>;
-  return (
-    typeof b.businessId === "string" &&
-    b.businessId.length > 0 &&
-    typeof b.businessName === "string" &&
-    typeof b.mes === "number" &&
-    b.mes >= 0 &&
-    b.mes <= 11 &&
-    typeof b.ano === "number" &&
-    b.ano >= 2000 &&
-    b.ano <= 2100 &&
-    typeof b.monthLabel === "string" &&
-    typeof b.dataHash === "string" &&
-    b.dataHash.length > 0 &&
-    typeof b.contextXml === "string" &&
-    b.contextXml.length > 0 &&
-    b.contextXml.length < 60_000
-  );
 }
 
 function startOfMonthIso(now = new Date()): string {
@@ -91,30 +66,50 @@ export default async function handler(
       .json({ error: "unauthorized", message: "Sessão inválida ou expirada." });
   }
 
-  // ─── 2. Validação do payload ──────────────────────────────────
-  if (!isValidBody(req.body)) {
+  // ─── 2. Validação + construção server-side do XML ─────────────
+  // O cliente envia só os dados brutos (business + rows + goal). Tudo o
+  // que vai pro Claude é montado aqui, em cima de campos validados —
+  // qualquer `contextXml` enviado pelo cliente é IGNORADO. Esse é o
+  // bloqueio anti prompt-injection.
+  let context;
+  try {
+    context = validateAndBuildContext(req.body as AnalyzeBody);
+  } catch (err) {
+    if (err instanceof ValidationError) {
+      return res.status(400).json({ error: err.code, message: err.message });
+    }
+    console.error("[ai/analyze] context build error", err);
     return res
       .status(400)
       .json({ error: "invalid_body", message: "Payload inválido." });
   }
-  const body = req.body;
+
+  const body = req.body as AnalyzeBody;
   const supabase = getSupabaseAdmin();
   const monthStart = startOfMonthIso();
 
   // ─── 3. Cache hit? ────────────────────────────────────────────
+  // Chave de lookup: data_hash apenas. O hash é determinístico e cobre
+  // todos os dados que afetam a análise (lançamentos do mês + meta +
+  // mes/ano), mas NÃO inclui user_id nem business_id. Resultado: se dois
+  // usuários submetem o mesmo conjunto de dados, o segundo recebe o
+  // cache do primeiro sem chamar a IA — mitigação contra "criar N contas
+  // pra burlar quota mensal importando o mesmo backup em todas".
+  //
+  // Ordenamos por created_at desc + limit 1 pra pegar a entrada mais
+  // recente (caso haja várias contas com o mesmo hash, vale a mais nova).
   if (!body.force) {
     const { data: cached, error: cacheErr } = await supabase
       .from("ai_analysis_cache")
       .select("content, model, data_hash, created_at")
-      .eq("user_id", user.id)
-      .eq("business_id", body.businessId)
-      .eq("mes", body.mes)
-      .eq("ano", body.ano)
+      .eq("data_hash", context.dataHash)
+      .order("created_at", { ascending: false })
+      .limit(1)
       .maybeSingle();
 
     if (cacheErr) {
       console.error("[ai/analyze] cache lookup error", cacheErr);
-    } else if (cached && cached.data_hash === body.dataHash) {
+    } else if (cached) {
       const quota = await getQuota(supabase, user.id, monthStart);
       const response: AnalyzeResponse = {
         content: cached.content,
@@ -164,9 +159,9 @@ export default async function handler(
   let result;
   try {
     result = await generateAnalysis({
-      contextXml: body.contextXml,
-      businessName: body.businessName || "seu empreendimento",
-      monthLabel: body.monthLabel,
+      contextXml: context.contextXml,
+      businessName: context.businessName,
+      monthLabel: context.monthLabel,
     });
   } catch (err) {
     console.error("[ai/analyze] anthropic error", err);
@@ -186,7 +181,7 @@ export default async function handler(
         business_id: body.businessId,
         mes: body.mes,
         ano: body.ano,
-        data_hash: body.dataHash,
+        data_hash: context.dataHash,
         content: result.content,
         model: result.model,
         tokens_input: result.tokensInput,

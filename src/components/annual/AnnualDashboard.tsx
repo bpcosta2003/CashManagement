@@ -13,6 +13,9 @@ interface Props {
   activity: MonthActivity[];
   /** Click em um mês — chama com o número do mês (0-11) e ano. */
   onSelectMonth: (mes: number, ano: number) => void;
+  /** Exporta um PDF anual completo (capa + tabela consolidada + um
+   *  detalhamento por mês). Útil pra contador / IRPF. */
+  onExportPdf?: () => void;
 }
 
 const SEGMENT_VAR: Record<string, string> = {
@@ -22,7 +25,12 @@ const SEGMENT_VAR: Record<string, string> = {
   Crédito: "var(--pay-credito)",
 };
 
-export function AnnualDashboard({ summary, activity, onSelectMonth }: Props) {
+export function AnnualDashboard({
+  summary,
+  activity,
+  onSelectMonth,
+  onExportPdf,
+}: Props) {
   const {
     year,
     total,
@@ -86,6 +94,32 @@ export function AnnualDashboard({ summary, activity, onSelectMonth }: Props) {
           <span className={styles.heroEyebrow}>
             Lucro líquido <span className={styles.heroEyebrowDot}>·</span> {year}
           </span>
+          {onExportPdf && (
+            <button
+              type="button"
+              className={styles.heroAction}
+              onClick={onExportPdf}
+              aria-label={`Exportar PDF anual de ${year}`}
+              title="Exportar PDF anual (todos os meses)"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              <span>PDF anual</span>
+            </button>
+          )}
         </div>
         <div className={styles.heroValueWrap}>
           <FitText
