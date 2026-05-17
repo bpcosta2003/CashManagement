@@ -47,33 +47,54 @@ export function fitTextToContainer(
 /**
  * Observa um container e re-ajusta o texto sempre que algo muda
  * (resize, fonts.ready, etc.). Retorna função de cleanup.
+ *
+ * Notas de implementação:
+ *  - A primeira medição é deferida pra `requestAnimationFrame` pra
+ *    garantir que o layout do container já se estabilizou. Sem isso,
+ *    em remounts (ex.: troca de mês via `key`), `clientWidth` podia
+ *    devolver um valor parcial e a busca binária convergia pra uma
+ *    fonte minúscula até o próximo evento de resize.
+ *  - Observa apenas o CONTAINER, nunca o próprio elemento. Observar o
+ *    elemento criaria feedback (o próprio `fit` muda o tamanho do
+ *    elemento, dispara o ResizeObserver, refit, etc.).
  */
 export function observeFit(
   element: HTMLElement,
   baseFontSize: number,
   minFontSize: number,
 ): () => void {
-  const fit = () => fitTextToContainer(element, baseFontSize, minFontSize);
+  let raf = 0;
+  let cancelled = false;
 
-  fit();
+  const runFit = () => {
+    if (cancelled) return;
+    fitTextToContainer(element, baseFontSize, minFontSize);
+  };
 
-  // ResizeObserver no PAI (que decide a largura disponível) e no
-  // próprio elemento (caso o texto/conteúdo mude).
+  const scheduleFit = () => {
+    if (raf) cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(() => {
+      raf = 0;
+      runFit();
+    });
+  };
+
+  // 1ª medição: defer pro próximo frame — layout/grid já settled.
+  scheduleFit();
+
   const container = element.parentElement;
   let ro: ResizeObserver | null = null;
   if (typeof ResizeObserver !== "undefined" && container) {
-    ro = new ResizeObserver(() => fit());
+    ro = new ResizeObserver(scheduleFit);
     ro.observe(container);
-    ro.observe(element);
   }
 
   // Re-fit quando fonts terminam de carregar (Inter via Google Fonts
-  // chega depois do primeiro paint)
-  let cancelled = false;
+  // chega depois do primeiro paint).
   if (typeof document !== "undefined" && "fonts" in document) {
     document.fonts.ready
       .then(() => {
-        if (!cancelled) fit();
+        if (!cancelled) scheduleFit();
       })
       .catch(() => {
         /* ignore */
@@ -82,6 +103,7 @@ export function observeFit(
 
   return () => {
     cancelled = true;
+    if (raf) cancelAnimationFrame(raf);
     ro?.disconnect();
   };
 }
