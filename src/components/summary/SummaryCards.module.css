@@ -130,9 +130,22 @@
   letter-spacing: -0.04em;
   font-variant-numeric: tabular-nums;
   color: var(--hero-fg);
-  display: block;
+  /* inline-block é essencial: pra display:block, scrollWidth devolve a
+     largura do container e o auto-fit nunca enxerga overflow real. */
+  display: inline-block;
+  max-width: 100%;
   white-space: nowrap;
-  /* font-size definido dinamicamente em runtime (auto-shrink via JS) */
+  /* Tamanho base fixo no CSS — o fitText (lib/fitText.ts) só REDUZ
+     via inline style quando o texto não cabe. Se o JS falhar/atrasar,
+     o valor renderiza no tamanho correto em vez de cair pra fonte
+     herdada minúscula. */
+  font-size: 44px;
+}
+
+@media (min-width: 768px) {
+  .heroValue {
+    font-size: 64px;
+  }
 }
 
 .heroNeg {
@@ -235,10 +248,13 @@
   font-variant-numeric: tabular-nums;
   line-height: 1.1;
   margin-top: 2px;
-  display: block;
+  /* inline-block é essencial pro auto-fit funcionar — display:block
+     faz scrollWidth devolver a largura do container. */
+  display: inline-block;
+  max-width: 100%;
   white-space: nowrap;
   overflow: hidden;
-  /* font-size definido dinamicamente em runtime (auto-shrink via JS) */
+  /* Tamanho base — o fitText (lib/fitText.ts) só reduz se overflow. */
   font-size: var(--t-h2);
 }
 
