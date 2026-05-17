@@ -638,15 +638,37 @@ export default function App() {
           const others = state.rows.filter(
             (r) => r.businessId !== activeBusinessId,
           );
-          replaceAllRows(others);
           const otherClients = state.clients.filter(
             (c) => c.businessId !== activeBusinessId,
           );
-          replaceAllClients(otherClients);
           const otherCatalog = state.catalog.filter(
             (c) => c.businessId !== activeBusinessId,
           );
-          replaceAllCatalog(otherCatalog);
+
+          if (!auth.user) {
+            // Limpeza local sem sessão: aplicamos tudo via `replaceState`
+            // pra controlar o `lastModified`. Setamos pra epoch — assim,
+            // quando o usuário logar de novo, o snapshot da nuvem (com
+            // `lastModified` real) sempre ganha do clear local e os
+            // dados voltam intactos. Sem isso, o clear avançaria o
+            // `lastModified` pra agora e o sync logo após o login
+            // sobrescreveria a nuvem com o estado vazio.
+            replaceState({
+              ...state,
+              rows: others,
+              clients: otherClients,
+              catalog: otherCatalog,
+              lastModified: new Date(0).toISOString(),
+            });
+          } else {
+            // Com sessão ativa, o usuário já viu o aviso de que a nuvem
+            // também será apagada — comportamento intencional. Cada
+            // mutate avança o `lastModified` e o push debounceado vai
+            // levar o estado vazio pro Supabase.
+            replaceAllRows(others);
+            replaceAllClients(otherClients);
+            replaceAllCatalog(otherCatalog);
+          }
         }}
         onToast={pushToast}
       />
