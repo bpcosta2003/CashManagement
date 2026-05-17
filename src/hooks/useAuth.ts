@@ -41,6 +41,10 @@ function translateAuthError(message: string): string {
     return "Falha na verificação anti-robô. Tente novamente.";
   }
 
+  if (/captcha[_ ]token[_ ]required/i.test(message)) {
+    return "Aguarde a verificação anti-robô terminar antes de enviar.";
+  }
+
   if (/network|fetch|timeout/i.test(message)) {
     return "Sem conexão com o servidor. Verifique sua internet e tente de novo.";
   }
@@ -90,11 +94,19 @@ export function useAuth() {
   }, [supabase]);
 
   const signInWithEmail = useCallback(
-    async (email: string) => {
+    async (email: string, captchaToken?: string) => {
       if (!supabase) throw new Error("Supabase não configurado");
       const { error } = await supabase.auth.signInWithOtp({
         email,
-        options: { emailRedirectTo: window.location.origin },
+        options: {
+          emailRedirectTo: window.location.origin,
+          // Quando o Supabase tem CAPTCHA habilitado, o token do
+          // Turnstile precisa vir junto com a request — sem isso, a API
+          // retorna "captcha_token_required". Repassamos `undefined` se
+          // ainda não houver token, deixando o Supabase rejeitar com
+          // mensagem clara que o LoginPanel já traduz.
+          captchaToken,
+        },
       });
       if (error) {
         throw new Error(translateAuthError(error.message));
