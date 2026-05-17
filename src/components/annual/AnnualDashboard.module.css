@@ -202,8 +202,20 @@
   letter-spacing: -0.04em;
   font-variant-numeric: tabular-nums;
   color: var(--hero-fg);
-  display: block;
+  /* inline-block é essencial: display:block faz scrollWidth devolver
+     a largura do container e o auto-fit (FitText) nunca enxerga
+     overflow real. */
+  display: inline-block;
+  max-width: 100%;
   white-space: nowrap;
+  /* Tamanho base — o FitText só reduz quando o texto não cabe. */
+  font-size: 36px;
+}
+
+@media (min-width: 768px) {
+  .heroValue {
+    font-size: 48px;
+  }
 }
 
 .heroNeg {
@@ -515,7 +527,8 @@
   color: var(--text);
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
-  display: block;
+  display: inline-block;
+  max-width: 100%;
   white-space: nowrap;
 }
 

@@ -46,7 +46,12 @@ export function FitText({
       ref={ref}
       className={className}
       style={{
-        display: "block",
+        // inline-block é crítico: pra display:block, scrollWidth devolve
+        // a largura do container — o auto-fit (observeFit) nunca enxerga
+        // overflow real e nunca shrink. max-width: 100% mantém o
+        // comportamento de não ultrapassar o pai.
+        display: "inline-block",
+        maxWidth: "100%",
         whiteSpace: "nowrap",
         ...style,
       }}
