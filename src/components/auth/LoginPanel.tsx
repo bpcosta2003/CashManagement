@@ -1,7 +1,18 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { User } from "@supabase/supabase-js";
+import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile";
 import type { SyncStatus } from "../../hooks/useSync";
 import styles from "./LoginPanel.module.css";
+
+/**
+ * Site key pública do Cloudflare Turnstile. Vem do Vercel (env var no
+ * deploy). Quando ausente, o widget não é renderizado e o login funciona
+ * como antes — útil pra dev local e pra rollback rápido se o CAPTCHA
+ * der problema.
+ */
+const TURNSTILE_SITE_KEY = (
+  import.meta.env.VITE_TURNSTILE_SITE_KEY ?? ""
+).trim();
 
 interface Props {
   open: boolean;
@@ -9,7 +20,7 @@ interface Props {
   syncStatus: SyncStatus;
   lastSyncAt: string | null;
   onClose: () => void;
-  onSignIn: (email: string) => Promise<void>;
+  onSignIn: (email: string, captchaToken?: string) => Promise<void>;
   onSignOut: () => Promise<void>;
 }
 
@@ -36,22 +47,43 @@ export function LoginPanel({
   const [info, setInfo] = useState<{ kind: "success" | "error"; msg: string } | null>(
     null,
   );
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const turnstileRef = useRef<TurnstileInstance | null>(null);
+
+  const turnstileEnabled = TURNSTILE_SITE_KEY.length > 0;
 
   if (!open) return null;
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || submitting) return;
+    if (turnstileEnabled && !captchaToken) {
+      setInfo({
+        kind: "error",
+        msg: "Aguarde a verificação anti-robô terminar antes de enviar.",
+      });
+      return;
+    }
     setSubmitting(true);
     setInfo(null);
     try {
-      await onSignIn(email);
+      await onSignIn(email, captchaToken ?? undefined);
       setInfo({
         kind: "success",
         msg: `Enviamos um link mágico para ${email}. Abra o e-mail e clique para entrar.`,
       });
+      // Tokens do Turnstile são single-use. Após o uso, reseta o widget
+      // pra gerar um novo (caso o usuário precise re-enviar).
+      if (turnstileEnabled) {
+        setCaptchaToken(null);
+        turnstileRef.current?.reset();
+      }
     } catch (e) {
       setInfo({ kind: "error", msg: (e as Error).message });
+      if (turnstileEnabled) {
+        setCaptchaToken(null);
+        turnstileRef.current?.reset();
+      }
     } finally {
       setSubmitting(false);
     }
@@ -127,7 +159,30 @@ export function LoginPanel({
               />
             </div>
 
-            <button className={styles.cta} type="submit" disabled={submitting}>
+            {turnstileEnabled && (
+              <div className={styles.captcha}>
+                <Turnstile
+                  ref={turnstileRef}
+                  siteKey={TURNSTILE_SITE_KEY}
+                  options={{
+                    theme: "auto",
+                    size: "flexible",
+                    appearance: "always",
+                  }}
+                  onSuccess={(token) => setCaptchaToken(token)}
+                  onError={() => setCaptchaToken(null)}
+                  onExpire={() => setCaptchaToken(null)}
+                />
+              </div>
+            )}
+
+            <button
+              className={styles.cta}
+              type="submit"
+              disabled={
+                submitting || (turnstileEnabled && !captchaToken)
+              }
+            >
               {submitting ? "Enviando…" : "Receber link mágico"}
             </button>
 

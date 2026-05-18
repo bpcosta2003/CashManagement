@@ -120,6 +120,15 @@
   box-shadow: 0 0 0 4px var(--accent-soft);
 }
 
+/* Container do widget Turnstile — só renderizado quando
+   VITE_TURNSTILE_SITE_KEY está configurado. Centraliza e dá um respiro
+   sem competir visualmente com o resto do form. */
+.captcha {
+  display: flex;
+  justify-content: center;
+  min-height: 65px;
+}
+
 .cta {
   background: var(--accent);
   color: var(--accent-on);
