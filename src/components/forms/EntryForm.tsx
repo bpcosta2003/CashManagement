@@ -23,6 +23,9 @@ interface Props {
   catalog: CatalogItem[];
   /** Todos os lançamentos do empreendimento ativo — usados pra histórico. */
   allRows?: Row[];
+  /** Taxa fixa do empreendimento ativo (%). Mostrada como disabled no
+   *  form e usada no cálculo do líquido. Default 0 (sem taxa). */
+  taxaFixaPct?: number;
   onSave: (row: Row, clientPhone?: string) => void;
   onDelete?: () => void;
   onCancel: () => void;
@@ -65,12 +68,32 @@ function findClient(clients: Client[], name: string): Client | undefined {
   return clients.find((c) => c.name.toLowerCase() === trimmed);
 }
 
+/** Formata número pt-BR pra exibição num input (vírgula como separador,
+ *  sem casas se inteiro, até 4 casas se decimal). Mantém o texto que o
+ *  usuário acabou de digitar — input dedicado pra valores percentuais
+ *  curtos. */
+function fmtNumBR(n: number): string {
+  if (!Number.isFinite(n) || n === 0) return "";
+  // toFixed sem casas extras: 1.5 -> "1,5", 2 -> "2", 1.234 -> "1,234"
+  return String(n).replace(".", ",");
+}
+
+/** Faz parse de input pt-BR pra número. Aceita vírgula ou ponto. */
+function parseNumBR(text: string): number {
+  if (!text) return 0;
+  const cleaned = text.replace(",", ".").replace(/[^0-9.]/g, "");
+  if (!cleaned || cleaned === ".") return 0;
+  const n = parseFloat(cleaned);
+  return Number.isFinite(n) ? n : 0;
+}
+
 export function EntryForm({
   initial,
   isNew = false,
   clients,
   catalog,
   allRows = [],
+  taxaFixaPct = 0,
   onSave,
   onDelete,
   onCancel,
@@ -80,6 +103,14 @@ export function EntryForm({
   const [errors, setErrors] = useState<Errors>({});
   const [submitted, setSubmitted] = useState(false);
   const [phone, setPhone] = useState("");
+  // Texto bruto da TAXA — preserva o que o usuário digitou (ex.: "1,") sem
+  // ser perdido quando o número derivado é 1 e a re-renderização mostraria
+  // só "1". Sincroniza com draft.taxa apenas em mudanças externas
+  // (forma/parc trocam → autoTaxa muda → atualizamos o texto).
+  const [taxaText, setTaxaText] = useState(() => fmtNumBR(initial.taxa));
+  const [auxiliarText, setAuxiliarText] = useState(() =>
+    fmtNumBR(initial.auxiliarPct ?? 0),
+  );
 
   // Cliente conhecido = casamento exato (case-insensitive) com a base
   const knownClient = useMemo(
@@ -133,6 +164,8 @@ export function EntryForm({
     setTaxaTouched(false);
     setErrors({});
     setSubmitted(false);
+    setTaxaText(fmtNumBR(initial.taxa));
+    setAuxiliarText(fmtNumBR(initial.auxiliarPct ?? 0));
     // Telefone: se o cliente já está cadastrado, prefilla. Senão, vazio.
     const found = findClient(clients, initial.cliente);
     setPhone(formatPhoneBR(found?.phone ?? ""));
@@ -182,10 +215,12 @@ export function EntryForm({
         next.taxa = autoTaxa(value as string, next.parc);
         if (value !== "Crédito") next.parc = 1;
         setTaxaTouched(false);
+        setTaxaText(fmtNumBR(next.taxa));
       }
       if (field === "parc") {
         next.taxa = autoTaxa(next.forma, value as number);
         setTaxaTouched(false);
+        setTaxaText(fmtNumBR(next.taxa));
       }
       if (field === "taxa") {
         setTaxaTouched(true);
@@ -208,7 +243,7 @@ export function EntryForm({
     }
   };
 
-  const calc = calcRow(draft);
+  const calc = calcRow(draft, { taxaFixaPct });
   const isAutoTaxa =
     !taxaTouched && draft.taxa === autoTaxa(draft.forma, draft.parc);
 
@@ -319,7 +354,7 @@ export function EntryForm({
           </div>
           <ul className={styles.historyList}>
             {clientHistory.map((r) => {
-              const calc = calcRow(r);
+              const calc = calcRow(r, { taxaFixaPct });
               const date = new Date(r.criadoEm);
               const dateLbl = isNaN(date.getTime())
                 ? "—"
@@ -476,10 +511,15 @@ export function EntryForm({
               className={`${styles.input} ${errors.taxa ? styles.inputError : ""}`}
               type="text"
               inputMode="decimal"
-              value={draft.taxa === 0 ? "" : String(draft.taxa).replace(".", ",")}
+              value={taxaText}
               onChange={(e) => {
-                const raw = e.target.value.replace(",", ".").replace(/[^0-9.]/g, "");
-                update("taxa", raw === "" ? 0 : +raw);
+                const text = e.target.value;
+                // Permite só dígitos, vírgula e ponto. Não mata o texto
+                // mid-digitação — "1," continua "1," até o usuário
+                // continuar digitando.
+                const allowed = text.replace(/[^0-9.,]/g, "");
+                setTaxaText(allowed);
+                update("taxa", parseNumBR(allowed));
               }}
               placeholder="0,00"
               aria-invalid={!!errors.taxa}
@@ -519,10 +559,12 @@ export function EntryForm({
               className={`${styles.input} ${errors.taxa ? styles.inputError : ""}`}
               type="text"
               inputMode="decimal"
-              value={draft.taxa === 0 ? "" : String(draft.taxa).replace(".", ",")}
+              value={taxaText}
               onChange={(e) => {
-                const raw = e.target.value.replace(",", ".").replace(/[^0-9.]/g, "");
-                update("taxa", raw === "" ? 0 : +raw);
+                const text = e.target.value;
+                const allowed = text.replace(/[^0-9.,]/g, "");
+                setTaxaText(allowed);
+                update("taxa", parseNumBR(allowed));
               }}
               placeholder="0,00"
               aria-invalid={!!errors.taxa}
@@ -532,6 +574,50 @@ export function EntryForm({
             )}
           </div>
         )}
+      </div>
+
+      <div className={styles.row}>
+        <div className={styles.field}>
+          <label htmlFor="ef-taxa-fixa" className={styles.label}>
+            Taxa do negócio %{" "}
+            <span className={styles.labelHintSoft}>· fixa</span>
+          </label>
+          <input
+            id="ef-taxa-fixa"
+            className={styles.input}
+            type="text"
+            inputMode="decimal"
+            value={
+              taxaFixaPct > 0 ? fmtNumBR(taxaFixaPct) : ""
+            }
+            placeholder={taxaFixaPct > 0 ? "" : "—"}
+            disabled
+            aria-label="Taxa fixa do negócio — configurada em Empreendimentos"
+            title={
+              taxaFixaPct > 0
+                ? "Configurada no empreendimento. Edite em Empreendimentos."
+                : "Não configurada. Defina em Empreendimentos pra aplicar a todos os lançamentos."
+            }
+          />
+        </div>
+        <div className={styles.field}>
+          <label htmlFor="ef-auxiliar" className={styles.label}>
+            Auxiliar do serviço %
+          </label>
+          <input
+            id="ef-auxiliar"
+            className={styles.input}
+            type="text"
+            inputMode="decimal"
+            value={auxiliarText}
+            onChange={(e) => {
+              const allowed = e.target.value.replace(/[^0-9.,]/g, "");
+              setAuxiliarText(allowed);
+              update("auxiliarPct", parseNumBR(allowed));
+            }}
+            placeholder="0,00"
+          />
+        </div>
       </div>
 
       <div className={styles.field}>
@@ -563,14 +649,44 @@ export function EntryForm({
           <span className={styles.previewLabel}>Valor efetivo</span>
           <span className={styles.previewValue}>{fmtBRL(calc.vef)}</span>
         </div>
-        <div className={styles.previewRow}>
-          <span className={styles.previewLabel}>Taxa ({draft.taxa}%)</span>
-          <span className={styles.previewValue}>− {fmtBRL(calc.taxaVal)}</span>
-        </div>
-        <div className={styles.previewRow}>
-          <span className={styles.previewLabel}>Custo</span>
-          <span className={styles.previewValue}>− {fmtBRL(calc.custoVal)}</span>
-        </div>
+        {calc.taxaVal > 0 && (
+          <div className={styles.previewRow}>
+            <span className={styles.previewLabel}>
+              Taxa cartão ({fmtNumBR(draft.taxa)}%)
+            </span>
+            <span className={styles.previewValue}>
+              − {fmtBRL(calc.taxaVal)}
+            </span>
+          </div>
+        )}
+        {calc.custoVal > 0 && (
+          <div className={styles.previewRow}>
+            <span className={styles.previewLabel}>Custo</span>
+            <span className={styles.previewValue}>
+              − {fmtBRL(calc.custoVal)}
+            </span>
+          </div>
+        )}
+        {calc.taxaFixaVal > 0 && (
+          <div className={styles.previewRow}>
+            <span className={styles.previewLabel}>
+              Taxa do negócio ({fmtNumBR(taxaFixaPct)}%)
+            </span>
+            <span className={styles.previewValue}>
+              − {fmtBRL(calc.taxaFixaVal)}
+            </span>
+          </div>
+        )}
+        {calc.auxiliarVal > 0 && (
+          <div className={styles.previewRow}>
+            <span className={styles.previewLabel}>
+              Auxiliar ({fmtNumBR(draft.auxiliarPct ?? 0)}%)
+            </span>
+            <span className={styles.previewValue}>
+              − {fmtBRL(calc.auxiliarVal)}
+            </span>
+          </div>
+        )}
         <div className={styles.previewDivider} aria-hidden="true" />
         <div className={`${styles.previewRow} ${styles.previewTotal}`}>
           <span className={styles.previewLabel}>LÍQUIDO</span>

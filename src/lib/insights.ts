@@ -38,14 +38,14 @@ export function computeInsights({ rows, mes, ano, now }: Params): Insight[] {
   const cur = rows.filter((r) => r.mes === mes && r.ano === ano && +r.valor > 0);
   if (cur.length === 0) return [];
 
-  const curCalc = cur.map(calcRow);
+  const curCalc = cur.map((r) => calcRow(r));
   const curBruto = curCalc.reduce((s, r) => s + r.v, 0);
 
   const prevMes = mes === 0 ? 11 : mes - 1;
   const prevAno = mes === 0 ? ano - 1 : ano;
   const prev = rows
     .filter((r) => r.mes === prevMes && r.ano === prevAno && +r.valor > 0)
-    .map(calcRow);
+    .map((r) => calcRow(r));
   const prevBruto = prev.reduce((s, r) => s + r.v, 0);
 
   const oldPending = cur.filter((r) => {

@@ -30,7 +30,7 @@ interface Props {
   }) => string;
   onUpdate: (
     id: string,
-    patch: Partial<Pick<Business, "name" | "type" | "logo">>,
+    patch: Partial<Pick<Business, "name" | "type" | "logo" | "taxaFixaPct">>,
   ) => void;
   onDelete: (id: string) => void;
 }
@@ -176,12 +176,15 @@ export function BusinessSwitcher({
               onSubmit={(data) => {
                 // logo: undefined = não mexer; null = remover
                 const patch: Partial<
-                  Pick<Business, "name" | "type" | "logo">
+                  Pick<Business, "name" | "type" | "logo" | "taxaFixaPct">
                 > = { name: data.name, type: data.type };
                 if (data.logo === null) {
                   patch.logo = undefined;
                 } else if (typeof data.logo === "string") {
                   patch.logo = data.logo;
+                }
+                if (typeof data.taxaFixaPct === "number") {
+                  patch.taxaFixaPct = data.taxaFixaPct;
                 }
                 onUpdate(view.business.id, patch);
                 setView({ mode: "list" });
@@ -402,6 +405,7 @@ interface FormProps {
     name: string;
     type: BusinessType;
     logo?: string | null;
+    taxaFixaPct?: number;
   }) => void;
   onCancel: () => void;
   onDelete?: () => void;
@@ -413,6 +417,12 @@ function BusinessForm({ initial, onSubmit, onCancel, onDelete }: FormProps) {
   const [logo, setLogo] = useState<string | undefined>(initial?.logo);
   const [logoError, setLogoError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Texto bruto da taxa fixa — preserva "1," durante a digitação.
+  const [taxaFixaText, setTaxaFixaText] = useState(
+    initial?.taxaFixaPct && initial.taxaFixaPct > 0
+      ? String(initial.taxaFixaPct).replace(".", ",")
+      : "",
+  );
   const logoInputRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -425,7 +435,10 @@ function BusinessForm({ initial, onSubmit, onCancel, onDelete }: FormProps) {
     // logo === undefined → não mexer; null → remover; string → atualizar
     const logoPatch =
       logo === initial?.logo ? undefined : logo === undefined ? null : logo;
-    onSubmit({ name: trimmed, type, logo: logoPatch });
+    // Taxa fixa: vazio → 0 (sem taxa). Parse pt-BR (vírgula ou ponto).
+    const cleaned = taxaFixaText.replace(",", ".").replace(/[^0-9.]/g, "");
+    const taxaFixaPct = cleaned ? Math.max(0, Math.min(100, parseFloat(cleaned) || 0)) : 0;
+    onSubmit({ name: trimmed, type, logo: logoPatch, taxaFixaPct });
   };
 
   const handleLogoPick = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -529,6 +542,31 @@ function BusinessForm({ initial, onSubmit, onCancel, onDelete }: FormProps) {
           </div>
         </div>
         {logoError && <span className={styles.errorMsg}>{logoError}</span>}
+      </div>
+
+      <div className={styles.field}>
+        <label htmlFor="bs-taxafixa" className={styles.label}>
+          Taxa fixa do negócio %{" "}
+          <span className={styles.labelHint}>· opcional</span>
+        </label>
+        <input
+          id="bs-taxafixa"
+          className={styles.input}
+          type="text"
+          inputMode="decimal"
+          value={taxaFixaText}
+          onChange={(e) => {
+            const allowed = e.target.value.replace(/[^0-9.,]/g, "");
+            setTaxaFixaText(allowed);
+          }}
+          placeholder="Ex: 30"
+          maxLength={6}
+        />
+        <span className={styles.fieldHint}>
+          Percentual que vai pra terceiros (cessão de cadeira, repasse pro
+          estabelecimento, etc.). Aplicado em TODOS os lançamentos deste
+          empreendimento, sobre o subtotal após custo.
+        </span>
       </div>
 
       <div className={styles.actions}>

@@ -33,7 +33,7 @@ export function useActivity(
     const scopedClients = clients.filter(
       (c) => c.businessId === activeBusinessId,
     );
-    const calced = scopedRows.map(calcRow);
+    const calced = scopedRows.map((r) => calcRow(r));
 
     // Inicializa 12 meses
     const buckets: MonthActivity[] = Array.from({ length: 12 }, (_, m) => ({

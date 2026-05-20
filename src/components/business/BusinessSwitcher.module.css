@@ -423,6 +423,14 @@
   margin-left: 6px;
 }
 
+.fieldHint {
+  display: block;
+  margin-top: 6px;
+  font-size: var(--t-caption);
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
 .actions {
   display: flex;
   gap: 8px;

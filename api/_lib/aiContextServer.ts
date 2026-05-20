@@ -232,7 +232,7 @@ export function validateAndBuildContext(body: AnalyzeBody): BuildContextResult {
 
   const monthCalc = rows
     .filter((r) => r.mes === mes && r.ano === ano && (+r.valor || 0) > 0)
-    .map(calcRow);
+    .map((r) => calcRow(r, { taxaFixaPct: business.taxaFixaPct ?? 0 }));
 
   const summary: Summary = monthCalc.reduce(
     (acc, r) => {

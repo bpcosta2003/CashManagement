@@ -16,6 +16,7 @@ export function useCalc(
   mes: number,
   ano: number,
   activeBusinessId: string,
+  taxaFixaPct = 0,
 ) {
   // Filtra primeiro pelo empreendimento ativo — todo o resto trabalha
   // só com os lançamentos desse business.
@@ -28,8 +29,8 @@ export function useCalc(
   );
 
   const allCalc = useMemo<CalculatedRow[]>(
-    () => scopedRows.map(calcRow),
-    [scopedRows],
+    () => scopedRows.map((r) => calcRow(r, { taxaFixaPct })),
+    [scopedRows, taxaFixaPct],
   );
 
   const monthRows = useMemo<CalculatedRow[]>(
