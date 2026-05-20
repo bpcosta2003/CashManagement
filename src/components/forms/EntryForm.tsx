@@ -517,23 +517,24 @@ export function EntryForm({
         </div>
       )}
 
-      <div className={styles.row}>
-        <div className={styles.field}>
-          <label className={styles.label}>Custo do serviço</label>
-          <input
-            className={styles.input}
-            inputMode="decimal"
-            type="number"
-            step="0.01"
-            min="0"
-            value={draft.custo === "" ? "" : draft.custo}
-            onChange={(e) =>
-              update("custo", e.target.value === "" ? "" : +e.target.value)
-            }
-            placeholder="0,00"
-          />
-        </div>
-        {draft.forma === "Débito" && (
+      {draft.forma === "Débito" ? (
+        // Débito: Custo + Taxa lado a lado (Taxa é obrigatória).
+        <div className={styles.row}>
+          <div className={styles.field}>
+            <label className={styles.label}>Custo do serviço</label>
+            <input
+              className={styles.input}
+              inputMode="decimal"
+              type="number"
+              step="0.01"
+              min="0"
+              value={draft.custo === "" ? "" : draft.custo}
+              onChange={(e) =>
+                update("custo", e.target.value === "" ? "" : +e.target.value)
+              }
+              placeholder="0,00"
+            />
+          </div>
           <div className={styles.field}>
             <label className={styles.label}>
               Taxa % <span className={styles.required}>*</span>
@@ -559,8 +560,27 @@ export function EntryForm({
               <span className={styles.errorMsg}>{errors.taxa}</span>
             )}
           </div>
-        )}
-      </div>
+        </div>
+      ) : (
+        // Dinheiro, Pix ou Crédito: Custo sozinho na linha inteira.
+        // Crédito já mostra Parcelas+Taxa numa row própria acima — aqui
+        // só sobra o Custo.
+        <div className={styles.field}>
+          <label className={styles.label}>Custo do serviço</label>
+          <input
+            className={styles.input}
+            inputMode="decimal"
+            type="number"
+            step="0.01"
+            min="0"
+            value={draft.custo === "" ? "" : draft.custo}
+            onChange={(e) =>
+              update("custo", e.target.value === "" ? "" : +e.target.value)
+            }
+            placeholder="0,00"
+          />
+        </div>
+      )}
 
       <div className={styles.row}>
         <div className={styles.field}>
