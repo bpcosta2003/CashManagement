@@ -8,6 +8,11 @@ import type {
 } from "../../types";
 import { FORMAS_PAGAMENTO, STATUS_OPTIONS } from "../../constants";
 import { autoTaxa, calcRow, fmtBRL, fmtPct } from "../../lib/calc";
+import {
+  formatDecimalBR,
+  parseDecimalBR,
+  sanitizeDecimalText,
+} from "../../lib/numberInput";
 import { formatPhoneBR } from "../../lib/phone";
 import { ClientCombobox } from "./ClientCombobox";
 import { ServicoCombobox } from "./ServicoCombobox";
@@ -68,25 +73,6 @@ function findClient(clients: Client[], name: string): Client | undefined {
   return clients.find((c) => c.name.toLowerCase() === trimmed);
 }
 
-/** Formata número pt-BR pra exibição num input (vírgula como separador,
- *  sem casas se inteiro, até 4 casas se decimal). Mantém o texto que o
- *  usuário acabou de digitar — input dedicado pra valores percentuais
- *  curtos. */
-function fmtNumBR(n: number): string {
-  if (!Number.isFinite(n) || n === 0) return "";
-  // toFixed sem casas extras: 1.5 -> "1,5", 2 -> "2", 1.234 -> "1,234"
-  return String(n).replace(".", ",");
-}
-
-/** Faz parse de input pt-BR pra número. Aceita vírgula ou ponto. */
-function parseNumBR(text: string): number {
-  if (!text) return 0;
-  const cleaned = text.replace(",", ".").replace(/[^0-9.]/g, "");
-  if (!cleaned || cleaned === ".") return 0;
-  const n = parseFloat(cleaned);
-  return Number.isFinite(n) ? n : 0;
-}
-
 export function EntryForm({
   initial,
   isNew = false,
@@ -107,9 +93,9 @@ export function EntryForm({
   // ser perdido quando o número derivado é 1 e a re-renderização mostraria
   // só "1". Sincroniza com draft.taxa apenas em mudanças externas
   // (forma/parc trocam → autoTaxa muda → atualizamos o texto).
-  const [taxaText, setTaxaText] = useState(() => fmtNumBR(initial.taxa));
+  const [taxaText, setTaxaText] = useState(() => formatDecimalBR(initial.taxa));
   const [auxiliarText, setAuxiliarText] = useState(() =>
-    fmtNumBR(initial.auxiliarPct ?? 0),
+    formatDecimalBR(initial.auxiliarPct ?? 0),
   );
 
   // Cliente conhecido = casamento exato (case-insensitive) com a base
@@ -164,8 +150,8 @@ export function EntryForm({
     setTaxaTouched(false);
     setErrors({});
     setSubmitted(false);
-    setTaxaText(fmtNumBR(initial.taxa));
-    setAuxiliarText(fmtNumBR(initial.auxiliarPct ?? 0));
+    setTaxaText(formatDecimalBR(initial.taxa));
+    setAuxiliarText(formatDecimalBR(initial.auxiliarPct ?? 0));
     // Telefone: se o cliente já está cadastrado, prefilla. Senão, vazio.
     const found = findClient(clients, initial.cliente);
     setPhone(formatPhoneBR(found?.phone ?? ""));
@@ -215,12 +201,12 @@ export function EntryForm({
         next.taxa = autoTaxa(value as string, next.parc);
         if (value !== "Crédito") next.parc = 1;
         setTaxaTouched(false);
-        setTaxaText(fmtNumBR(next.taxa));
+        setTaxaText(formatDecimalBR(next.taxa));
       }
       if (field === "parc") {
         next.taxa = autoTaxa(next.forma, value as number);
         setTaxaTouched(false);
-        setTaxaText(fmtNumBR(next.taxa));
+        setTaxaText(formatDecimalBR(next.taxa));
       }
       if (field === "taxa") {
         setTaxaTouched(true);
@@ -517,9 +503,9 @@ export function EntryForm({
                 // Permite só dígitos, vírgula e ponto. Não mata o texto
                 // mid-digitação — "1," continua "1," até o usuário
                 // continuar digitando.
-                const allowed = text.replace(/[^0-9.,]/g, "");
+                const allowed = sanitizeDecimalText(text);
                 setTaxaText(allowed);
-                update("taxa", parseNumBR(allowed));
+                update("taxa", parseDecimalBR(allowed));
               }}
               placeholder="0,00"
               aria-invalid={!!errors.taxa}
@@ -562,9 +548,9 @@ export function EntryForm({
               value={taxaText}
               onChange={(e) => {
                 const text = e.target.value;
-                const allowed = text.replace(/[^0-9.,]/g, "");
+                const allowed = sanitizeDecimalText(text);
                 setTaxaText(allowed);
-                update("taxa", parseNumBR(allowed));
+                update("taxa", parseDecimalBR(allowed));
               }}
               placeholder="0,00"
               aria-invalid={!!errors.taxa}
@@ -588,7 +574,7 @@ export function EntryForm({
             type="text"
             inputMode="decimal"
             value={
-              taxaFixaPct > 0 ? fmtNumBR(taxaFixaPct) : ""
+              taxaFixaPct > 0 ? formatDecimalBR(taxaFixaPct) : ""
             }
             placeholder={taxaFixaPct > 0 ? "" : "—"}
             disabled
@@ -611,9 +597,9 @@ export function EntryForm({
             inputMode="decimal"
             value={auxiliarText}
             onChange={(e) => {
-              const allowed = e.target.value.replace(/[^0-9.,]/g, "");
+              const allowed = sanitizeDecimalText(e.target.value);
               setAuxiliarText(allowed);
-              update("auxiliarPct", parseNumBR(allowed));
+              update("auxiliarPct", parseDecimalBR(allowed));
             }}
             placeholder="0,00"
           />
@@ -652,7 +638,7 @@ export function EntryForm({
         {calc.taxaVal > 0 && (
           <div className={styles.previewRow}>
             <span className={styles.previewLabel}>
-              Taxa cartão ({fmtNumBR(draft.taxa)}%)
+              Taxa cartão ({formatDecimalBR(draft.taxa)}%)
             </span>
             <span className={styles.previewValue}>
               − {fmtBRL(calc.taxaVal)}
@@ -670,7 +656,7 @@ export function EntryForm({
         {calc.taxaFixaVal > 0 && (
           <div className={styles.previewRow}>
             <span className={styles.previewLabel}>
-              Taxa do negócio ({fmtNumBR(taxaFixaPct)}%)
+              Taxa do negócio ({formatDecimalBR(taxaFixaPct)}%)
             </span>
             <span className={styles.previewValue}>
               − {fmtBRL(calc.taxaFixaVal)}
@@ -680,7 +666,7 @@ export function EntryForm({
         {calc.auxiliarVal > 0 && (
           <div className={styles.previewRow}>
             <span className={styles.previewLabel}>
-              Auxiliar ({fmtNumBR(draft.auxiliarPct ?? 0)}%)
+              Auxiliar ({formatDecimalBR(draft.auxiliarPct ?? 0)}%)
             </span>
             <span className={styles.previewValue}>
               − {fmtBRL(calc.auxiliarVal)}
