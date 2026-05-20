@@ -192,9 +192,9 @@ export default function App() {
     liqDelta,
     prevMonthLabel,
     sparkline,
-  } = useCalc(state.rows, mes, ano, activeBusinessId);
+  } = useCalc(state.rows, mes, ano, activeBusinessId, activeBusiness?.taxaFixaPct ?? 0);
 
-  const annual = useAnnual(state.rows, ano, activeBusinessId);
+  const annual = useAnnual(state.rows, ano, activeBusinessId, activeBusiness?.taxaFixaPct ?? 0);
   const activity = useActivity(state.rows, state.clients, ano, activeBusinessId);
   const clientStats = useClients(state.clients, state.rows, activeBusinessId);
 
@@ -561,6 +561,7 @@ export default function App() {
             allRows={state.rows.filter(
               (r) => !activeBusinessId || r.businessId === activeBusinessId,
             )}
+            taxaFixaPct={activeBusiness?.taxaFixaPct ?? 0}
             onSave={handleSave}
             onDelete={
               sheetMode?.kind === "edit" ? handleDeleteFromSheet : undefined

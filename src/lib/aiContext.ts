@@ -203,7 +203,7 @@ export function buildAiContext(input: AiContextInput): AiContextOutput {
 
   // Filtra linhas do empreendimento ativo
   const businessRows = allRows.filter((r) => r.businessId === business.id);
-  const allCalc = businessRows.map(calcRow);
+  const allCalc = businessRows.map((r) => calcRow(r));
 
   const monthRows = allCalc.filter(
     (r) => r.mes === mes && r.ano === ano && r.v > 0,

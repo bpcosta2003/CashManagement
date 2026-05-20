@@ -36,7 +36,7 @@ export function useClients(
     const scopedRows = rows.filter((r) => r.businessId === activeBusinessId);
 
     // Pré-calcula líquido por linha
-    const calced = scopedRows.map(calcRow);
+    const calced = scopedRows.map((r) => calcRow(r));
 
     return scopedClients
       .map((client) => {

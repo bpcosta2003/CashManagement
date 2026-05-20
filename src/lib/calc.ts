@@ -26,12 +26,39 @@ export function addMes(m: number, y: number, n: number) {
   return { m: nm, y: ny };
 }
 
-export function calcRow(r: Row): CalculatedRow {
+/**
+ * Calcula totais e líquido de um lançamento, considerando:
+ *   1. Valor bruto (preço)
+ *   2. Desconto → valor efetivo (vef)
+ *   3. Taxa do cartão (% sobre vef)
+ *   4. Custo absoluto do serviço
+ *   5. Taxa fixa do negócio (% sobre subtotal após custo) — passa por opts
+ *   6. Auxiliar do serviço (% sobre subtotal após taxa fixa) — vem do row
+ *
+ * Líquido final = vef − taxaVal − custo − taxaFixaVal − auxiliarVal.
+ * A margem é calculada sobre o bruto (valor), preservando o significado
+ * histórico ("quanto sobra de cada real vendido"). Bruto NÃO muda — taxa
+ * fixa e auxiliar reduzem o que sobra, não o que entrou.
+ */
+export function calcRow(
+  r: Row,
+  opts?: { taxaFixaPct?: number },
+): CalculatedRow {
   const v = +r.valor || 0;
   const d = Math.min(+r.desconto || 0, v);
   const vef = v - d;
   const t = (vef * (+r.taxa || 0)) / 100;
   const c = +r.custo || 0;
+  const afterCost = vef - t - c;
+
+  const taxaFixaPct = Math.max(0, Math.min(100, +(opts?.taxaFixaPct || 0)));
+  const taxaFixaVal = (afterCost * taxaFixaPct) / 100;
+  const afterTaxaFixa = afterCost - taxaFixaVal;
+
+  const auxPct = Math.max(0, Math.min(100, +(r.auxiliarPct || 0)));
+  const auxiliarVal = (afterTaxaFixa * auxPct) / 100;
+  const liq = afterTaxaFixa - auxiliarVal;
+
   return {
     ...r,
     v,
@@ -39,8 +66,10 @@ export function calcRow(r: Row): CalculatedRow {
     vef,
     taxaVal: t,
     custoVal: c,
-    liq: vef - t - c,
-    mar: v ? ((vef - t - c) / v) * 100 : 0,
+    taxaFixaVal,
+    auxiliarVal,
+    liq,
+    mar: v ? (liq / v) * 100 : 0,
   };
 }
 

@@ -52,13 +52,14 @@ export function useAnnual(
   rows: Row[],
   ano: number,
   activeBusinessId: string,
+  taxaFixaPct = 0,
 ): AnnualSummary {
   return useMemo(() => {
     const scoped = activeBusinessId
       ? rows.filter((r) => r.businessId === activeBusinessId)
       : rows;
 
-    const calc = scoped.map(calcRow);
+    const calc = scoped.map((r) => calcRow(r, { taxaFixaPct }));
 
     // 12 buckets vazios
     const monthly: MonthBucket[] = Array.from({ length: 12 }, (_, m) => ({
@@ -179,5 +180,5 @@ export function useAnnual(
       liqDelta,
       topServicos,
     };
-  }, [rows, ano, activeBusinessId]);
+  }, [rows, ano, activeBusinessId, taxaFixaPct]);
 }

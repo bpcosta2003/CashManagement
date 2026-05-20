@@ -26,6 +26,12 @@ export interface Business {
   createdAt: string;
   /** Logo customizada (data URL PNG/JPG ~256x256). Substitui a logo padrão. */
   logo?: string;
+  /** Taxa fixa do negócio em % — modela cenários onde um percentual vai
+   *  sempre para uma terceira parte (ex.: barbearia que cede cadeira pro
+   *  profissional, salão que repassa % pro estabelecimento). Aplicada a
+   *  TODOS os lançamentos do empreendimento, calculada sobre o subtotal
+   *  após desconto, taxa de cartão e custo. Default 0 (sem taxa). */
+  taxaFixaPct?: number;
 }
 
 export interface Client {
@@ -82,6 +88,10 @@ export interface Row {
   taxa: number;
   custo: number | "";
   desconto: number | "";
+  /** % do auxiliar do serviço — quando o atendimento envolve um ajudante
+   *  (ex.: cabeleireira com assistente). Aplicado sobre o subtotal após
+   *  a taxa fixa do negócio. Default 0 (sem auxiliar). */
+  auxiliarPct?: number;
   status: StatusPagamento;
   mes: number;
   ano: number;
@@ -94,6 +104,10 @@ export interface CalculatedRow extends Row {
   vef: number;
   taxaVal: number;
   custoVal: number;
+  /** Valor R$ retido pela taxa fixa do negócio. 0 quando não configurada. */
+  taxaFixaVal: number;
+  /** Valor R$ retido pelo auxiliar do serviço. 0 quando auxiliarPct=0. */
+  auxiliarVal: number;
   liq: number;
   mar: number;
 }

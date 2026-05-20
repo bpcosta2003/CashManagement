@@ -136,7 +136,7 @@ export function exportToExcel(
   const byMes: Record<string, CalculatedRow[]> = {};
   rows
     .filter((r) => +r.valor > 0)
-    .map(calcRow)
+    .map((r) => calcRow(r))
     .forEach((r) => {
       const key = `${String(r.ano)}-${String(r.mes).padStart(2, "0")}`;
       if (!byMes[key]) byMes[key] = [];
@@ -209,7 +209,7 @@ export function exportToExcel(
   const projData: (string | number)[][] = [];
   rows
     .filter((r) => r.forma === "Crédito" && +r.valor > 0)
-    .map(calcRow)
+    .map((r) => calcRow(r))
     .forEach((r) => {
       const n = Math.max(1, r.parc || 1);
       for (let i = 1; i <= n; i++) {
