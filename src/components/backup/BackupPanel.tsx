@@ -18,6 +18,9 @@ interface Props {
   rows: Row[];
   clients: Client[];
   catalog: CatalogItem[];
+  /** Taxa fixa atual do empreendimento ativo (%). Vai pro Excel como
+   *  fallback nos lançamentos antigos que ainda não têm snapshot. */
+  taxaFixaPct?: number;
   signedIn?: boolean;
   onClose: () => void;
   onImportMerge: (
@@ -44,6 +47,7 @@ export function BackupPanel({
   rows,
   clients,
   catalog,
+  taxaFixaPct = 0,
   signedIn = false,
   onClose,
   onImportMerge,
@@ -73,7 +77,7 @@ export function BackupPanel({
   const handleExport = async () => {
     try {
       const { exportToExcel } = await loadExcel();
-      exportToExcel(rows, clients, catalog);
+      exportToExcel(rows, clients, catalog, taxaFixaPct);
       setLastBackup();
       onToast?.("Backup exportado com sucesso");
     } catch (e) {

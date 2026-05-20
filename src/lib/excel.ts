@@ -42,6 +42,11 @@ export function exportToExcel(
   rows: Row[],
   clients: Client[] = [],
   catalog: CatalogItem[] = [],
+  /** Taxa fixa atual do negócio ativo. Usada como fallback no cálculo
+   *  pra lançamentos que ainda não têm `taxaFixaPctSnapshot` carimbado
+   *  (criados antes da feature). Não sobrescreve o snapshot quando ele
+   *  existe — esse mantém o histórico congelado. */
+  taxaFixaPctFallback = 0,
 ): void {
   const wb = XLSX.utils.book_new();
 
@@ -59,6 +64,10 @@ export function exportToExcel(
     "Taxa %",
     "Taxa (R$)",
     "Custo do Serviço",
+    "Taxa do Negócio %",
+    "Taxa do Negócio (R$)",
+    "Auxiliar %",
+    "Auxiliar (R$)",
     "Líquido",
     "Margem %",
     "Status",
@@ -70,13 +79,19 @@ export function exportToExcel(
   const lancData = rows
     .filter((r) => +r.valor > 0)
     .map((r) => {
-      const calc = calcRow(r);
+      const calc = calcRow(r, { taxaFixaPct: taxaFixaPctFallback });
       const recLabel =
         r.forma !== "Crédito"
           ? "Este mês"
           : r.parc <= 1
             ? "Próx. mês"
             : `${r.parc} parcelas`;
+      // Taxa fixa efetiva = snapshot do row (preserva histórico) OU
+      // fallback do negócio atual. Mesma lógica do calcRow.
+      const effectiveTaxaFixa =
+        r.taxaFixaPctSnapshot !== undefined
+          ? r.taxaFixaPctSnapshot
+          : taxaFixaPctFallback;
       return [
         MESES_FULL[r.mes],
         r.ano,
@@ -90,6 +105,10 @@ export function exportToExcel(
         +r.taxa / 100,
         calc.taxaVal,
         calc.custoVal,
+        effectiveTaxaFixa / 100,
+        calc.taxaFixaVal,
+        (r.auxiliarPct ?? 0) / 100,
+        calc.auxiliarVal,
         calc.liq,
         calc.mar / 100,
         r.status,
@@ -113,6 +132,10 @@ export function exportToExcel(
     { wch: 8 },
     { wch: 12 },
     { wch: 16 },
+    { wch: 12 },
+    { wch: 14 },
+    { wch: 10 },
+    { wch: 12 },
     { wch: 14 },
     { wch: 10 },
     { wch: 10 },
@@ -127,8 +150,12 @@ export function exportToExcel(
     { col: 9, fmt: "0.00%" },
     { col: 10, fmt: '"R$" #,##0.00' },
     { col: 11, fmt: '"R$" #,##0.00' },
-    { col: 12, fmt: '"R$" #,##0.00' },
-    { col: 13, fmt: "0.00%" },
+    { col: 12, fmt: "0.00%" },
+    { col: 13, fmt: '"R$" #,##0.00' },
+    { col: 14, fmt: "0.00%" },
+    { col: 15, fmt: '"R$" #,##0.00' },
+    { col: 16, fmt: '"R$" #,##0.00' },
+    { col: 17, fmt: "0.00%" },
   ]);
   XLSX.utils.book_append_sheet(wb, ws1, "Lançamentos");
 
@@ -136,7 +163,7 @@ export function exportToExcel(
   const byMes: Record<string, CalculatedRow[]> = {};
   rows
     .filter((r) => +r.valor > 0)
-    .map((r) => calcRow(r))
+    .map((r) => calcRow(r, { taxaFixaPct: taxaFixaPctFallback }))
     .forEach((r) => {
       const key = `${String(r.ano)}-${String(r.mes).padStart(2, "0")}`;
       if (!byMes[key]) byMes[key] = [];
@@ -209,7 +236,7 @@ export function exportToExcel(
   const projData: (string | number)[][] = [];
   rows
     .filter((r) => r.forma === "Crédito" && +r.valor > 0)
-    .map((r) => calcRow(r))
+    .map((r) => calcRow(r, { taxaFixaPct: taxaFixaPctFallback }))
     .forEach((r) => {
       const n = Math.max(1, r.parc || 1);
       for (let i = 1; i <= n; i++) {
@@ -391,6 +418,30 @@ export function importFromExcel(file: File): Promise<ImportResult> {
           const descNum =
             parseFloat(String(r["Desconto"] ?? "0").replace(",", ".")) || 0;
 
+          // Taxa fixa do negócio + auxiliar: opcionais (não existem em
+          // backups antigos pré-feature). Mesma heurística de fração da
+          // Taxa do cartão — Excel exporta como 0.30 (30%); usuário pode
+          // editar pra "30" e o import deve aceitar os dois.
+          const tfRaw = parseFloat(
+            String(r["Taxa do Negócio %"] ?? "").replace(",", "."),
+          );
+          const taxaFixaPctSnapshot =
+            Number.isFinite(tfRaw) && tfRaw > 0
+              ? tfRaw > 0 && tfRaw < 1
+                ? tfRaw * 100
+                : tfRaw
+              : undefined;
+
+          const auxRaw = parseFloat(
+            String(r["Auxiliar %"] ?? "").replace(",", "."),
+          );
+          const auxiliarPct =
+            Number.isFinite(auxRaw) && auxRaw > 0
+              ? auxRaw > 0 && auxRaw < 1
+                ? auxRaw * 100
+                : auxRaw
+              : undefined;
+
           rows.push({
             id: String(r["ID"] || uid()),
             businessId: "",
@@ -402,6 +453,10 @@ export function importFromExcel(file: File): Promise<ImportResult> {
             taxa,
             custo: custoNum || "",
             desconto: descNum || "",
+            ...(auxiliarPct !== undefined ? { auxiliarPct } : {}),
+            ...(taxaFixaPctSnapshot !== undefined
+              ? { taxaFixaPctSnapshot }
+              : {}),
             status: (String(r["Status"] ?? "Pago") as StatusPagamento) || "Pago",
             mes,
             ano,

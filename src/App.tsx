@@ -583,6 +583,7 @@ export default function App() {
       <BackupPanel
         open={backupOpen}
         signedIn={!!auth.user}
+        taxaFixaPct={activeBusiness?.taxaFixaPct ?? 0}
         rows={state.rows.filter(
           (r) => !activeBusinessId || r.businessId === activeBusinessId,
         )}
