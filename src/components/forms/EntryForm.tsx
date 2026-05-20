@@ -230,6 +230,9 @@ export function EntryForm({
   };
 
   const calc = calcRow(draft, { taxaFixaPct });
+  // Taxa fixa efetivamente aplicada a este lançamento — snapshot do row
+  // quando existe (preserva histórico), senão a config atual do negócio.
+  const effectiveTaxaFixa = draft.taxaFixaPctSnapshot ?? taxaFixaPct;
   const isAutoTaxa =
     !taxaTouched && draft.taxa === autoTaxa(draft.forma, draft.parc);
 
@@ -586,7 +589,9 @@ export function EntryForm({
         <div className={styles.field}>
           <label htmlFor="ef-taxa-fixa" className={styles.label}>
             Taxa do negócio %{" "}
-            <span className={styles.labelHintSoft}>· fixa</span>
+            <span className={styles.labelHintSoft}>
+              {effectiveTaxaFixa !== taxaFixaPct ? "· histórica" : "· fixa"}
+            </span>
           </label>
           <input
             id="ef-taxa-fixa"
@@ -594,15 +599,17 @@ export function EntryForm({
             type="text"
             inputMode="decimal"
             value={
-              taxaFixaPct > 0 ? formatDecimalBR(taxaFixaPct) : ""
+              effectiveTaxaFixa > 0 ? formatDecimalBR(effectiveTaxaFixa) : ""
             }
-            placeholder={taxaFixaPct > 0 ? "" : "—"}
+            placeholder={effectiveTaxaFixa > 0 ? "" : "—"}
             disabled
             aria-label="Taxa fixa do negócio — configurada em Empreendimentos"
             title={
-              taxaFixaPct > 0
-                ? "Configurada no empreendimento. Edite em Empreendimentos."
-                : "Não configurada. Defina em Empreendimentos pra aplicar a todos os lançamentos."
+              effectiveTaxaFixa !== taxaFixaPct
+                ? "Taxa carimbada quando este lançamento foi criado. Mudanças posteriores na config do negócio não alteram lançamentos antigos."
+                : effectiveTaxaFixa > 0
+                  ? "Configurada no empreendimento. Edite em Empreendimentos."
+                  : "Não configurada. Defina em Empreendimentos pra aplicar a todos os lançamentos."
             }
           />
         </div>
@@ -676,7 +683,7 @@ export function EntryForm({
         {calc.taxaFixaVal > 0 && (
           <div className={styles.previewRow}>
             <span className={styles.previewLabel}>
-              Taxa do negócio ({formatDecimalBR(taxaFixaPct)}%)
+              Taxa do negócio ({formatDecimalBR(effectiveTaxaFixa)}%)
             </span>
             <span className={styles.previewValue}>
               − {fmtBRL(calc.taxaFixaVal)}

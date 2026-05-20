@@ -51,7 +51,13 @@ export function calcRow(
   const c = +r.custo || 0;
   const afterCost = vef - t - c;
 
-  const taxaFixaPct = Math.max(0, Math.min(100, +(opts?.taxaFixaPct || 0)));
+  // Preferência: snapshot carimbado no Row (preserva histórico) →
+  // fallback pra taxa fixa atual do negócio (lançamentos pré-feature).
+  const rawPct =
+    r.taxaFixaPctSnapshot !== undefined
+      ? r.taxaFixaPctSnapshot
+      : (opts?.taxaFixaPct ?? 0);
+  const taxaFixaPct = Math.max(0, Math.min(100, +rawPct || 0));
   const taxaFixaVal = (afterCost * taxaFixaPct) / 100;
   const afterTaxaFixa = afterCost - taxaFixaVal;
 

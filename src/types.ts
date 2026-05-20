@@ -92,6 +92,12 @@ export interface Row {
    *  (ex.: cabeleireira com assistente). Aplicado sobre o subtotal após
    *  a taxa fixa do negócio. Default 0 (sem auxiliar). */
   auxiliarPct?: number;
+  /** Snapshot da taxa fixa do negócio (%) no momento em que o lançamento
+   *  foi criado. Garante histórico fiel: alterar a taxa do negócio mais
+   *  tarde NÃO mexe nos cálculos dos lançamentos antigos. Quando undefined
+   *  (lançamentos pré-feature), o calcRow cai pra taxa fixa atual do
+   *  negócio. */
+  taxaFixaPctSnapshot?: number;
   status: StatusPagamento;
   mes: number;
   ano: number;

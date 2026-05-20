@@ -334,10 +334,19 @@ export default function App() {
     }
 
     if (sheetMode.kind === "create") {
-      commitRow(row);
+      // Carimba a taxa fixa do negócio no momento da criação. Edições
+      // posteriores NUNCA mexem nesse snapshot — mudanças futuras na taxa
+      // do negócio não afetam lançamentos antigos.
+      commitRow({
+        ...row,
+        taxaFixaPctSnapshot: activeBusiness?.taxaFixaPct ?? 0,
+      });
       pushToast("Lançamento adicionado");
     } else {
+      // Em edição NÃO escrevemos taxaFixaPctSnapshot — mantemos a taxa
+      // que estava vigente quando o lançamento foi criado.
       (Object.keys(row) as (keyof Row)[]).forEach((k) => {
+        if (k === "taxaFixaPctSnapshot") return;
         updateRow(sheetMode.id, k, row[k]);
       });
       pushToast("Lançamento atualizado");
