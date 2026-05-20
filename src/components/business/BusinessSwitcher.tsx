@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import type { Business, BusinessType } from "../../types";
 import { fmtBRL } from "../../lib/calc";
+import { parseDecimalBR, sanitizeDecimalText } from "../../lib/numberInput";
 import { MESES_FULL } from "../../constants";
 import { resizeImageToDataUrl } from "../../lib/imageResize";
 import styles from "./BusinessSwitcher.module.css";
@@ -436,8 +437,7 @@ function BusinessForm({ initial, onSubmit, onCancel, onDelete }: FormProps) {
     const logoPatch =
       logo === initial?.logo ? undefined : logo === undefined ? null : logo;
     // Taxa fixa: vazio → 0 (sem taxa). Parse pt-BR (vírgula ou ponto).
-    const cleaned = taxaFixaText.replace(",", ".").replace(/[^0-9.]/g, "");
-    const taxaFixaPct = cleaned ? Math.max(0, Math.min(100, parseFloat(cleaned) || 0)) : 0;
+    const taxaFixaPct = Math.max(0, Math.min(100, parseDecimalBR(taxaFixaText)));
     onSubmit({ name: trimmed, type, logo: logoPatch, taxaFixaPct });
   };
 
@@ -556,8 +556,7 @@ function BusinessForm({ initial, onSubmit, onCancel, onDelete }: FormProps) {
           inputMode="decimal"
           value={taxaFixaText}
           onChange={(e) => {
-            const allowed = e.target.value.replace(/[^0-9.,]/g, "");
-            setTaxaFixaText(allowed);
+            setTaxaFixaText(sanitizeDecimalText(e.target.value));
           }}
           placeholder="Ex: 30"
           maxLength={6}
