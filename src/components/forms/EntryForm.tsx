@@ -667,7 +667,7 @@ export function EntryForm({
             className={styles.linkBtn}
             onClick={promoteToMulti}
           >
-            + Adicionar outro serviço a este atendimento
+            + Adicionar outro serviço / produto
           </button>
         </>
       )}
