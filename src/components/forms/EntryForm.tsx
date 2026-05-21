@@ -392,7 +392,13 @@ export function EntryForm({
     }
   };
 
-  const calc = calcRow(draft, { taxaFixaPct });
+  // Em multi-mode, o valor "real" do lançamento é a soma dos items —
+  // não o draft.valor (que pode ficar dessincronizado quando o usuário
+  // toca em histórico ou edita campos durante o multi). Construímos a
+  // Row efetiva pra TODOS os cálculos (preview, validação, save).
+  const effectiveDraft: Row =
+    itemList.length > 0 ? { ...draft, valor: itemsTotal } : draft;
+  const calc = calcRow(effectiveDraft, { taxaFixaPct });
   // Taxa fixa efetivamente aplicada a este lançamento — snapshot do row
   // quando existe (preserva histórico), senão a config atual do negócio.
   const effectiveTaxaFixa = draft.taxaFixaPctSnapshot ?? taxaFixaPct;
