@@ -176,26 +176,65 @@ export function EntryForm({
   // Preserva cliente/telefone/status/data atuais — só copia o que define
   // a natureza do lançamento (serviço, valor, forma, parcelas, taxa,
   // custo, desconto). Marca a taxa como tocada pra não auto-recalcular.
-  const applyHistoryEntry = useCallback((entry: Row) => {
-    setDraft((prev) => ({
-      ...prev,
-      servico: entry.servico,
-      valor: entry.valor,
-      forma: entry.forma,
-      parc: entry.parc,
-      taxa: entry.taxa,
-      custo: entry.custo,
-      desconto: entry.desconto,
-    }));
-    setTaxaTouched(true);
-    setErrors((prev) => {
-      const next = { ...prev };
-      delete next.valor;
-      delete next.parc;
-      delete next.taxa;
-      return next;
+  const applyHistoryEntry = useCallback(
+    (entry: Row) => {
+      // Em multi-mode, histórico vira "adicionar novo item" em vez de
+      // sobrescrever — preserva os itens já preenchidos. Forma/taxa/custo
+      // ficam só com o que a Row atual já tinha (não faz sentido alterar
+      // forma de pagamento ao adicionar um serviço extra).
+      if (itemList.length > 0) {
+        const v =
+          typeof entry.valor === "number" ? entry.valor : +entry.valor || 0;
+        setItemList((list) => [
+          ...list,
+          {
+            _key: uid(),
+            name: entry.servico,
+            valor: v > 0 ? v : "",
+          },
+        ]);
+        setErrors((prev) => {
+          const next = { ...prev };
+          delete next.valor;
+          delete next.items;
+          return next;
+        });
+        return;
+      }
+      setDraft((prev) => ({
+        ...prev,
+        servico: entry.servico,
+        valor: entry.valor,
+        forma: entry.forma,
+        parc: entry.parc,
+        taxa: entry.taxa,
+        custo: entry.custo,
+        desconto: entry.desconto,
+      }));
+      setTaxaTouched(true);
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next.valor;
+        delete next.parc;
+        delete next.taxa;
+        return next;
+      });
+    },
+    [itemList.length],
+  );
+
+  // Em multi-mode, `draft.valor` precisa refletir a soma dos itens em
+  // todas as derivações (preview do calcRow, cálculo de margem, etc.).
+  // Esse efeito mantém o invariante: valor === sum(items). Sem isso, ao
+  // clicar num atendimento histórico durante multi-mode, o valor da Row
+  // ficava no valor do histórico e o preview mostrava conta errada.
+  useEffect(() => {
+    if (itemList.length === 0) return;
+    setDraft((d) => {
+      if (d.valor === itemsTotal) return d;
+      return { ...d, valor: itemsTotal };
     });
-  }, []);
+  }, [itemList.length, itemsTotal]);
 
   useEffect(() => {
     setDraft(initial);
