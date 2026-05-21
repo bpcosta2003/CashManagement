@@ -101,6 +101,124 @@
   box-shadow: 0 0 0 4px var(--accent-soft);
 }
 
+/* ─── Multi-item ─── */
+.itemsBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+}
+
+.itemsHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.itemRow {
+  display: grid;
+  grid-template-columns: 1fr 100px 36px;
+  gap: 8px;
+  align-items: start;
+}
+
+@media (min-width: 480px) {
+  .itemRow {
+    grid-template-columns: 1fr 130px 36px;
+  }
+}
+
+.itemName {
+  min-width: 0;
+}
+
+.itemRemove {
+  appearance: none;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  width: 36px;
+  min-height: 38px;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s var(--ease), border-color 0.15s var(--ease),
+    color 0.15s var(--ease);
+}
+
+.itemRemove:hover {
+  background: rgba(201, 107, 107, 0.1);
+  border-color: var(--negative);
+  color: var(--negative);
+}
+
+.itemsFoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 2px;
+  flex-wrap: wrap;
+}
+
+.itemAdd {
+  appearance: none;
+  background: transparent;
+  border: 1px dashed var(--border);
+  color: var(--text-muted);
+  border-radius: var(--radius-pill);
+  padding: 8px 14px;
+  font: inherit;
+  font-size: var(--t-caption);
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s var(--ease), color 0.15s var(--ease);
+}
+
+.itemAdd:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.itemsTotal {
+  font-size: var(--t-meta);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.itemsTotal strong {
+  color: var(--text);
+  font-weight: 700;
+  margin-left: 4px;
+}
+
+.linkBtn {
+  appearance: none;
+  background: transparent;
+  border: none;
+  color: var(--accent);
+  font: inherit;
+  font-size: var(--t-meta);
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 0;
+  align-self: flex-start;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  transition: text-decoration-color 0.15s var(--ease);
+}
+
+.linkBtn:hover {
+  text-decoration-color: currentColor;
+}
+
 /* ─── Segmented control (forma de pagamento, parcelas) ─── */
 .formaGrid {
   display: grid;

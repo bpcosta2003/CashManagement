@@ -329,7 +329,16 @@ export default function App() {
     upsertClient(row.cliente, clientPhone);
     // Upsert catálogo: garante que o serviço fica salvo, e o último
     // valor usado vira o defaultValue (overrideDefaultValue = true).
-    if (row.servico.trim() && typeof row.valor === "number" && row.valor > 0) {
+    // Em multi-mode, upserta CADA item separadamente — assim a análise
+    // de top serviços vê "Corte" e "Escova" como itens distintos e o
+    // catálogo aprende todos os preços.
+    if (row.items && row.items.length > 0) {
+      row.items.forEach((it) => {
+        if (it.name.trim() && it.valor > 0) {
+          upsertCatalogItem(it.name, it.valor, true);
+        }
+      });
+    } else if (row.servico.trim() && typeof row.valor === "number" && row.valor > 0) {
       upsertCatalogItem(row.servico, row.valor, true);
     }
 

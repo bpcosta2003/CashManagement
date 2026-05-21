@@ -7,7 +7,15 @@ import type {
   StatusPagamento,
 } from "../../types";
 import { FORMAS_PAGAMENTO, STATUS_OPTIONS } from "../../constants";
-import { autoTaxa, calcRow, fmtBRL, fmtPct } from "../../lib/calc";
+import {
+  autoTaxa,
+  calcRow,
+  fmtBRL,
+  fmtPct,
+  joinItemNames,
+  sumItems,
+  uid,
+} from "../../lib/calc";
 import {
   formatDecimalBR,
   parseDecimalBR,
@@ -41,16 +49,40 @@ interface Errors {
   valor?: string;
   parc?: string;
   taxa?: string;
+  items?: string;
 }
 
-function validate(draft: Row): Errors {
+/** Item interno do form multi-item. `_key` é só pra estabilizar React
+ *  keys quando reordena/remove — não vai pro Row salvo. */
+interface ItemDraft {
+  _key: string;
+  name: string;
+  valor: number | "";
+  catalogId?: string;
+}
+
+function validate(draft: Row, items: ItemDraft[]): Errors {
   const errors: Errors = {};
   if (!draft.cliente.trim()) {
     errors.cliente = "Informe o nome do cliente";
   }
-  const valor = typeof draft.valor === "number" ? draft.valor : 0;
-  if (!valor || valor <= 0) {
-    errors.valor = "Valor precisa ser maior que zero";
+  if (items.length > 0) {
+    // Multi-mode: valida cada item. Nome obrigatório, valor > 0.
+    const invalid = items.find(
+      (it) => !it.name.trim() || !(+it.valor > 0),
+    );
+    if (invalid) {
+      errors.items = "Preencha nome e valor de todos os itens";
+    }
+    const total = items.reduce((s, it) => s + (+it.valor || 0), 0);
+    if (total <= 0) {
+      errors.valor = "Total precisa ser maior que zero";
+    }
+  } else {
+    const valor = typeof draft.valor === "number" ? draft.valor : 0;
+    if (!valor || valor <= 0) {
+      errors.valor = "Valor precisa ser maior que zero";
+    }
   }
   if (draft.forma === "Crédito") {
     if (!draft.parc || draft.parc < 1) {
@@ -96,6 +128,26 @@ export function EntryForm({
   const [taxaText, setTaxaText] = useState(() => formatDecimalBR(initial.taxa));
   const [auxiliarText, setAuxiliarText] = useState(() =>
     formatDecimalBR(initial.auxiliarPct ?? 0),
+  );
+
+  // Modo multi-item: itemList.length > 0 → mostra a lista; senão usa os
+  // campos Serviço + Valor singulares (modo legado). Quando a Row inicial
+  // já tem `items[]`, começamos em multi. Caso contrário, single.
+  const [itemList, setItemList] = useState<ItemDraft[]>(() => {
+    if (initial.items && initial.items.length > 0) {
+      return initial.items.map((it) => ({
+        _key: uid(),
+        name: it.name,
+        valor: it.valor,
+        catalogId: it.catalogId,
+      }));
+    }
+    return [];
+  });
+  const multiMode = itemList.length > 0;
+  const itemsTotal = useMemo(
+    () => itemList.reduce((s, it) => s + (+it.valor || 0), 0),
+    [itemList],
   );
 
   // Cliente conhecido = casamento exato (case-insensitive) com a base
@@ -152,11 +204,83 @@ export function EntryForm({
     setSubmitted(false);
     setTaxaText(formatDecimalBR(initial.taxa));
     setAuxiliarText(formatDecimalBR(initial.auxiliarPct ?? 0));
+    setItemList(
+      initial.items && initial.items.length > 0
+        ? initial.items.map((it) => ({
+            _key: uid(),
+            name: it.name,
+            valor: it.valor,
+            catalogId: it.catalogId,
+          }))
+        : [],
+    );
     // Telefone: se o cliente já está cadastrado, prefilla. Senão, vazio.
     const found = findClient(clients, initial.cliente);
     setPhone(formatPhoneBR(found?.phone ?? ""));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initial]);
+
+  // ─── Manipulação do itemList em multi-mode ──────────────────────────
+  /** Promove single → multi: transforma o Serviço/Valor atual em items[0]
+   *  e adiciona um novo item vazio pra o usuário preencher. */
+  const promoteToMulti = useCallback(() => {
+    setItemList([
+      {
+        _key: uid(),
+        name: draft.servico,
+        valor: typeof draft.valor === "number" ? draft.valor : 0,
+      },
+      { _key: uid(), name: "", valor: "" },
+    ]);
+  }, [draft.servico, draft.valor]);
+
+  /** Adiciona mais um item vazio no fim da lista (já está em multi). */
+  const addItem = useCallback(() => {
+    setItemList((list) => [...list, { _key: uid(), name: "", valor: "" }]);
+  }, []);
+
+  /** Remove um item da lista. Se sobrar 1 só, volta pra single mode e
+   *  copia esse item de volta pros campos Serviço/Valor. Se sobrar 0,
+   *  também volta pra single (campos esvaziados). */
+  const removeItem = useCallback((key: string) => {
+    setItemList((list) => {
+      const next = list.filter((it) => it._key !== key);
+      if (next.length === 1) {
+        // Sobra um → demota pra single mode preservando esse item.
+        const only = next[0];
+        setDraft((d) => ({
+          ...d,
+          servico: only.name,
+          valor: only.valor === "" ? "" : +only.valor,
+        }));
+        return [];
+      }
+      if (next.length === 0) {
+        // Vazio → volta pra single mode com Serviço/Valor limpos.
+        setDraft((d) => ({ ...d, servico: "", valor: "" }));
+        return [];
+      }
+      return next;
+    });
+  }, []);
+
+  const updateItem = useCallback(
+    (key: string, patch: Partial<Omit<ItemDraft, "_key">>) => {
+      setItemList((list) =>
+        list.map((it) => (it._key === key ? { ...it, ...patch } : it)),
+      );
+      if (submitted) {
+        setErrors((prev) => {
+          if (!prev.items) return prev;
+          const next = { ...prev };
+          delete next.items;
+          delete next.valor;
+          return next;
+        });
+      }
+    },
+    [submitted],
+  );
 
   // Quando o nome muda pra um cliente já conhecido, prefilla o telefone
   useEffect(() => {
@@ -239,18 +363,47 @@ export function EntryForm({
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
-    const v = validate(draft);
+    const v = validate(draft, itemList);
     setErrors(v);
     if (Object.keys(v).length > 0) {
-      const order: Array<keyof Errors> = ["cliente", "valor", "parc", "taxa"];
+      const order: Array<keyof Errors> = [
+        "cliente",
+        "items",
+        "valor",
+        "parc",
+        "taxa",
+      ];
       const first = order.find((k) => v[k]);
-      if (first) {
+      if (first && first !== "items") {
         const el = document.getElementById(`ef-${first}`);
         el?.focus();
       }
       return;
     }
-    onSave(draft, phone.trim() || undefined);
+    // Em multi-mode: carimba items[], servico (display), valor (soma).
+    // Em single: salva como antes (items undefined).
+    let rowToSave: Row = draft;
+    if (itemList.length > 0) {
+      const items = itemList.map((it) => ({
+        name: it.name.trim(),
+        valor: +it.valor || 0,
+        ...(it.catalogId ? { catalogId: it.catalogId } : {}),
+      }));
+      const total = sumItems(items);
+      const joined = joinItemNames(items);
+      rowToSave = {
+        ...draft,
+        items,
+        servico: joined,
+        valor: total,
+      };
+    } else {
+      // Limpa items[] se a Row vinha com (ex.: usuário entrou multi e
+      // voltou pra single removendo todos).
+      const { items: _drop, ...rest } = draft;
+      rowToSave = rest as Row;
+    }
+    onSave(rowToSave, phone.trim() || undefined);
   };
 
   return (
@@ -374,76 +527,168 @@ export function EntryForm({
         </div>
       )}
 
-      <div className={styles.field}>
-        <label htmlFor="ef-servico" className={styles.label}>
-          Serviço / produto
-        </label>
-        <ServicoCombobox
-          id="ef-servico"
-          value={draft.servico}
-          onChange={(v) => update("servico", v)}
-          catalog={catalog}
-          onPickItem={(item) => {
-            // Preenche serviço (já feito no onChange) e o valor
-            // sugerido — só sobrescreve se o campo ainda estiver vazio,
-            // pra não atropelar um valor que o usuário já digitou.
-            const empty = draft.valor === "" || draft.valor === 0;
-            if (
-              empty &&
-              typeof item.defaultValue === "number" &&
-              item.defaultValue > 0
-            ) {
-              update("valor", item.defaultValue);
-            }
-          }}
-          placeholder="Ex: Corte feminino"
-        />
-      </div>
-
-      <div className={styles.row}>
-        <div className={styles.field}>
-          <label htmlFor="ef-valor" className={styles.label}>
-            Valor <span className={styles.required}>*</span>
-          </label>
-          <input
-            id="ef-valor"
-            className={`${styles.input} ${errors.valor ? styles.inputError : ""}`}
-            inputMode="decimal"
-            type="number"
-            step="0.01"
-            min="0"
-            value={draft.valor === "" ? "" : draft.valor}
-            onChange={(e) =>
-              update("valor", e.target.value === "" ? "" : +e.target.value)
-            }
-            placeholder="0,00"
-            aria-invalid={!!errors.valor}
-            aria-describedby={errors.valor ? "ef-valor-err" : undefined}
-          />
-          {errors.valor && (
-            <span id="ef-valor-err" className={styles.errorMsg}>
-              {errors.valor}
+      {multiMode ? (
+        <div className={styles.itemsBlock}>
+          <div className={styles.itemsHead}>
+            <span className={styles.label}>
+              Serviços / produtos{" "}
+              <span className={styles.labelHintSoft}>
+                · {itemList.length} ite{itemList.length === 1 ? "m" : "ns"}
+              </span>
             </span>
+          </div>
+          {itemList.map((item, idx) => (
+            <div className={styles.itemRow} key={item._key}>
+              <div className={styles.itemName}>
+                <ServicoCombobox
+                  id={`ef-item-${item._key}`}
+                  value={item.name}
+                  onChange={(v) => updateItem(item._key, { name: v })}
+                  catalog={catalog}
+                  onPickItem={(c) => {
+                    const empty = item.valor === "" || item.valor === 0;
+                    const patch: Partial<Omit<ItemDraft, "_key">> = {
+                      catalogId: c.id,
+                    };
+                    if (
+                      empty &&
+                      typeof c.defaultValue === "number" &&
+                      c.defaultValue > 0
+                    ) {
+                      patch.valor = c.defaultValue;
+                    }
+                    updateItem(item._key, patch);
+                  }}
+                  placeholder={idx === 0 ? "Ex: Corte feminino" : "Outro serviço…"}
+                />
+              </div>
+              <input
+                className={styles.input}
+                inputMode="decimal"
+                type="number"
+                step="0.01"
+                min="0"
+                value={item.valor === "" ? "" : item.valor}
+                onChange={(e) =>
+                  updateItem(item._key, {
+                    valor: e.target.value === "" ? "" : +e.target.value,
+                  })
+                }
+                placeholder="0,00"
+                aria-label={`Valor do item ${idx + 1}`}
+              />
+              <button
+                type="button"
+                className={styles.itemRemove}
+                onClick={() => removeItem(item._key)}
+                aria-label={`Remover item ${idx + 1}`}
+                title="Remover este item"
+              >
+                ×
+              </button>
+            </div>
+          ))}
+          <div className={styles.itemsFoot}>
+            <button
+              type="button"
+              className={styles.itemAdd}
+              onClick={addItem}
+            >
+              + Adicionar item
+            </button>
+            <span className={styles.itemsTotal}>
+              Total <strong>{fmtBRL(itemsTotal)}</strong>
+            </span>
+          </div>
+          {errors.items && (
+            <span className={styles.errorMsg}>{errors.items}</span>
+          )}
+          {errors.valor && !errors.items && (
+            <span className={styles.errorMsg}>{errors.valor}</span>
           )}
         </div>
-        <div className={styles.field}>
-          <label htmlFor="ef-desconto" className={styles.label}>
-            Desconto
-          </label>
-          <input
-            id="ef-desconto"
-            className={styles.input}
-            inputMode="decimal"
-            type="number"
-            step="0.01"
-            min="0"
-            value={draft.desconto === "" ? "" : draft.desconto}
-            onChange={(e) =>
-              update("desconto", e.target.value === "" ? "" : +e.target.value)
-            }
-            placeholder="0,00"
-          />
-        </div>
+      ) : (
+        <>
+          <div className={styles.field}>
+            <label htmlFor="ef-servico" className={styles.label}>
+              Serviço / produto
+            </label>
+            <ServicoCombobox
+              id="ef-servico"
+              value={draft.servico}
+              onChange={(v) => update("servico", v)}
+              catalog={catalog}
+              onPickItem={(item) => {
+                // Preenche serviço (já feito no onChange) e o valor
+                // sugerido — só sobrescreve se o campo ainda estiver
+                // vazio, pra não atropelar um valor que o usuário já
+                // digitou.
+                const empty = draft.valor === "" || draft.valor === 0;
+                if (
+                  empty &&
+                  typeof item.defaultValue === "number" &&
+                  item.defaultValue > 0
+                ) {
+                  update("valor", item.defaultValue);
+                }
+              }}
+              placeholder="Ex: Corte feminino"
+            />
+          </div>
+
+          <div className={styles.field}>
+            <label htmlFor="ef-valor" className={styles.label}>
+              Valor <span className={styles.required}>*</span>
+            </label>
+            <input
+              id="ef-valor"
+              className={`${styles.input} ${errors.valor ? styles.inputError : ""}`}
+              inputMode="decimal"
+              type="number"
+              step="0.01"
+              min="0"
+              value={draft.valor === "" ? "" : draft.valor}
+              onChange={(e) =>
+                update("valor", e.target.value === "" ? "" : +e.target.value)
+              }
+              placeholder="0,00"
+              aria-invalid={!!errors.valor}
+              aria-describedby={errors.valor ? "ef-valor-err" : undefined}
+            />
+            {errors.valor && (
+              <span id="ef-valor-err" className={styles.errorMsg}>
+                {errors.valor}
+              </span>
+            )}
+          </div>
+
+          <button
+            type="button"
+            className={styles.linkBtn}
+            onClick={promoteToMulti}
+          >
+            + Adicionar outro serviço a este atendimento
+          </button>
+        </>
+      )}
+
+      <div className={styles.field}>
+        <label htmlFor="ef-desconto" className={styles.label}>
+          Desconto
+        </label>
+        <input
+          id="ef-desconto"
+          className={styles.input}
+          inputMode="decimal"
+          type="number"
+          step="0.01"
+          min="0"
+          value={draft.desconto === "" ? "" : draft.desconto}
+          onChange={(e) =>
+            update("desconto", e.target.value === "" ? "" : +e.target.value)
+          }
+          placeholder="0,00"
+        />
       </div>
 
       <div className={styles.field}>

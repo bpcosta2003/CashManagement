@@ -118,20 +118,24 @@ export function useAnnual(
           bd.liq += r.liq;
         }
 
-        // Top serviços
-        const servicoRaw = r.servico.trim();
-        if (servicoRaw) {
-          const key = servicoRaw.toLowerCase();
+        // Top serviços: em multi-mode, cada item entra separado (count
+        // por item, não por lançamento) pra refletir o mix real.
+        const entriesForRanking: Array<{ name: string; valor: number }> =
+          r.items && r.items.length > 0
+            ? r.items.map((it) => ({
+                name: it.name.trim(),
+                valor: +it.valor || 0,
+              }))
+            : [{ name: r.servico.trim(), valor: r.v }];
+        for (const e of entriesForRanking) {
+          if (!e.name) continue;
+          const key = e.name.toLowerCase();
           const entry = servicosMap.get(key);
           if (entry) {
             entry.count += 1;
-            entry.bruto += r.v;
+            entry.bruto += e.valor;
           } else {
-            servicosMap.set(key, {
-              name: servicoRaw,
-              count: 1,
-              bruto: r.v,
-            });
+            servicosMap.set(key, { name: e.name, count: 1, bruto: e.valor });
           }
         }
       });

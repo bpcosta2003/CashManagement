@@ -137,6 +137,28 @@ function validateRow(input: unknown, businessId: string): Row | null {
     ? (statusRaw as StatusPagamento)
     : "Pago";
 
+  // items[] multi-item — opcional. Sanitiza cada elemento. Caps em 20
+  // itens por lançamento (cobre cenários reais, evita payload absurdo).
+  let items: { name: string; valor: number; catalogId?: string }[] | undefined;
+  if (Array.isArray(r.items) && r.items.length > 0) {
+    const out: { name: string; valor: number; catalogId?: string }[] = [];
+    for (const raw of r.items.slice(0, 20)) {
+      if (!raw || typeof raw !== "object") continue;
+      const o = raw as Record<string, unknown>;
+      const name = sanitizeString(o.name, MAX_STRING);
+      const v = clampNumber(asFiniteNumber(o.valor, 0), 0, MAX_VALOR);
+      if (!name || v <= 0) continue;
+      const ent: { name: string; valor: number; catalogId?: string } = {
+        name,
+        valor: v,
+      };
+      const catId = sanitizeString(o.catalogId, 40);
+      if (catId) ent.catalogId = catId;
+      out.push(ent);
+    }
+    if (out.length > 0) items = out;
+  }
+
   return {
     id: sanitizeString(r.id, 40) || "x",
     businessId,
@@ -148,6 +170,7 @@ function validateRow(input: unknown, businessId: string): Row | null {
     taxa,
     custo,
     desconto,
+    ...(items ? { items } : {}),
     status,
     mes: Math.round(mes),
     ano: Math.round(ano),

@@ -128,11 +128,24 @@ function topServices(rows: CalculatedRow[], n: number) {
   const map = new Map<string, { count: number; bruto: number }>();
   for (const r of rows) {
     if (r.v <= 0) continue;
-    const key = r.servico.trim() || "—";
-    const cur = map.get(key) ?? { count: 0, bruto: 0 };
-    cur.count += 1;
-    cur.bruto += r.v;
-    map.set(key, cur);
+    // Multi-mode: cada item entra separadamente no ranking. count incrementa
+    // 1 por item (não por lançamento) — assim "Corte+Escova" vira "Corte: 1"
+    // e "Escova: 1", refletindo melhor o mix real de serviços prestados.
+    if (r.items && r.items.length > 0) {
+      for (const it of r.items) {
+        const key = it.name.trim() || "—";
+        const cur = map.get(key) ?? { count: 0, bruto: 0 };
+        cur.count += 1;
+        cur.bruto += +it.valor || 0;
+        map.set(key, cur);
+      }
+    } else {
+      const key = r.servico.trim() || "—";
+      const cur = map.get(key) ?? { count: 0, bruto: 0 };
+      cur.count += 1;
+      cur.bruto += r.v;
+      map.set(key, cur);
+    }
   }
   return Array.from(map.entries())
     .map(([servico, v]) => ({ servico, ...v }))
