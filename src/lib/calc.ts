@@ -92,6 +92,23 @@ export function fmtPct(n: number, digits = 1): string {
   return `${n.toFixed(digits)}%`;
 }
 
+/** Soma os valores dos items[] de um Row. Retorna 0 se `items` ausente
+ *  ou vazio — caller deve cair pro `valor` singular nesse caso. */
+export function sumItems(items?: { valor: number }[]): number {
+  if (!items || items.length === 0) return 0;
+  return items.reduce((s, i) => s + (+i.valor || 0), 0);
+}
+
+/** Display do serviço quando há múltiplos items. Junta os nomes com " + ".
+ *  Filtra strings vazias pra não imprimir " +  + ". */
+export function joinItemNames(items?: { name: string }[]): string {
+  if (!items || items.length === 0) return "";
+  return items
+    .map((i) => i.name.trim())
+    .filter(Boolean)
+    .join(" + ");
+}
+
 export interface RecInfo {
   thisMonth: number;
   future: { m: number; y: number; bruto: number; liq: number; label: string }[];

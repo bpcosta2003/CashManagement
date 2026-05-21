@@ -72,6 +72,7 @@ export function exportToExcel(
     "Margem %",
     "Status",
     "Recebimento",
+    "Itens (JSON)",
     "ID",
     "Criado Em",
   ];
@@ -113,6 +114,10 @@ export function exportToExcel(
         calc.mar / 100,
         r.status,
         recLabel,
+        // items[] preservado como JSON pra roundtrip. Excel mostra um
+        // texto bruto; o import lê e reconstrói o array. Vazio quando
+        // o lançamento é single-item (modo legado).
+        r.items && r.items.length > 0 ? JSON.stringify(r.items) : "",
         r.id,
         r.criadoEm,
       ];
@@ -140,6 +145,7 @@ export function exportToExcel(
     { wch: 10 },
     { wch: 10 },
     { wch: 16 },
+    { wch: 24 },
     { wch: 10 },
     { wch: 22 },
   ];
@@ -442,6 +448,49 @@ export function importFromExcel(file: File): Promise<ImportResult> {
                 : auxRaw
               : undefined;
 
+          // items[] reconstruído da coluna "Itens (JSON)". Parse tolerante:
+          // se o JSON estiver corrompido (usuário editou na mão e
+          // bagunçou), ignora silenciosamente e o lançamento volta como
+          // single-item (servico/valor preservados normalmente).
+          let items:
+            | { name: string; valor: number; catalogId?: string }[]
+            | undefined;
+          const itemsRaw = String(r["Itens (JSON)"] ?? "").trim();
+          if (itemsRaw && itemsRaw.startsWith("[")) {
+            try {
+              const parsed = JSON.parse(itemsRaw) as unknown;
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                const out: {
+                  name: string;
+                  valor: number;
+                  catalogId?: string;
+                }[] = [];
+                for (const e of parsed.slice(0, 20)) {
+                  if (!e || typeof e !== "object") continue;
+                  const o = e as Record<string, unknown>;
+                  const name =
+                    typeof o.name === "string" ? o.name.trim().slice(0, 80) : "";
+                  const v =
+                    typeof o.valor === "number"
+                      ? o.valor
+                      : parseFloat(String(o.valor ?? "0")) || 0;
+                  if (!name || v <= 0) continue;
+                  const ent: {
+                    name: string;
+                    valor: number;
+                    catalogId?: string;
+                  } = { name, valor: v };
+                  if (typeof o.catalogId === "string" && o.catalogId)
+                    ent.catalogId = o.catalogId.slice(0, 40);
+                  out.push(ent);
+                }
+                if (out.length > 0) items = out;
+              }
+            } catch {
+              /* JSON corrompido — ignora, mantém como single-item */
+            }
+          }
+
           rows.push({
             id: String(r["ID"] || uid()),
             businessId: "",
@@ -457,6 +506,7 @@ export function importFromExcel(file: File): Promise<ImportResult> {
             ...(taxaFixaPctSnapshot !== undefined
               ? { taxaFixaPctSnapshot }
               : {}),
+            ...(items ? { items } : {}),
             status: (String(r["Status"] ?? "Pago") as StatusPagamento) || "Pago",
             mes,
             ano,

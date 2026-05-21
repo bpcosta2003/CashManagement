@@ -76,6 +76,20 @@ export interface MonthGoal {
   updatedAt: string;
 }
 
+/** Item individual de um lançamento com múltiplos serviços/produtos.
+ *  Quando uma Row tem `items[]`, o `valor` da Row é a soma dos items e
+ *  `servico` é a concatenação dos nomes pra display. */
+export interface RowItem {
+  /** Nome do serviço/produto. Cópia do CatalogItem.name ou texto livre. */
+  name: string;
+  /** Valor cobrado pelo item. */
+  valor: number;
+  /** ID do CatalogItem quando o item foi escolhido do catálogo. Permite
+   *  manter o rastro nas análises (top serviços etc.) mesmo se o usuário
+   *  renomear depois. Opcional. */
+  catalogId?: string;
+}
+
 export interface Row {
   id: string;
   /** Empreendimento dono deste lançamento. */
@@ -98,6 +112,12 @@ export interface Row {
    *  (lançamentos pré-feature), o calcRow cai pra taxa fixa atual do
    *  negócio. */
   taxaFixaPctSnapshot?: number;
+  /** Múltiplos serviços/produtos vendidos no mesmo atendimento.
+   *  Quando presente:
+   *    - `valor` é a soma dos items.valor
+   *    - `servico` é a concatenação dos nomes (display only)
+   *  Quando ausente, modo legado: `servico` e `valor` singulares. */
+  items?: RowItem[];
   status: StatusPagamento;
   mes: number;
   ano: number;
