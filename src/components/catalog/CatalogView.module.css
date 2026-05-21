@@ -179,9 +179,11 @@
 }
 
 /* ─── Form de novo item (acima da lista) ─── */
+/* Mobile: inputs 50/50 numa linha + botões 50/50 abaixo. Desktop
+   (≥768px): linha única 1fr 1fr auto auto, mais compacto. */
 .addRow {
   display: grid;
-  grid-template-columns: 1fr 110px auto auto;
+  grid-template-columns: 1fr 1fr;
   gap: 8px;
   padding: 12px 18px;
   background: var(--accent-soft);
@@ -189,18 +191,9 @@
   align-items: center;
 }
 
-@media (max-width: 480px) {
-  .addRow {
-    grid-template-columns: 1fr 90px;
-  }
-  .addRowPrimary,
-  .addRowSecondary {
-    grid-column: span 1;
-  }
-}
-
 @media (min-width: 768px) {
   .addRow {
+    grid-template-columns: 1fr 1fr auto auto;
     padding: 14px 22px;
   }
 }
@@ -396,32 +389,20 @@
 }
 
 /* ─── Edit row ─── */
+/* Mesmo padrão do addRow: mobile 2x2 (inputs iguais em cima, botões
+   iguais embaixo); desktop linha única. */
 .editRow {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 8px;
   padding: 10px 14px 10px 18px;
   align-items: center;
   width: 100%;
 }
 
-.editRow .input {
-  flex: 1 1 140px;
-  min-width: 0;
-}
-
-.editRow .valueInput {
-  flex: 0 1 110px;
-}
-
-@media (max-width: 480px) {
-  .editRow .valueInput {
-    flex: 0 1 90px;
-  }
-}
-
 @media (min-width: 768px) {
   .editRow {
+    grid-template-columns: 1fr 1fr auto auto;
     padding: 10px 18px 10px 22px;
   }
 }
