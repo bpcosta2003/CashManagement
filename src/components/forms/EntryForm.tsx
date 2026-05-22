@@ -396,16 +396,23 @@ export function EntryForm({
   const update = <K extends keyof Row>(field: K, value: Row[K]) => {
     setDraft((prev) => {
       const next = { ...prev, [field]: value } as Row;
+      const mode: "percent" | "value" = next.taxaMode ?? "percent";
+      // autoTaxa só é aplicada em modo %. Em "value" o usuário tem
+      // controle total — trocar forma/parc não deve sobrescrever o R$.
       if (field === "forma") {
-        next.taxa = autoTaxa(value as string, next.parc);
+        if (mode === "percent") {
+          next.taxa = autoTaxa(value as string, next.parc);
+          setTaxaText(formatDecimalBR(next.taxa));
+        }
         if (value !== "Crédito") next.parc = 1;
         setTaxaTouched(false);
-        setTaxaText(formatDecimalBR(next.taxa));
       }
       if (field === "parc") {
-        next.taxa = autoTaxa(next.forma, value as number);
+        if (mode === "percent") {
+          next.taxa = autoTaxa(next.forma, value as number);
+          setTaxaText(formatDecimalBR(next.taxa));
+        }
         setTaxaTouched(false);
-        setTaxaText(formatDecimalBR(next.taxa));
       }
       if (field === "taxa") {
         setTaxaTouched(true);
@@ -438,8 +445,27 @@ export function EntryForm({
   // Taxa fixa efetivamente aplicada a este lançamento — snapshot do row
   // quando existe (preserva histórico), senão a config atual do negócio.
   const effectiveTaxaFixa = draft.taxaFixaPctSnapshot ?? taxaFixaPct;
+  const taxaMode: "percent" | "value" = draft.taxaMode ?? "percent";
+  // Auto-taxa só faz sentido em modo %. Em "value" o usuário sempre digita
+  // o R$ exato manualmente.
   const isAutoTaxa =
-    !taxaTouched && draft.taxa === autoTaxa(draft.forma, draft.parc);
+    taxaMode === "percent" &&
+    !taxaTouched &&
+    draft.taxa === autoTaxa(draft.forma, draft.parc);
+
+  const setTaxaMode = (mode: "percent" | "value") => {
+    if (mode === taxaMode) return;
+    // Trocar de modo zera o input — 2,9% e R$ 2,90 não são equivalentes
+    // e manter o número seria confuso. O usuário re-digita no novo modo.
+    setDraft((d) => ({ ...d, taxaMode: mode, taxa: 0 }));
+    setTaxaText("");
+    setTaxaTouched(false);
+    setErrors((prev) => {
+      const next = { ...prev };
+      delete next.taxa;
+      return next;
+    });
+  };
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -817,7 +843,34 @@ export function EntryForm({
           </div>
           <div className={styles.field}>
             <label className={styles.label}>
-              Taxa % <span className={styles.required}>*</span>
+              Taxa
+              <div
+                className={styles.taxaModeToggle}
+                role="radiogroup"
+                aria-label="Modo da taxa do cartão"
+              >
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={taxaMode === "percent"}
+                  data-active={taxaMode === "percent"}
+                  onClick={() => setTaxaMode("percent")}
+                  title="Cobrar como porcentagem"
+                >
+                  %
+                </button>
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={taxaMode === "value"}
+                  data-active={taxaMode === "value"}
+                  onClick={() => setTaxaMode("value")}
+                  title="Informar o R$ exato retido pelo cartão"
+                >
+                  R$
+                </button>
+              </div>
+              <span className={styles.required}>*</span>
               {isAutoTaxa && (
                 <span className={styles.labelHint}>· automática</span>
               )}
@@ -866,7 +919,34 @@ export function EntryForm({
           </div>
           <div className={styles.field}>
             <label className={styles.label}>
-              Taxa % <span className={styles.required}>*</span>
+              Taxa
+              <div
+                className={styles.taxaModeToggle}
+                role="radiogroup"
+                aria-label="Modo da taxa do cartão"
+              >
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={taxaMode === "percent"}
+                  data-active={taxaMode === "percent"}
+                  onClick={() => setTaxaMode("percent")}
+                  title="Cobrar como porcentagem"
+                >
+                  %
+                </button>
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={taxaMode === "value"}
+                  data-active={taxaMode === "value"}
+                  onClick={() => setTaxaMode("value")}
+                  title="Informar o R$ exato retido pelo cartão"
+                >
+                  R$
+                </button>
+              </div>
+              <span className={styles.required}>*</span>
               {isAutoTaxa && (
                 <span className={styles.labelHint}>· automática</span>
               )}
@@ -1003,7 +1083,9 @@ export function EntryForm({
         {calc.taxaVal > 0 && (
           <div className={styles.previewRow}>
             <span className={styles.previewLabel}>
-              Taxa cartão ({formatDecimalBR(draft.taxa)}%)
+              {taxaMode === "value"
+                ? "Taxa cartão (R$)"
+                : `Taxa cartão (${formatDecimalBR(draft.taxa)}%)`}
             </span>
             <span className={styles.previewValue}>
               − {fmtBRL(calc.taxaVal)}
