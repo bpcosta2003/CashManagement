@@ -33,7 +33,8 @@ export function addMes(m: number, y: number, n: number) {
  *   3. Taxa fixa do negócio (% sobre vef) — passa por opts ou snapshot do row
  *   4. Taxa do cartão (% sobre o subtotal pós taxa do negócio)
  *   5. Custo absoluto do serviço
- *   6. Auxiliar do serviço (% sobre o subtotal pós custo) — vem do row
+ *   6. Auxiliar do serviço (% sobre vef — base sempre o valor efetivo,
+ *      independente das outras deduções na cadeia)
  *
  * Líquido = vef − taxaFixaVal − taxaVal − custo − auxiliarVal.
  *
@@ -62,16 +63,18 @@ export function calcRow(
 
   // 2. Taxa do cartão sobre o subtotal pós taxa do negócio.
   const t = (afterTaxaFixa * (+r.taxa || 0)) / 100;
-  const afterTaxaCart = afterTaxaFixa - t;
 
   // 3. Custo absoluto.
   const c = +r.custo || 0;
-  const afterCusto = afterTaxaCart - c;
 
-  // 4. Auxiliar do serviço sobre o subtotal pós custo.
+  // 4. Auxiliar do serviço — % SEMPRE sobre vef, independente da cadeia
+  //    de descontos acima. Modela o caso onde o auxiliar é pago como
+  //    fração do que o cliente realmente pagou (o "valor efetivo"),
+  //    não do que sobra pro dono depois das taxas/custo.
   const auxPct = Math.max(0, Math.min(100, +(r.auxiliarPct || 0)));
-  const auxiliarVal = (afterCusto * auxPct) / 100;
-  const liq = afterCusto - auxiliarVal;
+  const auxiliarVal = (vef * auxPct) / 100;
+
+  const liq = vef - taxaFixaVal - t - c - auxiliarVal;
 
   return {
     ...r,
