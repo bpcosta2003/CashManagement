@@ -51,6 +51,44 @@
   letter-spacing: 0.04em;
 }
 
+/* Toggle compacto "%/R$" pra alternar o modo do input da Taxa do
+   cartão. Fica embutido no label, ao lado direito do texto "Taxa". */
+.taxaModeToggle {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  padding: 2px;
+  gap: 2px;
+  margin-left: 2px;
+  align-self: center;
+}
+
+.taxaModeToggle button {
+  appearance: none;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: var(--t-eyebrow);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  min-width: 28px;
+  line-height: 1;
+  transition: background 0.12s var(--ease), color 0.12s var(--ease);
+}
+
+.taxaModeToggle button[data-active="true"] {
+  background: var(--accent);
+  color: var(--accent-on);
+}
+
+.taxaModeToggle button:hover:not([data-active="true"]) {
+  color: var(--text);
+}
+
 .inputError {
   border-color: var(--negative) !important;
   background: rgba(201, 107, 107, 0.04);

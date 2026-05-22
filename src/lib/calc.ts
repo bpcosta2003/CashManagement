@@ -61,8 +61,19 @@ export function calcRow(
   const taxaFixaVal = (vef * taxaFixaPct) / 100;
   const afterTaxaFixa = vef - taxaFixaVal;
 
-  // 2. Taxa do cartão sobre o subtotal pós taxa do negócio.
-  const t = (afterTaxaFixa * (+r.taxa || 0)) / 100;
+  // 2. Taxa do cartão. Dois modos:
+  //    - "value": o usuário digitou o R$ absoluto retido pelo cartão.
+  //      Usamos direto, clamp em [0, afterTaxaFixa] pra nunca virar líq.
+  //      negativo só pela taxa.
+  //    - "percent" (default): aplica o % sobre o subtotal pós taxa do
+  //      negócio.
+  let t = 0;
+  if (r.taxaMode === "value") {
+    const raw = Math.max(0, +r.taxa || 0);
+    t = Math.min(raw, Math.max(0, afterTaxaFixa));
+  } else {
+    t = (afterTaxaFixa * (+r.taxa || 0)) / 100;
+  }
 
   // 3. Custo absoluto.
   const c = +r.custo || 0;

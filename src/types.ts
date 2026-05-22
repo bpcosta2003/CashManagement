@@ -100,6 +100,13 @@ export interface Row {
   forma: FormaPagamento;
   parc: number;
   taxa: number;
+  /** Como o campo `taxa` deve ser interpretado:
+   *   - "percent" (default): `taxa` é uma porcentagem aplicada sobre o
+   *     subtotal pós taxa do negócio.
+   *   - "value": `taxa` é o R$ absoluto retido pelo cartão. Útil pra
+   *     quem sabe o valor exato debitado mas não sabe o % aplicado.
+   *  Quando undefined, comportamento legado = "percent". */
+  taxaMode?: "percent" | "value";
   custo: number | "";
   desconto: number | "";
   /** % do auxiliar do serviço — quando o atendimento envolve um ajudante

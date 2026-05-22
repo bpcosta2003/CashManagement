@@ -124,7 +124,14 @@ function validateRow(input: unknown, businessId: string): Row | null {
       : clampNumber(asFiniteNumber(r.desconto, 0), 0, MAX_VALOR);
   const custo =
     r.custo === "" ? 0 : clampNumber(asFiniteNumber(r.custo, 0), 0, MAX_VALOR);
-  const taxa = clampNumber(asFiniteNumber(r.taxa, 0), 0, 100);
+  // taxaMode: "percent" (default) → taxa é % (cap em 100).
+  //           "value" → taxa é R$ absoluto (cap em MAX_VALOR).
+  const taxaMode: "percent" | "value" =
+    r.taxaMode === "value" ? "value" : "percent";
+  const taxa =
+    taxaMode === "value"
+      ? clampNumber(asFiniteNumber(r.taxa, 0), 0, MAX_VALOR)
+      : clampNumber(asFiniteNumber(r.taxa, 0), 0, 100);
   const parc = Math.max(1, Math.min(24, asFiniteNumber(r.parc, 1)));
 
   const formaRaw = typeof r.forma === "string" ? r.forma : "Dinheiro";
@@ -168,6 +175,7 @@ function validateRow(input: unknown, businessId: string): Row | null {
     forma,
     parc: Math.round(parc),
     taxa,
+    ...(taxaMode === "value" ? { taxaMode } : {}),
     custo,
     desconto,
     ...(items ? { items } : {}),

@@ -103,7 +103,11 @@ export function exportToExcel(
         calc.vef,
         r.forma,
         r.parc,
-        +r.taxa / 100,
+        // Em modo "value", r.taxa é R$ absoluto, então a coluna "Taxa %"
+        // sai como 0. Em modo "percent" (default), sai como fração
+        // (0.029 = 2,9%). A coluna "Taxa (R$)" sempre tem o valor
+        // efetivo retido (calc.taxaVal).
+        r.taxaMode === "value" ? 0 : +r.taxa / 100,
         calc.taxaVal,
         calc.custoVal,
         effectiveTaxaFixa / 100,
@@ -413,9 +417,25 @@ export function importFromExcel(file: File): Promise<ImportResult> {
             return;
           }
 
+          // Detecção do modo da taxa:
+          //  - "Taxa %" > 0 → modo "percent", taxa = porcentagem.
+          //  - "Taxa %" == 0 e "Taxa (R$)" > 0 → modo "value",
+          //    taxa = R$ absoluto (lido da coluna "Taxa (R$)").
+          // Permite roundtrip sem precisar de coluna extra; o modo é
+          // inferido da estrutura natural do dado exportado.
           const taxaRaw = parseFloat(String(r["Taxa %"] ?? "0")) || 0;
-          // If the export was as fraction (<1) we multiply by 100
-          const taxa = taxaRaw > 0 && taxaRaw < 1 ? taxaRaw * 100 : taxaRaw;
+          const taxaAbsRaw = parseFloat(String(r["Taxa (R$)"] ?? "0")) || 0;
+          let taxa: number;
+          let taxaMode: "percent" | "value" | undefined;
+          if (taxaRaw > 0) {
+            // Se exportou como fração (<1), multiplica por 100.
+            taxa = taxaRaw > 0 && taxaRaw < 1 ? taxaRaw * 100 : taxaRaw;
+          } else if (taxaAbsRaw > 0) {
+            taxa = taxaAbsRaw;
+            taxaMode = "value";
+          } else {
+            taxa = 0;
+          }
 
           const custoNum =
             parseFloat(
@@ -500,6 +520,7 @@ export function importFromExcel(file: File): Promise<ImportResult> {
             forma,
             parc: +(r["Parcelas"] ?? 1) || 1,
             taxa,
+            ...(taxaMode ? { taxaMode } : {}),
             custo: custoNum || "",
             desconto: descNum || "",
             ...(auxiliarPct !== undefined ? { auxiliarPct } : {}),
