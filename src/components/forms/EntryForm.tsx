@@ -183,16 +183,27 @@ export function EntryForm({
       // ficam só com o que a Row atual já tinha (não faz sentido alterar
       // forma de pagamento ao adicionar um serviço extra).
       if (itemList.length > 0) {
-        const v =
-          typeof entry.valor === "number" ? entry.valor : +entry.valor || 0;
-        setItemList((list) => [
-          ...list,
-          {
-            _key: uid(),
-            name: entry.servico,
-            valor: v > 0 ? v : "",
-          },
-        ]);
+        // Histórico multi-item: appenda TODOS os items do histórico.
+        // Histórico single: appenda 1 item com servico+valor.
+        const toAppend: ItemDraft[] =
+          entry.items && entry.items.length > 0
+            ? entry.items.map((it) => ({
+                _key: uid(),
+                name: it.name,
+                valor: it.valor > 0 ? it.valor : "",
+                catalogId: it.catalogId,
+              }))
+            : [
+                {
+                  _key: uid(),
+                  name: entry.servico,
+                  valor:
+                    typeof entry.valor === "number" && entry.valor > 0
+                      ? entry.valor
+                      : "",
+                },
+              ];
+        setItemList((list) => [...list, ...toAppend]);
         setErrors((prev) => {
           const next = { ...prev };
           delete next.valor;
@@ -201,6 +212,21 @@ export function EntryForm({
         });
         return;
       }
+
+      // Single-mode: se o histórico era multi-item, promove o form pra
+      // multi-mode espelhando os items. Senão, sobrescreve servico/valor
+      // como antes.
+      if (entry.items && entry.items.length > 0) {
+        setItemList(
+          entry.items.map((it) => ({
+            _key: uid(),
+            name: it.name,
+            valor: it.valor > 0 ? it.valor : "",
+            catalogId: it.catalogId,
+          })),
+        );
+      }
+
       setDraft((prev) => ({
         ...prev,
         servico: entry.servico,
@@ -210,7 +236,17 @@ export function EntryForm({
         taxa: entry.taxa,
         custo: entry.custo,
         desconto: entry.desconto,
+        // Copia auxiliarPct também — caso o histórico tinha auxiliar
+        // configurado, faz sentido repetir junto. Se entry não tem,
+        // limpa o auxiliar (`undefined`) pra não vazar valor do draft
+        // anterior.
+        auxiliarPct: entry.auxiliarPct,
       }));
+      // Sincroniza os inputs controlados (taxa e auxiliar) que mantêm
+      // texto bruto separado do draft — sem isso, o usuário via os
+      // valores antigos no input apesar do draft já estar atualizado.
+      setTaxaText(formatDecimalBR(entry.taxa));
+      setAuxiliarText(formatDecimalBR(entry.auxiliarPct ?? 0));
       setTaxaTouched(true);
       setErrors((prev) => {
         const next = { ...prev };
