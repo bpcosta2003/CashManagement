@@ -30,15 +30,16 @@ export function addMes(m: number, y: number, n: number) {
  * Calcula totais e líquido de um lançamento, considerando:
  *   1. Valor bruto (preço)
  *   2. Desconto → valor efetivo (vef)
- *   3. Taxa do cartão (% sobre vef)
- *   4. Custo absoluto do serviço
- *   5. Taxa fixa do negócio (% sobre subtotal após custo) — passa por opts
- *   6. Auxiliar do serviço (% sobre subtotal após taxa fixa) — vem do row
+ *   3. Taxa fixa do negócio (% sobre vef) — passa por opts ou snapshot do row
+ *   4. Taxa do cartão (% sobre o subtotal pós taxa do negócio)
+ *   5. Custo absoluto do serviço
+ *   6. Auxiliar do serviço (% sobre o subtotal pós custo) — vem do row
  *
- * Líquido final = vef − taxaVal − custo − taxaFixaVal − auxiliarVal.
+ * Líquido = vef − taxaFixaVal − taxaVal − custo − auxiliarVal.
+ *
  * A margem é calculada sobre o bruto (valor), preservando o significado
- * histórico ("quanto sobra de cada real vendido"). Bruto NÃO muda — taxa
- * fixa e auxiliar reduzem o que sobra, não o que entrou.
+ * histórico ("quanto sobra de cada real vendido"). Bruto NÃO muda — todas
+ * as deduções reduzem o que sobra, não o que entrou.
  */
 export function calcRow(
   r: Row,
@@ -47,23 +48,30 @@ export function calcRow(
   const v = +r.valor || 0;
   const d = Math.min(+r.desconto || 0, v);
   const vef = v - d;
-  const t = (vef * (+r.taxa || 0)) / 100;
-  const c = +r.custo || 0;
-  const afterCost = vef - t - c;
 
-  // Preferência: snapshot carimbado no Row (preserva histórico) →
-  // fallback pra taxa fixa atual do negócio (lançamentos pré-feature).
+  // 1. Taxa fixa do negócio sobre vef.
+  //    Preferência: snapshot carimbado no Row (preserva histórico) →
+  //    fallback pra taxa fixa atual do negócio (lançamentos pré-feature).
   const rawPct =
     r.taxaFixaPctSnapshot !== undefined
       ? r.taxaFixaPctSnapshot
       : (opts?.taxaFixaPct ?? 0);
   const taxaFixaPct = Math.max(0, Math.min(100, +rawPct || 0));
-  const taxaFixaVal = (afterCost * taxaFixaPct) / 100;
-  const afterTaxaFixa = afterCost - taxaFixaVal;
+  const taxaFixaVal = (vef * taxaFixaPct) / 100;
+  const afterTaxaFixa = vef - taxaFixaVal;
 
+  // 2. Taxa do cartão sobre o subtotal pós taxa do negócio.
+  const t = (afterTaxaFixa * (+r.taxa || 0)) / 100;
+  const afterTaxaCart = afterTaxaFixa - t;
+
+  // 3. Custo absoluto.
+  const c = +r.custo || 0;
+  const afterCusto = afterTaxaCart - c;
+
+  // 4. Auxiliar do serviço sobre o subtotal pós custo.
   const auxPct = Math.max(0, Math.min(100, +(r.auxiliarPct || 0)));
-  const auxiliarVal = (afterTaxaFixa * auxPct) / 100;
-  const liq = afterTaxaFixa - auxiliarVal;
+  const auxiliarVal = (afterCusto * auxPct) / 100;
+  const liq = afterCusto - auxiliarVal;
 
   return {
     ...r,

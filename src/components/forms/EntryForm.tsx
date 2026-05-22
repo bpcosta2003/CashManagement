@@ -952,6 +952,18 @@ export function EntryForm({
           <span className={styles.previewLabel}>Valor efetivo</span>
           <span className={styles.previewValue}>{fmtBRL(calc.vef)}</span>
         </div>
+        {/* Ordem das deduções: taxa do negócio → taxa cartão → custo → auxiliar.
+            Cada % é aplicada sobre o subtotal naquele ponto da cadeia. */}
+        {calc.taxaFixaVal > 0 && (
+          <div className={styles.previewRow}>
+            <span className={styles.previewLabel}>
+              Taxa do negócio ({formatDecimalBR(effectiveTaxaFixa)}%)
+            </span>
+            <span className={styles.previewValue}>
+              − {fmtBRL(calc.taxaFixaVal)}
+            </span>
+          </div>
+        )}
         {calc.taxaVal > 0 && (
           <div className={styles.previewRow}>
             <span className={styles.previewLabel}>
@@ -967,16 +979,6 @@ export function EntryForm({
             <span className={styles.previewLabel}>Custo</span>
             <span className={styles.previewValue}>
               − {fmtBRL(calc.custoVal)}
-            </span>
-          </div>
-        )}
-        {calc.taxaFixaVal > 0 && (
-          <div className={styles.previewRow}>
-            <span className={styles.previewLabel}>
-              Taxa do negócio ({formatDecimalBR(effectiveTaxaFixa)}%)
-            </span>
-            <span className={styles.previewValue}>
-              − {fmtBRL(calc.taxaFixaVal)}
             </span>
           </div>
         )}
