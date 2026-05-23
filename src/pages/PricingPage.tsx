@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BrandMark } from "../components/layout/Brand";
 import styles from "./PricingPage.module.css";
 
@@ -93,7 +93,7 @@ const PLANS: Plan[] = [
     id: "ultra",
     name: "Ultra",
     forWhom: "Pra quem quer escalar baseado em dado — e vende em marketplace também.",
-    price: "R$ 79",
+    price: "R$ 100",
     priceHint: "por mês",
     features: [
       { label: "Tudo do Pro, mais:" },
@@ -309,6 +309,56 @@ export function PricingPage() {
   >({ kind: "idle" });
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
+  // ─── Carousel de features ───
+  // Snap horizontal nativo + botões prev/next + contador.
+  // Sem libs: scroll-snap-type pega o swipe touch grátis; o JS só
+  // sincroniza o índice atual e move pra próxima feature ao clicar.
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const [carouselIdx, setCarouselIdx] = useState(0);
+
+  const scrollToCarouselIdx = (idx: number) => {
+    const container = carouselRef.current;
+    if (!container) return;
+    const card = container.children[idx] as HTMLElement | undefined;
+    if (!card) return;
+    container.scrollTo({
+      left: card.offsetLeft - container.offsetLeft,
+      behavior: "smooth",
+    });
+  };
+
+  useEffect(() => {
+    const container = carouselRef.current;
+    if (!container) return;
+    // Atualiza o índice ativo conforme o usuário arrasta/swipa.
+    // Usa o card mais próximo do scrollLeft pra evitar saltos.
+    let raf = 0;
+    const onScroll = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const cards = Array.from(container.children) as HTMLElement[];
+        if (cards.length === 0) return;
+        let closest = 0;
+        let minDist = Infinity;
+        for (let i = 0; i < cards.length; i += 1) {
+          const dist = Math.abs(
+            cards[i].offsetLeft - container.offsetLeft - container.scrollLeft,
+          );
+          if (dist < minDist) {
+            minDist = dist;
+            closest = i;
+          }
+        }
+        setCarouselIdx(closest);
+      });
+    };
+    container.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      cancelAnimationFrame(raf);
+      container.removeEventListener("scroll", onScroll);
+    };
+  }, []);
+
   const handleOpen = (tier: Tier) => {
     setOpenTier(tier);
     setStatus({ kind: "idle" });
@@ -443,7 +493,7 @@ export function PricingPage() {
           </div>
         </section>
 
-        {/* ─── Showcase de features do app ─── */}
+        {/* ─── Showcase de features do app (carousel) ─── */}
         <section className={styles.section}>
           <header className={styles.sectionHeader}>
             <span className={styles.sectionEyebrow}>
@@ -453,20 +503,67 @@ export function PricingPage() {
               Tudo o que você precisa, num app só.
             </h2>
             <p className={styles.sectionLead}>
-              15 funcionalidades pensadas pro dia-a-dia do dono. Cada uma
-              resolve uma parte do caixa — e elas conversam entre si.
+              15 funcionalidades pensadas pro dia-a-dia do dono. Arraste pro
+              lado pra ver todas — cada uma resolve uma parte do caixa.
             </p>
           </header>
-          <div className={styles.appFeatureGrid}>
-            {APP_FEATURES.map((f) => (
-              <article key={f.title} className={styles.appFeatureCard}>
-                <span className={styles.appFeatureIcon} aria-hidden="true">
-                  {f.icon}
+
+          <div className={styles.carouselWrap}>
+            <div
+              ref={carouselRef}
+              className={styles.appFeatureCarousel}
+              role="region"
+              aria-label="Funcionalidades do app"
+              tabIndex={0}
+            >
+              {APP_FEATURES.map((f) => (
+                <article key={f.title} className={styles.appFeatureCard}>
+                  <span className={styles.appFeatureIcon} aria-hidden="true">
+                    {f.icon}
+                  </span>
+                  <h3 className={styles.appFeatureTitle}>{f.title}</h3>
+                  <p className={styles.appFeatureBody}>{f.body}</p>
+                </article>
+              ))}
+            </div>
+
+            <div className={styles.carouselControls}>
+              <button
+                type="button"
+                className={styles.carouselBtn}
+                onClick={() =>
+                  scrollToCarouselIdx(Math.max(0, carouselIdx - 1))
+                }
+                disabled={carouselIdx === 0}
+                aria-label="Funcionalidade anterior"
+              >
+                ‹
+              </button>
+              <span
+                className={styles.carouselCounter}
+                aria-live="polite"
+                aria-atomic="true"
+              >
+                {carouselIdx + 1}
+                <span className={styles.carouselCounterTotal}>
+                  {" / "}
+                  {APP_FEATURES.length}
                 </span>
-                <h3 className={styles.appFeatureTitle}>{f.title}</h3>
-                <p className={styles.appFeatureBody}>{f.body}</p>
-              </article>
-            ))}
+              </span>
+              <button
+                type="button"
+                className={styles.carouselBtn}
+                onClick={() =>
+                  scrollToCarouselIdx(
+                    Math.min(APP_FEATURES.length - 1, carouselIdx + 1),
+                  )
+                }
+                disabled={carouselIdx === APP_FEATURES.length - 1}
+                aria-label="Próxima funcionalidade"
+              >
+                ›
+              </button>
+            </div>
           </div>
         </section>
 
