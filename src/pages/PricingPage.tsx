@@ -23,7 +23,13 @@ type Tier = "pro" | "ultra";
 
 interface PlanFeature {
   label: string;
+  /** Funcionalidade ainda não construída — sai numa fase futura
+   *  (Em breve). */
   soon?: boolean;
+  /** Funcionalidade que será paga (Pro) mas está liberada no beta
+   *  pra quem entrar agora. Cria urgência sem retirar nada de quem
+   *  já usa. */
+  betaFree?: boolean;
 }
 
 interface Plan {
@@ -42,16 +48,19 @@ const PLANS: Plan[] = [
   {
     id: "free",
     name: "Free",
-    forWhom: "Pro dono que ainda anota no caderno ou luta com planilha.",
+    forWhom: "Pro dono que quer entender o caixa de verdade — no celular, sem custo nenhum.",
     price: "R$ 0",
     priceHint: "pra sempre",
     features: [
       { label: "Lança em 10s, mesmo offline" },
-      { label: "Caixa do mês todo num scroll" },
-      { label: "Meta + projeção de fechamento ao vivo" },
-      { label: "Catálogo, clientes e múltiplos itens por venda" },
-      { label: "1 análise por IA por mês" },
-      { label: "1 empreendimento" },
+      { label: "Visão mensal e anual lado a lado" },
+      { label: "Bruto, líquido, margem, ticket médio e top serviços" },
+      { label: "Projeção de recebimentos futuros mês a mês" },
+      { label: "Insights automáticos que avisam o que muda no caixa" },
+      { label: "Sincroniza celular ↔ computador, com backup na nuvem" },
+      { label: "PDF anual e mensal completos", betaFree: true },
+      { label: "Export formatado pro contador", betaFree: true },
+      { label: "1 análise por IA por mês · 1 empreendimento" },
     ],
     ctaLabel: "Usar grátis",
   },
@@ -66,28 +75,28 @@ const PLANS: Plan[] = [
     features: [
       { label: "Tudo do Free, mais:" },
       { label: "Até 5 empreendimentos, troca em 1 toque" },
-      { label: "Sincroniza celular ↔ computador" },
       { label: "30 análises por IA por mês" },
-      { label: "Resumo mensal no seu email — sem precisar lembrar" },
-      { label: "PDF anual pronto pra entregar no IRPF" },
-      { label: "Integração com Mercado Livre e Shopee", soon: true },
+      { label: "PDF anual e mensal sempre liberados" },
+      { label: "Export pro contador sempre liberado" },
+      { label: "Histórico completo das suas análises por IA" },
+      { label: "Suporte prioritário por email" },
     ],
     ctaLabel: "Quero ser avisado",
   },
   {
     id: "ultra",
     name: "Ultra",
-    forWhom: "Pro dono que quer escalar baseado em dado, não em achismo.",
+    forWhom: "Pro dono que quer escalar baseado em dado — e vende em marketplace também.",
     price: "R$ 79",
     priceHint: "por mês",
     features: [
       { label: "Tudo do Pro, mais:" },
       { label: "Consultor de negócio com IA, sob demanda" },
       { label: "Plano de 30 dias personalizado pro seu momento" },
-      { label: "Inteligência de catálogo: preço sugerido, margem, mix ideal" },
+      { label: "Inteligência de catálogo: preço, margem, mix ideal", soon: true },
       { label: "Análises por IA ilimitadas" },
       { label: "Empreendimentos ilimitados" },
-      { label: "+ Amazon e marketplaces internacionais", soon: true },
+      { label: "Integração com Mercado Livre, Shopee e Amazon", soon: true },
     ],
     ctaLabel: "Quero ser avisado",
   },
@@ -363,6 +372,11 @@ export function PricingPage() {
                         {f.soon && (
                           <span className={styles.soonTag}>Em breve</span>
                         )}
+                        {f.betaFree && (
+                          <span className={styles.betaTag}>
+                            Grátis no beta
+                          </span>
+                        )}
                       </span>
                     </li>
                   ))}
@@ -384,11 +398,18 @@ export function PricingPage() {
             ))}
           </div>
 
-          <p className={styles.guarantee}>
-            <strong>Sem amarração.</strong> Sem cláusula escondida, sem
-            fidelidade, sem cartão pra começar. Você cancela quando quiser e
-            leva seus dados em Excel ou PDF.
-          </p>
+          <div className={styles.guarantee}>
+            <p>
+              <strong>Sem amarração.</strong> Sem cláusula escondida, sem
+              fidelidade, sem cartão pra começar. Você cancela quando quiser
+              e leva seus dados em Excel ou PDF.
+            </p>
+            <p className={styles.guaranteeBeta}>
+              ⚡ Itens com tag <span className={styles.betaTagInline}>Grátis no beta</span>{" "}
+              hoje estão liberados no Free e migram pro Pro no lançamento.
+              Quem entrar agora trava desconto vitalício.
+            </p>
+          </div>
         </section>
 
         {/* ─── FAQ ─── */}
