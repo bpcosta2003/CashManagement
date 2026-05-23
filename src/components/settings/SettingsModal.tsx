@@ -406,29 +406,14 @@ export function SettingsModal({
             </div>
           </section>
 
-          {/* ─── Sobre / versão ─── */}
-          <section className={styles.section}>
-            <span className={styles.sectionLabel}>Sobre</span>
-            <div className={styles.row}>
-              <div className={styles.rowText}>
-                <span className={styles.rowTitle}>Versão</span>
-                <span className={styles.rowDesc}>
-                  <span style={{ fontFamily: "var(--font-mono)" }}>
-                    v{__APP_VERSION__} · build {__APP_BUILD__}
-                  </span>
-                  <br />
-                  Compilada em{" "}
-                  {new Date(__APP_BUILT_AT__).toLocaleString("pt-BR", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </span>
-              </div>
-            </div>
-          </section>
+          {/* Rodapé minimalista — só a versão. Build SHA fica como
+              tooltip pra debug rápido sem poluir a UI. */}
+          <div
+            className={styles.versionFooter}
+            title={`build ${__APP_BUILD__} · ${new Date(__APP_BUILT_AT__).toLocaleString("pt-BR")}`}
+          >
+            v{__APP_VERSION__}
+          </div>
         </div>
       </div>
     </div>
