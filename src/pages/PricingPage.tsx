@@ -23,13 +23,14 @@ type Tier = "pro" | "ultra";
 
 interface PlanFeature {
   label: string;
-  /** Funcionalidade ainda não construída — sai numa fase futura
-   *  (Em breve). */
+  /** Feature ainda não construída — sai numa fase futura
+   *  ("Em breve" — accent-soft pill). */
   soon?: boolean;
-  /** Funcionalidade que será paga (Pro) mas está liberada no beta
-   *  pra quem entrar agora. Cria urgência sem retirar nada de quem
-   *  já usa. */
-  betaFree?: boolean;
+  /** Feature que existe e funciona no Free hoje, mas que vira Pro
+   *  no lançamento dos planos pagos ("Por tempo limitado no Free"
+   *  — accent sólido pill, sinaliza urgência sem retirar acesso
+   *  agora). */
+  limited?: boolean;
 }
 
 interface Plan {
@@ -48,57 +49,167 @@ const PLANS: Plan[] = [
   {
     id: "free",
     name: "Free",
-    forWhom: "Pro dono que quer entender o caixa de verdade — no celular, sem custo nenhum.",
+    forWhom: "Pra quem quer entender o caixa de verdade, no celular — começando hoje, sem custo.",
     price: "R$ 0",
     priceHint: "pra sempre",
     features: [
-      { label: "Lança em 10s, mesmo offline" },
-      { label: "Visão mensal e anual lado a lado" },
-      { label: "Bruto, líquido, margem, ticket médio e top serviços" },
+      { label: "Lançamentos ilimitados, mesmo offline" },
+      { label: "Sincroniza celular ↔ computador" },
+      { label: "Mês e ano lado a lado, com gráfico de 12 meses" },
+      { label: "Resumo do mês: bruto, líquido, margem, ticket e top serviços" },
       { label: "Projeção de recebimentos futuros mês a mês" },
-      { label: "Insights automáticos que avisam o que muda no caixa" },
-      { label: "Sincroniza celular ↔ computador, com backup na nuvem" },
-      { label: "PDF anual e mensal completos", betaFree: true },
-      { label: "Export formatado pro contador", betaFree: true },
-      { label: "1 análise por IA por mês · 1 empreendimento" },
+      { label: "Insights automáticos do que muda no caixa" },
+      { label: "Clientes (LTV) e catálogo de serviços" },
+      { label: "Backup e restore Excel manual" },
+      { label: "Múltiplos empreendimentos", limited: true },
+      { label: "3 análises por IA por mês", limited: true },
+      { label: "PDF anual e mensal completos", limited: true },
+      { label: "Notificações por email (resumo + meta)", limited: true },
     ],
     ctaLabel: "Usar grátis",
   },
   {
     id: "pro",
     name: "Pro",
-    forWhom: "Pro dono que toca mais de um negócio ou quer entregar tudo certo pro contador.",
+    forWhom: "Pra quem toca mais de um negócio, lança todo dia e quer IA junto da rotina.",
     price: "R$ 29",
     priceHint: "por mês",
     highlight: true,
     badge: "Mais escolhido",
     features: [
-      { label: "Tudo do Free, mais:" },
+      { label: "Tudo do Free, sem limites de tempo" },
       { label: "Até 5 empreendimentos, troca em 1 toque" },
       { label: "30 análises por IA por mês" },
-      { label: "PDF anual e mensal sempre liberados" },
-      { label: "Export pro contador sempre liberado" },
-      { label: "Histórico completo das suas análises por IA" },
-      { label: "Suporte prioritário por email" },
+      { label: "PDF anual e mensal completos, sempre" },
+      { label: "Notificações por email (resumo, meta, lembretes)" },
+      { label: "Export automático pro contador, todo dia 5", soon: true },
+      { label: "Insights aprimorados com IA (pendências, sugestões)", soon: true },
+      { label: "Lembrete diário via WhatsApp", soon: true },
+      { label: "30 análises de catálogo por IA / mês", soon: true },
     ],
     ctaLabel: "Quero ser avisado",
   },
   {
     id: "ultra",
     name: "Ultra",
-    forWhom: "Pro dono que quer escalar baseado em dado — e vende em marketplace também.",
+    forWhom: "Pra quem quer escalar baseado em dado — e vende em marketplace também.",
     price: "R$ 79",
     priceHint: "por mês",
     features: [
       { label: "Tudo do Pro, mais:" },
-      { label: "Consultor de negócio com IA, sob demanda" },
-      { label: "Plano de 30 dias personalizado pro seu momento" },
-      { label: "Inteligência de catálogo: preço, margem, mix ideal", soon: true },
+      { label: "Consultor de negócio por IA, com onboarding guiado" },
+      { label: "Plano de 30 dias com 4 metas semanais" },
+      { label: "Check-in diário (push + email) e replanejamento mensal" },
       { label: "Análises por IA ilimitadas" },
       { label: "Empreendimentos ilimitados" },
       { label: "Integração com Mercado Livre, Shopee e Amazon", soon: true },
+      { label: "Comparativo público de preço + alerta de estoque", soon: true },
     ],
     ctaLabel: "Quero ser avisado",
+  },
+];
+
+interface FeatureCard {
+  icon: string;
+  title: string;
+  body: string;
+}
+
+/**
+ * As 15 features principais do app. Mostradas como grid entre os
+ * Diferenciais e os Planos pra responder "o que tem dentro disso?"
+ * antes do visitante chegar nas tabelas de preço.
+ */
+const APP_FEATURES: FeatureCard[] = [
+  {
+    icon: "🏪",
+    title: "Seu empreendimento",
+    body:
+      "Troca entre negócios em 1 toque. Salão + freelance + comércio, cada um com caixa, clientes, catálogo e metas próprios.",
+  },
+  {
+    icon: "☁️",
+    title: "Sincronização na nuvem",
+    body:
+      "Login só com email, sem senha. Funciona offline e sincroniza automaticamente quando volta a conexão.",
+  },
+  {
+    icon: "💳",
+    title: "Taxas configuráveis",
+    body:
+      "Crédito, débito, parcelado — cada modalidade com sua taxa. Vem com padrões do mercado, ajusta pro que sua maquininha cobra.",
+  },
+  {
+    icon: "📅",
+    title: "Mês e ano em foco",
+    body:
+      "Navegue por mês ou alterne pra visão anual com gráfico dos 12 meses, timeline de atividade e comparativo entre negócios.",
+  },
+  {
+    icon: "💰",
+    title: "Resumo do mês",
+    body:
+      "Bruto, descontos, taxas e líquido em tempo real. Toque nos cards pra ver clientes, formas de pagamento e top serviços.",
+  },
+  {
+    icon: "🎯",
+    title: "Meta mensal",
+    body:
+      "Defina quanto quer faturar. Barra colorida (vermelho → dourado) e \"faltam R$ X\" ao vivo, sem precisar abrir planilha.",
+  },
+  {
+    icon: "💡",
+    title: "Insights automáticos",
+    body:
+      "Detecto queda de faturamento, pagamentos pendentes acumulando, concentração em um cliente. Aviso só o que importa.",
+  },
+  {
+    icon: "🤖",
+    title: "Análise por IA",
+    body:
+      "No fim do mês, gere análise inteligente com Claude: insights profundos, comparações e ações práticas em português.",
+  },
+  {
+    icon: "📝",
+    title: "Lançamentos do mês",
+    body:
+      "Cada venda fica aqui: cliente, serviço, valor, forma de pagamento, status. Pendentes destacados pra você dar baixa.",
+  },
+  {
+    icon: "📆",
+    title: "Projeção futura",
+    body:
+      "Vendas no crédito caem nos próximos meses (parceladas ou não). Veja quanto entra e quando, sem fazer conta.",
+  },
+  {
+    icon: "👥",
+    title: "Clientes e LTV",
+    body:
+      "Lista todos os clientes com faturamento total, ticket médio, última visita e telefone. Identifique melhores e quem sumiu.",
+  },
+  {
+    icon: "📚",
+    title: "Catálogo de serviços",
+    body:
+      "Seus serviços com valor sugerido. Ao selecionar no lançamento, o valor vem preenchido — economiza digitação e evita erro.",
+  },
+  {
+    icon: "💾",
+    title: "Backup e restauração",
+    body:
+      "Exporta tudo pra Excel (lançamentos, resumo, projeção, clientes, catálogo). Importa pra restaurar ou migrar de dispositivo.",
+  },
+  {
+    icon: "🎨",
+    title: "Aparência",
+    body:
+      "Tema claro ou escuro, 12 cores de destaque, instala como app no celular (PWA) — funciona como aplicativo nativo.",
+  },
+  {
+    icon: "🔔",
+    title: "Lembretes",
+    body:
+      "Lembrete in-app quando você abre o app sem lançar 24h. Email no 1º e último dia do mês com meta e resumo.",
   },
 ];
 
@@ -332,6 +443,33 @@ export function PricingPage() {
           </div>
         </section>
 
+        {/* ─── Showcase de features do app ─── */}
+        <section className={styles.section}>
+          <header className={styles.sectionHeader}>
+            <span className={styles.sectionEyebrow}>
+              O que tem dentro do app
+            </span>
+            <h2 className={styles.sectionTitle}>
+              Tudo o que você precisa, num app só.
+            </h2>
+            <p className={styles.sectionLead}>
+              15 funcionalidades pensadas pro dia-a-dia do dono. Cada uma
+              resolve uma parte do caixa — e elas conversam entre si.
+            </p>
+          </header>
+          <div className={styles.appFeatureGrid}>
+            {APP_FEATURES.map((f) => (
+              <article key={f.title} className={styles.appFeatureCard}>
+                <span className={styles.appFeatureIcon} aria-hidden="true">
+                  {f.icon}
+                </span>
+                <h3 className={styles.appFeatureTitle}>{f.title}</h3>
+                <p className={styles.appFeatureBody}>{f.body}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
         {/* ─── Planos ─── */}
         <section className={styles.section} id="planos">
           <header className={styles.sectionHeader}>
@@ -372,9 +510,9 @@ export function PricingPage() {
                         {f.soon && (
                           <span className={styles.soonTag}>Em breve</span>
                         )}
-                        {f.betaFree && (
-                          <span className={styles.betaTag}>
-                            Grátis no beta
+                        {f.limited && (
+                          <span className={styles.limitedTag}>
+                            Por tempo limitado no Free
                           </span>
                         )}
                       </span>
@@ -405,9 +543,12 @@ export function PricingPage() {
               e leva seus dados em Excel ou PDF.
             </p>
             <p className={styles.guaranteeBeta}>
-              ⚡ Itens com tag <span className={styles.betaTagInline}>Grátis no beta</span>{" "}
-              hoje estão liberados no Free e migram pro Pro no lançamento.
-              Quem entrar agora trava desconto vitalício.
+              ⚡ Itens com tag{" "}
+              <span className={styles.limitedTagInline}>
+                Por tempo limitado no Free
+              </span>{" "}
+              estão liberados pra todo mundo hoje e migram pro Pro quando os
+              planos lançarem. Quem entrar no beta trava desconto vitalício.
             </p>
           </div>
         </section>
