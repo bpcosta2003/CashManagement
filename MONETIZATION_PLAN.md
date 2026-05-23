@@ -159,7 +159,7 @@ A análise mensal já valida que usuário quer IA. Essa é POR PRODUTO — útil
 
 **Quando:** Fase 3 validou que IA contextual gera engajamento (>40% dos Pro usaram catalog-analyze no mês).
 
-### Ultra — R$ 100/mês
+### Ultra — R$ 119/mês
 
 Tudo do Pro, mais:
 
@@ -177,7 +177,7 @@ Tudo do Pro, mais:
 - Análise semanal: ~R$ 0,08 × 4 = R$ 0,32
 - Replanejamento mensal: ~R$ 0,15
 
-**Total: ~R$ 1,37/mês por usuário ativo. Margem ~R$ 98,63 / 98,6%.**
+**Total: ~R$ 1,37/mês por usuário ativo. Margem ~R$ 117,63 / 98,8%.**
 
 ### Checklist Fase 4
 

@@ -93,7 +93,7 @@ const PLANS: Plan[] = [
     id: "ultra",
     name: "Ultra",
     forWhom: "Pra quem quer escalar baseado em dado — e vende em marketplace também.",
-    price: "R$ 100",
+    price: "R$ 119",
     priceHint: "por mês",
     features: [
       { label: "Tudo do Pro, mais:" },
