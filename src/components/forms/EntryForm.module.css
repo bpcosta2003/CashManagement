@@ -406,6 +406,32 @@
   opacity: 0.45;
 }
 
+/* Em dark mode, o .preview deixa de usar a cor fixa de --hero-bg
+   (que é graphite/bordo) e passa a usar --surface — assim ganha a
+   cor tintada do accent ativo. Mantém destaque visual via borda
+   pontilhada sutil (mesmo tratamento aplicado em SummaryCards). */
+:root[data-theme="dark"] .preview {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px dashed rgba(255, 255, 255, 0.16);
+  box-shadow: var(--shadow-card);
+}
+
+:root[data-theme="dark"] .preview::before {
+  display: none;
+}
+
+:root[data-theme="dark"] .previewLabel-eyebrow,
+:root[data-theme="dark"] .previewLabel,
+:root[data-theme="dark"] .previewValue {
+  color: var(--text);
+}
+
+:root[data-theme="dark"] .previewLabel,
+:root[data-theme="dark"] .previewValue {
+  opacity: 0.85;
+}
+
 .previewLabel-eyebrow {
   font-size: var(--t-eyebrow);
   font-weight: 600;
