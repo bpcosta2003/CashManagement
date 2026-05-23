@@ -5,19 +5,18 @@ import styles from "./PricingPage.module.css";
 /**
  * Landing standalone em /pricing — Fase 0 da monetização.
  *
- * Renderiza:
- *  - Hero com proposta de valor
- *  - "Como funciona" pra quem nunca usou o app (visitantes vindos de
- *    redes sociais / anúncios precisam entender em 10 segundos)
- *  - "Por que escolher" — diferenciais frente a planilhas e ERPs
- *  - 3 tiers (Free / Pro / Ultra) com "Quero ser avisado" em cada pago
+ * A página vende em modo "dor → alívio", não em modo "lista de feature":
+ *  - Hero: promessa direta (caixa fechado em 1 min) + CTAs
+ *  - Painel de dores: 4 problemas comuns que o app resolve
+ *  - 3 diferenciais bold: o que separa esse app de planilha e ERP
+ *  - 3 planos curados (Free/Pro/Ultra) — 5-7 features cada,
+ *    ordenadas por gatilho emocional, com "pra quem é" subtitle
+ *  - Garantia + FAQ rápido pra derrubar objeção
+ *  - CTA final dedicado
  *
- * O CTA chama POST /api/pricing-interest e o backend valida + grava em
- * pricing_interest no Supabase.
- *
- * Marketplaces (Mercado Livre, Shopee, Amazon) aparecem marcados como
- * "Em breve" — sinaliza pra quem vende online que o app vai chegar lá
- * sem prometer entrega imediata.
+ * Marketplaces (ML+Shopee no Pro, Amazon no Ultra) aparecem com tag
+ * "Em breve". Sinaliza intenção pra vendedores online sem prometer
+ * entrega imediata.
  */
 
 type Tier = "pro" | "ultra";
@@ -30,10 +29,11 @@ interface PlanFeature {
 interface Plan {
   id: Tier | "free";
   name: string;
-  tagline: string;
+  forWhom: string;
   price: string;
   priceHint: string;
   highlight?: boolean;
+  badge?: string;
   features: PlanFeature[];
   ctaLabel: string;
 }
@@ -42,136 +42,129 @@ const PLANS: Plan[] = [
   {
     id: "free",
     name: "Free",
-    tagline: "Pra começar a entender o caixa sem custo nenhum.",
+    forWhom: "Pro dono que ainda anota no caderno ou luta com planilha.",
     price: "R$ 0",
     priceHint: "pra sempre",
     features: [
-      { label: "1 empreendimento" },
-      { label: "Lançamentos ilimitados (entradas, saídas, custos)" },
-      { label: "Múltiplos itens por atendimento" },
-      { label: "Catálogo de produtos/serviços e clientes" },
-      { label: "Meta mensal + acompanhamento diário" },
-      { label: "Taxa fixa do negócio + auxiliar do serviço" },
-      { label: "Modo % ou R$ em taxa de cartão e auxiliar" },
-      { label: "Dark mode + 12 cores de destaque" },
-      { label: "Backup Excel manual" },
+      { label: "Lança em 10s, mesmo offline" },
+      { label: "Caixa do mês todo num scroll" },
+      { label: "Meta + projeção de fechamento ao vivo" },
+      { label: "Catálogo, clientes e múltiplos itens por venda" },
       { label: "1 análise por IA por mês" },
-      { label: "App instalável (PWA) e funciona offline" },
+      { label: "1 empreendimento" },
     ],
-    ctaLabel: "Já está no app",
+    ctaLabel: "Usar grátis",
   },
   {
     id: "pro",
     name: "Pro",
-    tagline: "Pra quem quer crescer com decisões baseadas em dado.",
+    forWhom: "Pro dono que toca mais de um negócio ou quer entregar tudo certo pro contador.",
     price: "R$ 29",
     priceHint: "por mês",
     highlight: true,
+    badge: "Mais escolhido",
     features: [
       { label: "Tudo do Free, mais:" },
-      { label: "Até 5 empreendimentos com troca rápida" },
-      { label: "Sincronização entre celular e computador" },
+      { label: "Até 5 empreendimentos, troca em 1 toque" },
+      { label: "Sincroniza celular ↔ computador" },
       { label: "30 análises por IA por mês" },
-      { label: "Lembrete diário e resumo mensal por email" },
-      { label: "PDF anual completo pronto pro IRPF" },
-      { label: "Export automático pro contador" },
-      { label: "Backup automático na nuvem" },
+      { label: "Resumo mensal no seu email — sem precisar lembrar" },
+      { label: "PDF anual pronto pra entregar no IRPF" },
       { label: "Integração com Mercado Livre e Shopee", soon: true },
-      { label: "Suporte prioritário por email" },
     ],
     ctaLabel: "Quero ser avisado",
   },
   {
     id: "ultra",
     name: "Ultra",
-    tagline: "Pra quem trata o negócio como negócio de verdade.",
+    forWhom: "Pro dono que quer escalar baseado em dado, não em achismo.",
     price: "R$ 79",
     priceHint: "por mês",
     features: [
       { label: "Tudo do Pro, mais:" },
-      { label: "Empreendimentos ilimitados" },
-      { label: "Análises por IA ilimitadas" },
       { label: "Consultor de negócio com IA, sob demanda" },
-      { label: "Plano de 30 dias personalizado pro seu negócio" },
-      { label: "Check-ins diários e replanejamento automático" },
-      { label: "Inteligência de catálogo (preços, margens, mix ideal)" },
+      { label: "Plano de 30 dias personalizado pro seu momento" },
+      { label: "Inteligência de catálogo: preço sugerido, margem, mix ideal" },
+      { label: "Análises por IA ilimitadas" },
+      { label: "Empreendimentos ilimitados" },
       { label: "+ Amazon e marketplaces internacionais", soon: true },
-      { label: "Suporte direto com o time de produto" },
     ],
     ctaLabel: "Quero ser avisado",
   },
 ];
 
-interface FeatureHighlight {
-  icon: string;
-  title: string;
-  description: string;
+interface Pain {
+  pain: string;
+  relief: string;
 }
 
-const FEATURE_HIGHLIGHTS: FeatureHighlight[] = [
+const PAINS: Pain[] = [
   {
-    icon: "📒",
-    title: "Lançamento em segundos",
-    description:
-      "Registre entradas, custos e taxas em uma tela só. Múltiplos itens por venda, modo % ou R$ pra taxa de cartão e auxiliar, taxa fixa do negócio aplicada automaticamente.",
+    pain: "“Esqueci de descontar a taxa do cartão de novo.”",
+    relief:
+      "O app desconta taxa, custo e auxiliar automaticamente. Você vê o líquido real na hora — não no fim do mês.",
   },
   {
-    icon: "📊",
-    title: "Resumo que faz sentido",
-    description:
-      "Veja faturamento, líquido, ticket médio e top serviços por dia, semana, mês ou ano. Compare períodos sem montar planilha nenhuma.",
+    pain: "“Será que vou bater a meta esse mês?”",
+    relief:
+      "Projeção diária baseada no seu ritmo. Se está abaixo, o app avisa antes de virar problema.",
   },
   {
-    icon: "🎯",
-    title: "Meta e projeção",
-    description:
-      "Defina uma meta mensal e o app projeta se você bate, com base no ritmo atual. Lembrete diário quando você fica sem lançar.",
+    pain: "“Demoro 2 horas pra fechar o mês.”",
+    relief:
+      "Faturamento, líquido, ticket médio e top serviços calculados em tempo real. Fecha o mês em 1 minuto.",
   },
   {
-    icon: "🤖",
-    title: "Análise por IA",
-    description:
-      "Uma vez por mês, a IA lê seus números e devolve diagnóstico em português claro: o que cresceu, o que caiu, o que vale ajustar.",
-  },
-  {
-    icon: "📄",
-    title: "Relatórios prontos",
-    description:
-      "Exporte Excel pra contabilidade, PDF mensal pra revisão, PDF anual completo pro IRPF. Tudo formatado, sem precisar mexer.",
-  },
-  {
-    icon: "📱",
-    title: "Instala no celular",
-    description:
-      "Funciona offline, sincroniza quando volta. Tema claro/escuro, 12 cores de destaque. Seus dados ficam no seu dispositivo e (opcionalmente) na nuvem.",
+    pain: "“Tenho mais de um negócio e me perco.”",
+    relief:
+      "Cada empreendimento separado, com seus próprios catálogos e metas. Troca em 1 toque, no celular.",
   },
 ];
 
 interface Differentiator {
   title: string;
-  description: string;
+  body: string;
 }
 
 const DIFFERENTIATORS: Differentiator[] = [
   {
-    title: "Feito pro dono, não pro contador",
-    description:
-      "ERP como Conta Azul foi desenhado pra equipe contábil — interface densa, fluxo longo. Aqui é o oposto: o dono lança numa mão, no celular, entre um atendimento e outro.",
+    title: "Mais rápido que planilha. Mais barato que ERP.",
+    body:
+      "Planilha trava no celular e dá erro de fórmula. ERP custa R$ 200+ por mês e foi desenhado pra contador. Aqui: 10 segundos por lançamento, no celular, durante o atendimento.",
   },
   {
-    title: "Mais rápido que planilha",
-    description:
-      "Excel obriga você a criar fórmula, manter aba, lembrar do total. Aqui o app já sabe: descontou taxa de cartão, somou auxiliar, separou custo, fechou o dia.",
+    title: "Decide. Não só registra.",
+    body:
+      "Os outros mostram a tabela e pronto. Esse aqui responde em português: “o que mudou esse mês?”, “qual serviço dá mais margem?”, “vou bater a meta?”. Sem precisar interpretar gráfico.",
   },
   {
-    title: "Decisão, não só registro",
-    description:
-      "Outros apps mostram a tabela e param. Esse aqui responde \"o que mudou esse mês?\" e \"vou bater a meta?\" — em português, sem você precisar interpretar gráfico.",
+    title: "Seu dado é seu. Sempre.",
+    body:
+      "Tudo salvo no seu dispositivo por padrão. Sincronização na nuvem é opcional. Exporte Excel ou PDF a qualquer hora — sem trava, sem dependência, sem amarração.",
+  },
+];
+
+interface Faq {
+  q: string;
+  a: string;
+}
+
+const FAQ: Faq[] = [
+  {
+    q: "Preciso de cartão de crédito pra começar?",
+    a: "Não. O Free é grátis pra sempre e não pede cartão. Os planos pagos ainda estão em validação — você só marca interesse e te avisamos com desconto no lançamento.",
   },
   {
-    title: "Seu dado é seu",
-    description:
-      "Tudo salvo no seu dispositivo por padrão. Sincronização na nuvem é opcional, com login. Exporte Excel ou PDF quando quiser — sem trava, sem dependência.",
+    q: "Funciona sem internet?",
+    a: "Sim. O app é PWA: instala no celular como aplicativo, funciona offline e sincroniza quando volta a conexão. Você atende em qualquer lugar.",
+  },
+  {
+    q: "E se eu quiser sair? Levo meus dados?",
+    a: "Leva. Exporta tudo em Excel ou PDF a qualquer momento. Sem trava, sem cláusula escondida.",
+  },
+  {
+    q: "Pra que tipo de negócio serve?",
+    a: "Salão, restaurante, lojinha, prestador de serviço, freelancer, comércio online. Qualquer um que precise entender entrada, saída, custo e taxa — sem virar contador.",
   },
 ];
 
@@ -194,6 +187,7 @@ export function PricingPage() {
     | { kind: "success"; tier: Tier }
     | { kind: "error"; message: string }
   >({ kind: "idle" });
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   const handleOpen = (tier: Tier) => {
     setOpenTier(tier);
@@ -256,72 +250,74 @@ export function PricingPage() {
       </header>
 
       <main className={styles.main}>
+        {/* ─── Hero ─── */}
         <section className={styles.hero}>
-          <span className={styles.eyebrow}>Controle de Caixa</span>
+          <span className={styles.eyebrow}>Pra quem faz o caixa girar</span>
           <h1 className={styles.title}>
-            O caixa do seu negócio, fechado todo dia em 1 minuto.
+            Saiba quanto sobrou{" "}
+            <span className={styles.titleAccent}>antes de fechar a porta</span>.
           </h1>
           <p className={styles.subtitle}>
-            Um app feito pro dono que atende, vende e ainda precisa saber
-            quanto sobrou. Lança rápido, entende o mês inteiro de relance e
-            decide o próximo passo sem montar planilha.
+            Lançamento em 10 segundos no celular. Caixa do mês inteiro num
+            scroll. Análise por IA que fala português. Sem planilha, sem ERP,
+            sem contador no meio.
           </p>
           <div className={styles.heroCtas}>
             <a href="/" className={styles.heroPrimary}>
-              Usar grátis agora
+              Começar grátis em 30s
             </a>
             <a href="#planos" className={styles.heroSecondary}>
               Ver planos
             </a>
           </div>
           <p className={styles.heroNote}>
-            Sem cartão. Funciona offline. Instala no celular como app.
+            Sem cartão. Sem cadastro obrigatório. Funciona offline.
           </p>
         </section>
 
-        {/* ─── Como funciona ─── */}
+        {/* ─── Painel de dores ─── */}
         <section className={styles.section}>
           <header className={styles.sectionHeader}>
-            <span className={styles.sectionEyebrow}>O que o app faz</span>
+            <span className={styles.sectionEyebrow}>Soa familiar?</span>
             <h2 className={styles.sectionTitle}>
-              Tudo o que você precisa pra entender o caixa.
+              Você não precisa virar contador pra ter controle.
             </h2>
             <p className={styles.sectionLead}>
-              Não é só anotar entrada e saída. É enxergar o negócio inteiro com
-              o mesmo esforço de mandar uma mensagem no WhatsApp.
+              A gente pegou as 4 dores que todo dono pequeno reclama — e fez o
+              app resolver cada uma na origem.
             </p>
           </header>
-          <div className={styles.featureGrid}>
-            {FEATURE_HIGHLIGHTS.map((f) => (
-              <article key={f.title} className={styles.featureCard}>
-                <span className={styles.featureIcon} aria-hidden="true">
-                  {f.icon}
-                </span>
-                <h3 className={styles.featureTitle}>{f.title}</h3>
-                <p className={styles.featureDesc}>{f.description}</p>
+          <div className={styles.painGrid}>
+            {PAINS.map((p) => (
+              <article key={p.pain} className={styles.painCard}>
+                <p className={styles.painText}>{p.pain}</p>
+                <div className={styles.painArrow} aria-hidden="true">
+                  →
+                </div>
+                <p className={styles.reliefText}>{p.relief}</p>
               </article>
             ))}
           </div>
         </section>
 
-        {/* ─── Por que escolher ─── */}
+        {/* ─── Diferenciais ─── */}
         <section className={styles.section}>
           <header className={styles.sectionHeader}>
-            <span className={styles.sectionEyebrow}>Por que esse e não outro</span>
+            <span className={styles.sectionEyebrow}>
+              Por que esse e não outro
+            </span>
             <h2 className={styles.sectionTitle}>
-              Não é planilha. Não é ERP. É o meio que faltava.
+              Tem coisa que só esse app faz.
             </h2>
-            <p className={styles.sectionLead}>
-              A maioria dos negócios pequenos vive entre uma planilha que dá
-              trabalho e um sistema caro demais. A gente faz a parte do meio —
-              o suficiente pra você decidir, sem o peso do que não precisa.
-            </p>
           </header>
           <div className={styles.diffGrid}>
-            {DIFFERENTIATORS.map((d) => (
+            {DIFFERENTIATORS.map((d, i) => (
               <article key={d.title} className={styles.diffCard}>
+                <span className={styles.diffNumber} aria-hidden="true">
+                  0{i + 1}
+                </span>
                 <h3 className={styles.diffTitle}>{d.title}</h3>
-                <p className={styles.diffDesc}>{d.description}</p>
+                <p className={styles.diffDesc}>{d.body}</p>
               </article>
             ))}
           </div>
@@ -332,13 +328,12 @@ export function PricingPage() {
           <header className={styles.sectionHeader}>
             <span className={styles.sectionEyebrow}>Planos</span>
             <h2 className={styles.sectionTitle}>
-              Comece grátis. Cresça quando fizer sentido.
+              Comece grátis. Cresça quando o caixa pedir.
             </h2>
             <p className={styles.sectionLead}>
-              O app é grátis pra usar. Pros donos que querem ir mais longe,
-              análise por IA, consultoria e ferramentas avançadas estão
-              chegando. Marque seu interesse e te avisamos quando lançar —
-              com desconto pra quem entrou cedo.
+              O Free é completo de verdade. Pago só faz sentido quando você
+              tem mais de um negócio, quer IA todo dia ou precisa de
+              consultoria automatizada.
             </p>
           </header>
 
@@ -348,11 +343,11 @@ export function PricingPage() {
                 key={plan.id}
                 className={`${styles.card} ${plan.highlight ? styles.cardHi : ""}`}
               >
-                {plan.highlight && (
-                  <span className={styles.badge}>Mais popular</span>
+                {plan.badge && (
+                  <span className={styles.badge}>{plan.badge}</span>
                 )}
                 <h3 className={styles.planName}>{plan.name}</h3>
-                <p className={styles.planTagline}>{plan.tagline}</p>
+                <p className={styles.planForWhom}>{plan.forWhom}</p>
                 <div className={styles.priceRow}>
                   <span className={styles.price}>{plan.price}</span>
                   <span className={styles.priceHint}>{plan.priceHint}</span>
@@ -388,6 +383,63 @@ export function PricingPage() {
               </article>
             ))}
           </div>
+
+          <p className={styles.guarantee}>
+            <strong>Sem amarração.</strong> Sem cláusula escondida, sem
+            fidelidade, sem cartão pra começar. Você cancela quando quiser e
+            leva seus dados em Excel ou PDF.
+          </p>
+        </section>
+
+        {/* ─── FAQ ─── */}
+        <section className={styles.section}>
+          <header className={styles.sectionHeader}>
+            <span className={styles.sectionEyebrow}>Dúvidas comuns</span>
+            <h2 className={styles.sectionTitle}>Antes de você perguntar.</h2>
+          </header>
+          <div className={styles.faqList}>
+            {FAQ.map((item, i) => {
+              const isOpen = openFaq === i;
+              return (
+                <details
+                  key={item.q}
+                  className={styles.faqItem}
+                  open={isOpen}
+                  onToggle={(e) => {
+                    if ((e.target as HTMLDetailsElement).open) setOpenFaq(i);
+                    else if (openFaq === i) setOpenFaq(null);
+                  }}
+                >
+                  <summary className={styles.faqQ}>
+                    <span>{item.q}</span>
+                    <span className={styles.faqChevron} aria-hidden="true">
+                      ▾
+                    </span>
+                  </summary>
+                  <p className={styles.faqA}>{item.a}</p>
+                </details>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* ─── CTA final ─── */}
+        <section className={styles.finalCta}>
+          <h2 className={styles.finalTitle}>
+            O próximo mês pode ser diferente.
+          </h2>
+          <p className={styles.finalLead}>
+            Você começa grátis agora. Em 5 minutos já tem o primeiro caixa
+            fechado — e sabe quanto realmente sobrou.
+          </p>
+          <div className={styles.heroCtas}>
+            <a href="/" className={styles.heroPrimary}>
+              Usar grátis agora
+            </a>
+          </div>
+          <p className={styles.heroNote}>
+            Sem cartão. Sem amarração. Cancele quando quiser.
+          </p>
         </section>
 
         {openTier && (
@@ -426,7 +478,7 @@ export function PricingPage() {
                 <form className={styles.form} onSubmit={handleSubmit}>
                   <p className={styles.modalIntro}>
                     Sem spam. Só uma mensagem quando o {openTier === "pro" ? "Pro" : "Ultra"}{" "}
-                    estiver disponível.
+                    estiver disponível — com desconto pra quem entrou cedo.
                   </p>
                   <label className={styles.label} htmlFor="pi-email">
                     Seu e-mail
@@ -452,7 +504,7 @@ export function PricingPage() {
                     className={styles.submit}
                     disabled={submitting || email.trim().length === 0}
                   >
-                    {submitting ? "Enviando…" : "Marcar interesse"}
+                    {submitting ? "Enviando…" : "Garantir desconto"}
                   </button>
                 </form>
               )}
@@ -468,8 +520,8 @@ export function PricingPage() {
             </a>
           </p>
           <p className={styles.footerNote}>
-            Preços ainda em validação. Quem marcar interesse agora terá desconto
-            no lançamento.
+            Preços ainda em validação. Quem marcar interesse agora terá
+            desconto no lançamento.
           </p>
         </footer>
       </main>
