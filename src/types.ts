@@ -113,6 +113,11 @@ export interface Row {
    *  (ex.: cabeleireira com assistente). Aplicado sobre o subtotal após
    *  a taxa fixa do negócio. Default 0 (sem auxiliar). */
   auxiliarPct?: number;
+  /** Como interpretar `auxiliarPct`:
+   *   - "percent" (default): valor é uma porcentagem sobre vef.
+   *   - "value": valor é R$ absoluto repassado ao auxiliar.
+   *  Quando undefined, comportamento legado = "percent". */
+  auxiliarMode?: "percent" | "value";
   /** Snapshot da taxa fixa do negócio (%) no momento em que o lançamento
    *  foi criado. Garante histórico fiel: alterar a taxa do negócio mais
    *  tarde NÃO mexe nos cálculos dos lançamentos antigos. Quando undefined

@@ -112,7 +112,10 @@ export function exportToExcel(
         calc.custoVal,
         effectiveTaxaFixa / 100,
         calc.taxaFixaVal,
-        (r.auxiliarPct ?? 0) / 100,
+        // Em modo "value", auxiliarPct é R$ absoluto, então "Auxiliar %"
+        // sai como 0 e "Auxiliar (R$)" carrega o valor. Em "percent",
+        // sai como fração.
+        r.auxiliarMode === "value" ? 0 : (r.auxiliarPct ?? 0) / 100,
         calc.auxiliarVal,
         calc.liq,
         calc.mar / 100,
@@ -458,15 +461,23 @@ export function importFromExcel(file: File): Promise<ImportResult> {
                 : tfRaw
               : undefined;
 
+          // Detecção de modo do auxiliar — mesma heurística da taxa:
+          // se "Auxiliar %" > 0 → modo percent. Se zero e
+          // "Auxiliar (R$)" > 0 → modo value.
           const auxRaw = parseFloat(
             String(r["Auxiliar %"] ?? "").replace(",", "."),
           );
-          const auxiliarPct =
-            Number.isFinite(auxRaw) && auxRaw > 0
-              ? auxRaw > 0 && auxRaw < 1
-                ? auxRaw * 100
-                : auxRaw
-              : undefined;
+          const auxAbsRaw = parseFloat(
+            String(r["Auxiliar (R$)"] ?? "").replace(",", "."),
+          );
+          let auxiliarPct: number | undefined;
+          let auxiliarMode: "percent" | "value" | undefined;
+          if (Number.isFinite(auxRaw) && auxRaw > 0) {
+            auxiliarPct = auxRaw > 0 && auxRaw < 1 ? auxRaw * 100 : auxRaw;
+          } else if (Number.isFinite(auxAbsRaw) && auxAbsRaw > 0) {
+            auxiliarPct = auxAbsRaw;
+            auxiliarMode = "value";
+          }
 
           // items[] reconstruído da coluna "Itens (JSON)". Parse tolerante:
           // se o JSON estiver corrompido (usuário editou na mão e
@@ -524,6 +535,7 @@ export function importFromExcel(file: File): Promise<ImportResult> {
             custo: custoNum || "",
             desconto: descNum || "",
             ...(auxiliarPct !== undefined ? { auxiliarPct } : {}),
+            ...(auxiliarMode ? { auxiliarMode } : {}),
             ...(taxaFixaPctSnapshot !== undefined
               ? { taxaFixaPctSnapshot }
               : {}),

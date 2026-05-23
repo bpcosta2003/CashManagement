@@ -134,6 +134,24 @@ function validateRow(input: unknown, businessId: string): Row | null {
       : clampNumber(asFiniteNumber(r.taxa, 0), 0, 100);
   const parc = Math.max(1, Math.min(24, asFiniteNumber(r.parc, 1)));
 
+  // Auxiliar do serviço — mesmo padrão de modo da taxa.
+  const auxiliarMode: "percent" | "value" =
+    r.auxiliarMode === "value" ? "value" : "percent";
+  const auxiliarRaw = asFiniteNumber(r.auxiliarPct, 0);
+  const auxiliarPct =
+    auxiliarRaw > 0
+      ? auxiliarMode === "value"
+        ? clampNumber(auxiliarRaw, 0, MAX_VALOR)
+        : clampNumber(auxiliarRaw, 0, 100)
+      : undefined;
+
+  // Snapshot da taxa fixa do negócio carimbado no row (preserva
+  // histórico — não muda quando a config do negócio muda).
+  const taxaFixaSnapshotRaw = asFiniteNumber(r.taxaFixaPctSnapshot, NaN);
+  const taxaFixaPctSnapshot = Number.isFinite(taxaFixaSnapshotRaw)
+    ? clampNumber(taxaFixaSnapshotRaw, 0, 100)
+    : undefined;
+
   const formaRaw = typeof r.forma === "string" ? r.forma : "Dinheiro";
   const forma: FormaPagamento = FORMAS.includes(formaRaw as FormaPagamento)
     ? (formaRaw as FormaPagamento)
@@ -178,6 +196,11 @@ function validateRow(input: unknown, businessId: string): Row | null {
     ...(taxaMode === "value" ? { taxaMode } : {}),
     custo,
     desconto,
+    ...(auxiliarPct !== undefined ? { auxiliarPct } : {}),
+    ...(auxiliarMode === "value" ? { auxiliarMode } : {}),
+    ...(taxaFixaPctSnapshot !== undefined
+      ? { taxaFixaPctSnapshot }
+      : {}),
     ...(items ? { items } : {}),
     status,
     mes: Math.round(mes),
