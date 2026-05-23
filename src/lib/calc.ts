@@ -78,12 +78,21 @@ export function calcRow(
   // 3. Custo absoluto.
   const c = +r.custo || 0;
 
-  // 4. Auxiliar do serviço — % SEMPRE sobre vef, independente da cadeia
-  //    de descontos acima. Modela o caso onde o auxiliar é pago como
-  //    fração do que o cliente realmente pagou (o "valor efetivo"),
-  //    não do que sobra pro dono depois das taxas/custo.
-  const auxPct = Math.max(0, Math.min(100, +(r.auxiliarPct || 0)));
-  const auxiliarVal = (vef * auxPct) / 100;
+  // 4. Auxiliar do serviço. Dois modos análogos à taxa do cartão:
+  //    - "value": auxiliarPct é R$ absoluto. Clamp em [0, vef] pra
+  //      nunca virar o líquido negativo só pelo auxiliar.
+  //    - "percent" (default): % SEMPRE sobre vef, independente da
+  //      cadeia de descontos acima. Modela o caso onde o auxiliar é
+  //      pago como fração do que o cliente realmente pagou (o "valor
+  //      efetivo"), não do que sobra pro dono depois das taxas/custo.
+  let auxiliarVal = 0;
+  if (r.auxiliarMode === "value") {
+    const raw = Math.max(0, +(r.auxiliarPct || 0));
+    auxiliarVal = Math.min(raw, Math.max(0, vef));
+  } else {
+    const auxPct = Math.max(0, Math.min(100, +(r.auxiliarPct || 0)));
+    auxiliarVal = (vef * auxPct) / 100;
+  }
 
   const liq = vef - taxaFixaVal - t - c - auxiliarVal;
 

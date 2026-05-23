@@ -240,11 +240,12 @@ export function EntryForm({
         taxaMode: entry.taxaMode,
         custo: entry.custo,
         desconto: entry.desconto,
-        // Copia auxiliarPct também — caso o histórico tinha auxiliar
-        // configurado, faz sentido repetir junto. Se entry não tem,
-        // limpa o auxiliar (`undefined`) pra não vazar valor do draft
-        // anterior.
+        // Copia auxiliarPct + auxiliarMode também — caso o histórico
+        // tinha auxiliar configurado, repete junto preservando o modo
+        // (% ou R$). Se entry não tem, limpa o auxiliar (`undefined`)
+        // pra não vazar valor do draft anterior.
         auxiliarPct: entry.auxiliarPct,
+        auxiliarMode: entry.auxiliarMode,
       }));
       // Sincroniza os inputs controlados (taxa e auxiliar) que mantêm
       // texto bruto separado do draft — sem isso, o usuário via os
@@ -474,6 +475,20 @@ export function EntryForm({
   /** Toggle de 1 clique — pula pro modo oposto do atual. */
   const flipTaxaMode = () => {
     setTaxaMode(taxaMode === "percent" ? "value" : "percent");
+  };
+
+  // ── Auxiliar do serviço: mesmo padrão de modo % / R$ ────────────────
+  const auxiliarMode: "percent" | "value" = draft.auxiliarMode ?? "percent";
+
+  const setAuxiliarMode = (mode: "percent" | "value") => {
+    if (mode === auxiliarMode) return;
+    // Trocar de modo zera o input — 10% e R$ 10,00 não são equivalentes.
+    setDraft((d) => ({ ...d, auxiliarMode: mode, auxiliarPct: 0 }));
+    setAuxiliarText("");
+  };
+
+  const flipAuxiliarMode = () => {
+    setAuxiliarMode(auxiliarMode === "percent" ? "value" : "percent");
   };
 
   const submit = (e: React.FormEvent) => {
@@ -1011,21 +1026,39 @@ export function EntryForm({
         </div>
         <div className={styles.field}>
           <label htmlFor="ef-auxiliar" className={styles.label}>
-            Auxiliar do serviço %
+            Auxiliar do serviço{" "}
+            <span className={styles.labelHintSoft}>
+              ({auxiliarMode === "value" ? "R$" : "%"})
+            </span>
           </label>
-          <input
-            id="ef-auxiliar"
-            className={styles.input}
-            type="text"
-            inputMode="decimal"
-            value={auxiliarText}
-            onChange={(e) => {
-              const allowed = sanitizeDecimalText(e.target.value);
-              setAuxiliarText(allowed);
-              update("auxiliarPct", parseDecimalBR(allowed));
-            }}
-            placeholder="0,00"
-          />
+          <div className={styles.taxaInputWrap}>
+            <input
+              id="ef-auxiliar"
+              className={`${styles.input} ${styles.taxaInput}`}
+              type="text"
+              inputMode="decimal"
+              value={auxiliarText}
+              onChange={(e) => {
+                const allowed = sanitizeDecimalText(e.target.value);
+                setAuxiliarText(allowed);
+                update("auxiliarPct", parseDecimalBR(allowed));
+              }}
+              placeholder="0,00"
+            />
+            <button
+              type="button"
+              className={styles.taxaModeToggle}
+              onClick={flipAuxiliarMode}
+              aria-label={`Modo atual: ${auxiliarMode === "value" ? "R$" : "porcentagem"}. Toque para alternar.`}
+              title={
+                auxiliarMode === "value"
+                  ? "Em R$ — toque pra usar %"
+                  : "Em % — toque pra usar R$"
+              }
+            >
+              {auxiliarMode === "value" ? "R$" : "%"}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -1093,7 +1126,9 @@ export function EntryForm({
         {calc.auxiliarVal > 0 && (
           <div className={styles.previewRow}>
             <span className={styles.previewLabel}>
-              Auxiliar ({formatDecimalBR(draft.auxiliarPct ?? 0)}%)
+              {auxiliarMode === "value"
+                ? "Auxiliar (R$)"
+                : `Auxiliar (${formatDecimalBR(draft.auxiliarPct ?? 0)}%)`}
             </span>
             <span className={styles.previewValue}>
               − {fmtBRL(calc.auxiliarVal)}
