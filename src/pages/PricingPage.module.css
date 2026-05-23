@@ -122,6 +122,18 @@
   max-width: 720px;
 }
 
+.titleAccent {
+  color: var(--accent);
+  position: relative;
+  white-space: nowrap;
+}
+
+@media (max-width: 520px) {
+  .titleAccent {
+    white-space: normal;
+  }
+}
+
 .subtitle {
   margin: 0;
   font-size: var(--t-body-lg);
@@ -233,62 +245,68 @@
   max-width: 580px;
 }
 
-/* ─── Feature grid (Como funciona) ─── */
-.featureGrid {
+/* ─── Painel de dores ─── */
+.painGrid {
   display: grid;
   grid-template-columns: 1fr;
   gap: 14px;
 }
 
-@media (min-width: 600px) {
-  .featureGrid {
+@media (min-width: 720px) {
+  .painGrid {
     grid-template-columns: repeat(2, 1fr);
     gap: 16px;
   }
 }
 
-@media (min-width: 960px) {
-  .featureGrid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-.featureCard {
+.painCard {
   background: var(--surface);
   border: 1px solid var(--border-soft);
   border-radius: var(--radius-lg);
-  padding: 22px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  padding: 22px 22px 20px;
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  gap: 12px;
+  position: relative;
+  overflow: hidden;
   transition: border-color 0.2s var(--ease), transform 0.2s var(--ease);
 }
 
-.featureCard:hover {
+.painCard:hover {
   border-color: var(--border);
   transform: translateY(-2px);
 }
 
-.featureIcon {
-  font-size: 28px;
-  line-height: 1;
-  margin-bottom: 4px;
-}
-
-.featureTitle {
+.painText {
+  margin: 0;
   font-family: var(--font-display);
-  font-weight: 600;
+  font-style: italic;
   font-size: var(--t-body-lg);
-  letter-spacing: -0.01em;
-  margin: 0;
-  color: var(--text);
+  line-height: 1.4;
+  color: var(--text-muted);
+  letter-spacing: -0.005em;
 }
 
-.featureDesc {
+.painArrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.reliefText {
   margin: 0;
-  font-size: var(--t-meta);
+  font-size: var(--t-body);
   line-height: 1.55;
-  color: var(--text-muted);
+  color: var(--text);
+  font-weight: 500;
 }
 
 /* ─── Diferenciadores ─── */
@@ -298,9 +316,9 @@
   gap: 14px;
 }
 
-@media (min-width: 720px) {
+@media (min-width: 800px) {
   .diffGrid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 16px;
   }
 }
@@ -308,19 +326,37 @@
 .diffCard {
   background: var(--surface);
   border: 1px solid var(--border-soft);
-  border-left: 3px solid var(--accent);
   border-radius: var(--radius-lg);
-  padding: 20px 22px;
+  padding: 24px 22px 22px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
+  position: relative;
+  transition: border-color 0.2s var(--ease), transform 0.2s var(--ease);
+}
+
+.diffCard:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.diffNumber {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--t-caption);
+  letter-spacing: 0.18em;
+  color: var(--accent);
+  margin-bottom: 4px;
 }
 
 .diffTitle {
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: 700;
   font-size: var(--t-body-lg);
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
+  line-height: 1.25;
   margin: 0;
   color: var(--text);
 }
@@ -405,12 +441,13 @@
   color: var(--text);
 }
 
-.planTagline {
+.planForWhom {
   margin: 0;
   font-size: var(--t-meta);
   line-height: 1.5;
   color: var(--text-muted);
-  min-height: 2.4em;
+  min-height: 3em;
+  font-style: italic;
 }
 
 .priceRow {
@@ -533,6 +570,122 @@
 .ctaFree:hover {
   color: var(--text);
   border-color: var(--text-muted);
+}
+
+/* ─── Garantia (abaixo dos planos) ─── */
+.guarantee {
+  margin: 6px auto 0;
+  max-width: 640px;
+  text-align: center;
+  font-size: var(--t-meta);
+  line-height: 1.6;
+  color: var(--text-muted);
+  padding: 14px 18px;
+  background: var(--accent-soft);
+  border-radius: var(--radius-lg);
+}
+
+.guarantee strong {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* ─── FAQ ─── */
+.faqList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 720px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.faqItem {
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  transition: border-color 0.18s var(--ease);
+}
+
+.faqItem[open] {
+  border-color: var(--border);
+}
+
+.faqQ {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  list-style: none;
+  padding: 16px 20px;
+  font-size: var(--t-body);
+  font-weight: 600;
+  color: var(--text);
+  user-select: none;
+}
+
+.faqQ::-webkit-details-marker {
+  display: none;
+}
+
+.faqChevron {
+  font-size: 14px;
+  color: var(--text-muted);
+  transition: transform 0.2s var(--ease);
+  flex-shrink: 0;
+}
+
+.faqItem[open] .faqChevron {
+  transform: rotate(180deg);
+  color: var(--accent);
+}
+
+.faqA {
+  margin: 0;
+  padding: 0 20px 16px;
+  font-size: var(--t-meta);
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+/* ─── CTA final ─── */
+.finalCta {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 40px 24px;
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  margin-top: 8px;
+}
+
+@media (min-width: 768px) {
+  .finalCta {
+    padding: 56px 32px;
+  }
+}
+
+.finalTitle {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(24px, 4vw, 36px);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin: 0;
+  color: var(--text);
+  max-width: 540px;
+}
+
+.finalLead {
+  margin: 0;
+  font-size: var(--t-body);
+  line-height: 1.6;
+  color: var(--text-muted);
+  max-width: 520px;
 }
 
 /* ─── Modal de coleta de email ─── */
