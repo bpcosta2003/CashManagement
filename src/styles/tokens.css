@@ -434,7 +434,11 @@
   --shadow-overlay: 0 24px 64px rgba(0, 0, 0, 0.7);
   --shadow-hero:    0 1px 2px rgba(0, 0, 0, 0.3), 0 14px 36px rgba(0, 0, 0, 0.5);
 
-  --input-bg:     #110d0e;
+  /* var(--bg) é tintada por accent em dark mode (cada accent override
+     --bg). Usar a aqui faz os inputs ganharem a cor do tema em vez de
+     ficarem todos no #110d0e fixo do bordo. Visualmente parece um
+     "poço" dentro do card (--surface). */
+  --input-bg:     var(--bg);
   --input-border: rgba(255, 255, 255, 0.08);
   --input-focus:  var(--accent);
 }
