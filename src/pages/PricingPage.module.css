@@ -10,6 +10,29 @@
   padding: 18px var(--container-pad-mobile);
   border-bottom: 1px solid var(--border-soft);
   background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.headerCta {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+  text-decoration: none;
+  font-size: var(--t-meta);
+  font-weight: 600;
+  transition: border-color 0.18s var(--ease), color 0.18s var(--ease);
+}
+
+.headerCta:hover {
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 @media (min-width: 768px) {
@@ -70,27 +93,243 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 14px;
-  max-width: 680px;
+  gap: 16px;
+  max-width: 720px;
   margin: 0 auto;
+  padding: 8px 0 4px;
+}
+
+.eyebrow {
+  display: inline-block;
+  font-size: var(--t-caption);
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+  padding: 4px 12px;
+  background: var(--accent-soft);
+  border-radius: var(--radius-pill);
 }
 
 .title {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: clamp(28px, 5vw, 44px);
-  letter-spacing: -0.02em;
+  font-size: clamp(30px, 5.4vw, 52px);
+  letter-spacing: -0.025em;
   margin: 0;
   color: var(--text);
-  line-height: 1.1;
+  line-height: 1.05;
+  max-width: 720px;
 }
 
 .subtitle {
+  margin: 0;
+  font-size: var(--t-body-lg);
+  line-height: 1.55;
+  color: var(--text-muted);
+  max-width: 600px;
+}
+
+.heroCtas {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.heroPrimary,
+.heroSecondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 13px 22px;
+  border-radius: var(--radius-pill);
+  font-size: var(--t-body);
+  font-weight: 600;
+  text-decoration: none;
+  min-height: 48px;
+  transition: background 0.18s var(--ease), border-color 0.18s var(--ease),
+    color 0.18s var(--ease), transform 0.18s var(--ease);
+}
+
+.heroPrimary {
+  background: var(--accent);
+  color: var(--accent-on);
+  border: 1px solid var(--accent);
+  box-shadow: 0 6px 18px var(--accent-soft);
+}
+
+.heroPrimary:hover {
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
+  transform: translateY(-1px);
+}
+
+.heroSecondary {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.heroSecondary:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.heroNote {
+  margin: 4px 0 0;
+  font-size: var(--t-caption);
+  color: var(--text-dim);
+}
+
+/* ─── Seções ─── */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  scroll-margin-top: 24px;
+}
+
+@media (min-width: 768px) {
+  .section {
+    gap: 32px;
+  }
+}
+
+.sectionHeader {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.sectionEyebrow {
+  font-size: var(--t-caption);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.sectionTitle {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(24px, 3.8vw, 34px);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin: 0;
+  color: var(--text);
+}
+
+.sectionLead {
   margin: 0;
   font-size: var(--t-body);
   line-height: 1.6;
   color: var(--text-muted);
   max-width: 580px;
+}
+
+/* ─── Feature grid (Como funciona) ─── */
+.featureGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+@media (min-width: 600px) {
+  .featureGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+}
+
+@media (min-width: 960px) {
+  .featureGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.featureCard {
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  padding: 22px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: border-color 0.2s var(--ease), transform 0.2s var(--ease);
+}
+
+.featureCard:hover {
+  border-color: var(--border);
+  transform: translateY(-2px);
+}
+
+.featureIcon {
+  font-size: 28px;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.featureTitle {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--t-body-lg);
+  letter-spacing: -0.01em;
+  margin: 0;
+  color: var(--text);
+}
+
+.featureDesc {
+  margin: 0;
+  font-size: var(--t-meta);
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
+/* ─── Diferenciadores ─── */
+.diffGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+@media (min-width: 720px) {
+  .diffGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+}
+
+.diffCard {
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-lg);
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.diffTitle {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--t-body-lg);
+  letter-spacing: -0.01em;
+  margin: 0;
+  color: var(--text);
+}
+
+.diffDesc {
+  margin: 0;
+  font-size: var(--t-meta);
+  line-height: 1.6;
+  color: var(--text-muted);
 }
 
 /* ─── Grid de planos ─── */
@@ -166,6 +405,14 @@
   color: var(--text);
 }
 
+.planTagline {
+  margin: 0;
+  font-size: var(--t-meta);
+  line-height: 1.5;
+  color: var(--text-muted);
+  min-height: 2.4em;
+}
+
 .priceRow {
   display: flex;
   align-items: baseline;
@@ -211,6 +458,28 @@
   font-size: var(--t-meta);
   margin-top: 1px;
   flex-shrink: 0;
+}
+
+.featureLabel {
+  flex: 1;
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.soonTag {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-radius: var(--radius-pill);
+  padding: 2px 8px;
+  line-height: 1.4;
 }
 
 .cta,
