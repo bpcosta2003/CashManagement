@@ -843,7 +843,26 @@ export function EntryForm({
           </div>
           <div className={styles.field}>
             <label className={styles.label}>
-              Taxa
+              Taxa <span className={styles.required}>*</span>
+              {isAutoTaxa && (
+                <span className={styles.labelHint}>· automática</span>
+              )}
+            </label>
+            <div className={styles.taxaInputWrap}>
+              <input
+                className={`${styles.input} ${styles.taxaInput} ${errors.taxa ? styles.inputError : ""}`}
+                type="text"
+                inputMode="decimal"
+                value={taxaText}
+                onChange={(e) => {
+                  const text = e.target.value;
+                  const allowed = sanitizeDecimalText(text);
+                  setTaxaText(allowed);
+                  update("taxa", parseDecimalBR(allowed));
+                }}
+                placeholder="0,00"
+                aria-invalid={!!errors.taxa}
+              />
               <div
                 className={styles.taxaModeToggle}
                 role="radiogroup"
@@ -870,28 +889,7 @@ export function EntryForm({
                   R$
                 </button>
               </div>
-              <span className={styles.required}>*</span>
-              {isAutoTaxa && (
-                <span className={styles.labelHint}>· automática</span>
-              )}
-            </label>
-            <input
-              className={`${styles.input} ${errors.taxa ? styles.inputError : ""}`}
-              type="text"
-              inputMode="decimal"
-              value={taxaText}
-              onChange={(e) => {
-                const text = e.target.value;
-                // Permite só dígitos, vírgula e ponto. Não mata o texto
-                // mid-digitação — "1," continua "1," até o usuário
-                // continuar digitando.
-                const allowed = sanitizeDecimalText(text);
-                setTaxaText(allowed);
-                update("taxa", parseDecimalBR(allowed));
-              }}
-              placeholder="0,00"
-              aria-invalid={!!errors.taxa}
-            />
+            </div>
             {errors.taxa && (
               <span className={styles.errorMsg}>{errors.taxa}</span>
             )}
@@ -919,7 +917,26 @@ export function EntryForm({
           </div>
           <div className={styles.field}>
             <label className={styles.label}>
-              Taxa
+              Taxa <span className={styles.required}>*</span>
+              {isAutoTaxa && (
+                <span className={styles.labelHint}>· automática</span>
+              )}
+            </label>
+            <div className={styles.taxaInputWrap}>
+              <input
+                className={`${styles.input} ${styles.taxaInput} ${errors.taxa ? styles.inputError : ""}`}
+                type="text"
+                inputMode="decimal"
+                value={taxaText}
+                onChange={(e) => {
+                  const text = e.target.value;
+                  const allowed = sanitizeDecimalText(text);
+                  setTaxaText(allowed);
+                  update("taxa", parseDecimalBR(allowed));
+                }}
+                placeholder="0,00"
+                aria-invalid={!!errors.taxa}
+              />
               <div
                 className={styles.taxaModeToggle}
                 role="radiogroup"
@@ -946,25 +963,7 @@ export function EntryForm({
                   R$
                 </button>
               </div>
-              <span className={styles.required}>*</span>
-              {isAutoTaxa && (
-                <span className={styles.labelHint}>· automática</span>
-              )}
-            </label>
-            <input
-              className={`${styles.input} ${errors.taxa ? styles.inputError : ""}`}
-              type="text"
-              inputMode="decimal"
-              value={taxaText}
-              onChange={(e) => {
-                const text = e.target.value;
-                const allowed = sanitizeDecimalText(text);
-                setTaxaText(allowed);
-                update("taxa", parseDecimalBR(allowed));
-              }}
-              placeholder="0,00"
-              aria-invalid={!!errors.taxa}
-            />
+            </div>
             {errors.taxa && (
               <span className={styles.errorMsg}>{errors.taxa}</span>
             )}

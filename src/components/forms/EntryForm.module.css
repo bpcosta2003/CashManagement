@@ -51,16 +51,30 @@
   letter-spacing: 0.04em;
 }
 
-/* Toggle compacto "%/R$" pra alternar o modo do input da Taxa do
-   cartão. Fica embutido no label, ao lado direito do texto "Taxa". */
+/* Wrapper relativo que aloja o input da Taxa + o toggle %/R$ absoluto
+   na borda direita do input. Mantém o label compacto e impede que o
+   input seja empurrado pra baixo. */
+.taxaInputWrap {
+  position: relative;
+  display: block;
+}
+
+.taxaInput {
+  /* Espaço pra acomodar o toggle %/R$ sem sobrepor o número digitado. */
+  padding-right: 84px;
+}
+
 .taxaModeToggle {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
   display: inline-flex;
-  border: 1px solid var(--border);
+  background: var(--surface-2);
+  border: 1px solid var(--border-soft);
   border-radius: var(--radius-pill);
   padding: 2px;
   gap: 2px;
-  margin-left: 2px;
-  align-self: center;
 }
 
 .taxaModeToggle button {
@@ -69,10 +83,10 @@
   border: none;
   color: var(--text-muted);
   font-family: inherit;
-  font-size: var(--t-eyebrow);
+  font-size: var(--t-caption);
   font-weight: 700;
-  letter-spacing: 0.06em;
-  padding: 3px 9px;
+  letter-spacing: 0.02em;
+  padding: 3px 8px;
   border-radius: var(--radius-pill);
   cursor: pointer;
   min-width: 28px;
