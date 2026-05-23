@@ -234,6 +234,10 @@ export function EntryForm({
         forma: entry.forma,
         parc: entry.parc,
         taxa: entry.taxa,
+        // Reflete o modo do histórico (% ou R$). Sem isso, repetir um
+        // atendimento que foi cadastrado em R$ ficaria com a flag
+        // em % e a interpretação do número errada.
+        taxaMode: entry.taxaMode,
         custo: entry.custo,
         desconto: entry.desconto,
         // Copia auxiliarPct também — caso o histórico tinha auxiliar
@@ -465,6 +469,11 @@ export function EntryForm({
       delete next.taxa;
       return next;
     });
+  };
+
+  /** Toggle de 1 clique — pula pro modo oposto do atual. */
+  const flipTaxaMode = () => {
+    setTaxaMode(taxaMode === "percent" ? "value" : "percent");
   };
 
   const submit = (e: React.FormEvent) => {
@@ -843,7 +852,11 @@ export function EntryForm({
           </div>
           <div className={styles.field}>
             <label className={styles.label}>
-              Taxa <span className={styles.required}>*</span>
+              Taxa{" "}
+              <span className={styles.labelHintSoft}>
+                ({taxaMode === "value" ? "R$" : "%"})
+              </span>{" "}
+              <span className={styles.required}>*</span>
               {isAutoTaxa && (
                 <span className={styles.labelHint}>· automática</span>
               )}
@@ -863,32 +876,19 @@ export function EntryForm({
                 placeholder="0,00"
                 aria-invalid={!!errors.taxa}
               />
-              <div
+              <button
+                type="button"
                 className={styles.taxaModeToggle}
-                role="radiogroup"
-                aria-label="Modo da taxa do cartão"
+                onClick={flipTaxaMode}
+                aria-label={`Modo atual: ${taxaMode === "value" ? "R$" : "porcentagem"}. Toque para alternar.`}
+                title={
+                  taxaMode === "value"
+                    ? "Em R$ — toque pra usar %"
+                    : "Em % — toque pra usar R$"
+                }
               >
-                <button
-                  type="button"
-                  role="radio"
-                  aria-checked={taxaMode === "percent"}
-                  data-active={taxaMode === "percent"}
-                  onClick={() => setTaxaMode("percent")}
-                  title="Cobrar como porcentagem"
-                >
-                  %
-                </button>
-                <button
-                  type="button"
-                  role="radio"
-                  aria-checked={taxaMode === "value"}
-                  data-active={taxaMode === "value"}
-                  onClick={() => setTaxaMode("value")}
-                  title="Informar o R$ exato retido pelo cartão"
-                >
-                  R$
-                </button>
-              </div>
+                {taxaMode === "value" ? "R$" : "%"}
+              </button>
             </div>
             {errors.taxa && (
               <span className={styles.errorMsg}>{errors.taxa}</span>
@@ -917,7 +917,11 @@ export function EntryForm({
           </div>
           <div className={styles.field}>
             <label className={styles.label}>
-              Taxa <span className={styles.required}>*</span>
+              Taxa{" "}
+              <span className={styles.labelHintSoft}>
+                ({taxaMode === "value" ? "R$" : "%"})
+              </span>{" "}
+              <span className={styles.required}>*</span>
               {isAutoTaxa && (
                 <span className={styles.labelHint}>· automática</span>
               )}
@@ -937,32 +941,19 @@ export function EntryForm({
                 placeholder="0,00"
                 aria-invalid={!!errors.taxa}
               />
-              <div
+              <button
+                type="button"
                 className={styles.taxaModeToggle}
-                role="radiogroup"
-                aria-label="Modo da taxa do cartão"
+                onClick={flipTaxaMode}
+                aria-label={`Modo atual: ${taxaMode === "value" ? "R$" : "porcentagem"}. Toque para alternar.`}
+                title={
+                  taxaMode === "value"
+                    ? "Em R$ — toque pra usar %"
+                    : "Em % — toque pra usar R$"
+                }
               >
-                <button
-                  type="button"
-                  role="radio"
-                  aria-checked={taxaMode === "percent"}
-                  data-active={taxaMode === "percent"}
-                  onClick={() => setTaxaMode("percent")}
-                  title="Cobrar como porcentagem"
-                >
-                  %
-                </button>
-                <button
-                  type="button"
-                  role="radio"
-                  aria-checked={taxaMode === "value"}
-                  data-active={taxaMode === "value"}
-                  onClick={() => setTaxaMode("value")}
-                  title="Informar o R$ exato retido pelo cartão"
-                >
-                  R$
-                </button>
-              </div>
+                {taxaMode === "value" ? "R$" : "%"}
+              </button>
             </div>
             {errors.taxa && (
               <span className={styles.errorMsg}>{errors.taxa}</span>
