@@ -358,6 +358,19 @@ a.actionBtn {
   text-decoration: none;
 }
 
+.versionFooter {
+  margin-top: 8px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-soft);
+  text-align: center;
+  font-size: var(--t-caption);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  cursor: help;
+  user-select: none;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
