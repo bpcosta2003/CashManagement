@@ -114,6 +114,26 @@
   border-bottom: none;
 }
 
+/* Item de mês clicável (modal do Bruto anual) */
+.lancItemBtn {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border-soft);
+  text-align: left;
+  width: 100%;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background 0.15s var(--ease);
+}
+
+.lancItemBtn:hover {
+  background: var(--surface-2);
+}
+
+.lancItemBtn:last-child {
+  border-bottom: none;
+}
+
 .lancHead {
   display: flex;
   align-items: baseline;
