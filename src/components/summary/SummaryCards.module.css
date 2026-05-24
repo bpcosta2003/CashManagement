@@ -240,6 +240,58 @@
   letter-spacing: 0.16em;
 }
 
+/* Header do card: label + botão de detalhe/info alinhados */
+.kpiHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.kpiInfoBtn {
+  background: transparent;
+  border: none;
+  padding: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-pill);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-dim);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color 0.15s var(--ease), background 0.15s var(--ease);
+}
+
+.kpiInfoBtn:hover,
+.kpiInfoBtn:focus-visible {
+  color: var(--accent);
+  background: var(--accent-soft);
+  outline: none;
+}
+
+/* Breakdown do Bruto: stacked no desktop, inline (•) no mobile */
+.kpiBreakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
+}
+
+.kpiBreakdownInline {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0;
+}
+
+.kpiBreakdownInline .kpiSub:not(:last-child)::after {
+  content: " • ";
+  color: var(--text-dim);
+  white-space: pre;
+}
+
 .kpiValue {
   font-family: var(--font-display);
   font-weight: 700;

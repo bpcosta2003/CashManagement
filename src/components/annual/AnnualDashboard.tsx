@@ -40,6 +40,7 @@ export function AnnualDashboard({
     worst,
     liqDelta,
     topServicos,
+    topClientes,
   } = summary;
 
   const hasAnyData = total.count > 0;
@@ -316,6 +317,40 @@ export function AnnualDashboard({
       {/* Atividade do ano (timeline) */}
       <ActivityTimeline activity={activity} onSelectMonth={onSelectMonth} />
 
+      {/* Top clientes do ano */}
+      {topClientes.length > 0 && (
+        <div className={styles.servicosWrap}>
+          <div className={styles.servicosShell}>
+            <header className={styles.servicosHead}>
+              <span className={styles.servicosEyebrow}>
+                Top clientes do ano
+              </span>
+              <span className={styles.servicosHint}>
+                {topClientes.length} de {topClientes.length}
+              </span>
+            </header>
+            <ol className={styles.servicosList}>
+              {topClientes.map((c, idx) => (
+                <li key={c.name} className={styles.servicoItem}>
+                  <span className={styles.servicoRank}>{idx + 1}</span>
+                  <div className={styles.servicoMain}>
+                    <span className={styles.servicoName}>{c.name}</span>
+                    <span className={styles.servicoMeta}>
+                      {c.count} lançamento{c.count === 1 ? "" : "s"} · ticket{" "}
+                      {fmtBRL(c.ticketMedio)}
+                    </span>
+                  </div>
+                  <div className={styles.clienteValue}>
+                    <span className={styles.servicoValue}>{fmtBRL(c.ltv)}</span>
+                    <span className={styles.clienteValueLabel}>LTV</span>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </div>
+      )}
+
       {/* Top serviços */}
       {topServicos.length > 0 && (
         <div className={styles.servicosWrap}>
@@ -337,7 +372,7 @@ export function AnnualDashboard({
                     <div className={styles.servicoMain}>
                       <span className={styles.servicoName}>{s.name}</span>
                       <span className={styles.servicoMeta}>
-                        {s.count} atendimento{s.count === 1 ? "" : "s"}
+                        {s.count} lançamento{s.count === 1 ? "" : "s"}
                         {pct > 0 ? ` · ${fmtPct(pct, 0)} do bruto` : ""}
                       </span>
                     </div>

@@ -467,6 +467,7 @@ export default function App() {
           onChangePeriod={setPeriod}
           onChangeMes={handleChangeMes}
           onChangeAno={setAno}
+          hideToggle={tab === "projecao"}
         />
       )}
 
@@ -486,6 +487,11 @@ export default function App() {
           onUpdate={updateCatalogItem}
           onDelete={deleteCatalogItem}
         />
+      ) : tab === "projecao" ? (
+        // Projeção tem prioridade sobre o period: é mês-a-mês por
+        // natureza, então funciona mesmo se o toggle global estiver
+        // em "Ano" (o PeriodNav esconde o toggle e força modo mês).
+        <ProjectionSection projecao={projecao} />
       ) : period === "year" ? (
         <AnnualDashboard
           summary={annual}
@@ -507,6 +513,7 @@ export default function App() {
             mes={mes}
             liqDelta={liqDelta}
             prevMonthLabel={prevMonthLabel}
+            monthRows={monthRows}
           />
           <MonthGoalCard
             realized={summary.bruto}
@@ -553,8 +560,6 @@ export default function App() {
             addBtnRef={addBtnRef}
           />
         </>
-      ) : tab === "projecao" ? (
-        <ProjectionSection projecao={projecao} />
       ) : null}
 
       {period === "month" &&

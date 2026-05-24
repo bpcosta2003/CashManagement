@@ -385,6 +385,13 @@ export function buildAiContext(input: AiContextInput): AiContextOutput {
         d: r.descontoVal,
         t: r.taxa,
         u: r.custoVal,
+        // taxa do negócio + auxiliar entram no hash: mudar eles altera
+        // o líquido/margem, então a análise precisa ser refeita (não
+        // pode servir cache de um cenário com taxa diferente).
+        tn: r.taxaNegocio ?? 0,
+        tnm: r.taxaNegocioMode ?? "percent",
+        ax: r.auxiliarPct ?? 0,
+        axm: r.auxiliarMode ?? "percent",
         f: r.forma,
         p: r.parc,
         st: r.status,

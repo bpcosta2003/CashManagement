@@ -26,6 +26,16 @@ export interface ServiceStat {
   bruto: number;
 }
 
+export interface ClientStat {
+  name: string;
+  /** Quantidade de lançamentos do cliente no ano. */
+  count: number;
+  /** Total bruto faturado com o cliente no ano (LTV do ano). */
+  ltv: number;
+  /** Ticket médio = ltv / count. */
+  ticketMedio: number;
+}
+
 export interface AnnualSummary {
   year: number;
   total: {
@@ -46,6 +56,8 @@ export interface AnnualSummary {
   liqDelta: number | null;
   /** Top serviços do ano por bruto, agrupados case-insensitive. */
   topServicos: ServiceStat[];
+  /** Top clientes do ano por bruto faturado, agrupados case-insensitive. */
+  topClientes: ClientStat[];
 }
 
 export function useAnnual(
@@ -93,23 +105,48 @@ export function useAnnual(
       { name: string; count: number; bruto: number }
     >();
 
+    // Top clientes (case-insensitive). Ignora lançamentos sem cliente.
+    const clientesMap = new Map<
+      string,
+      { name: string; count: number; bruto: number }
+    >();
+
     calc
       .filter((r) => r.ano === ano && r.v > 0)
       .forEach((r) => {
+        // "taxas" agrega todas as deduções percentuais (cartão + negócio
+        // + auxiliar), espelhando o resumo mensal. Custo é categoria à
+        // parte (material/insumo, não fee).
+        const taxasRow = r.taxaVal + r.taxaFixaVal + r.auxiliarVal;
         const bucket = monthly[r.mes];
         bucket.rows.push(r);
         bucket.bruto += r.v;
         bucket.liq += r.liq;
-        bucket.taxas += r.taxaVal;
+        bucket.taxas += taxasRow;
         bucket.custos += r.custoVal;
         bucket.count += 1;
 
         totalBruto += r.v;
         totalDesc += r.descontoVal;
-        totalTaxas += r.taxaVal;
+        totalTaxas += taxasRow;
         totalCustos += r.custoVal;
         totalLiq += r.liq;
         totalCount += 1;
+
+        // Top clientes: 1 lançamento = 1 atendimento contável, bruto
+        // somado por cliente. Multi-item não desmembra (o cliente é o
+        // mesmo pro lançamento inteiro).
+        const cliNome = r.cliente.trim();
+        if (cliNome) {
+          const key = cliNome.toLowerCase();
+          const c = clientesMap.get(key);
+          if (c) {
+            c.count += 1;
+            c.bruto += r.v;
+          } else {
+            clientesMap.set(key, { name: cliNome, count: 1, bruto: r.v });
+          }
+        }
 
         const bd = paymentBreakdown[r.forma];
         if (bd) {
@@ -143,6 +180,16 @@ export function useAnnual(
     const topServicos: ServiceStat[] = Array.from(servicosMap.values())
       .sort((a, b) => b.bruto - a.bruto)
       .slice(0, 5);
+
+    const topClientes: ClientStat[] = Array.from(clientesMap.values())
+      .sort((a, b) => b.bruto - a.bruto)
+      .slice(0, 5)
+      .map((c) => ({
+        name: c.name,
+        count: c.count,
+        ltv: c.bruto,
+        ticketMedio: c.count > 0 ? c.bruto / c.count : 0,
+      }));
 
     // Best/worst — só meses com lançamentos
     const withData = monthly.filter((b) => b.count > 0);
@@ -183,6 +230,7 @@ export function useAnnual(
       prevYearLiq,
       liqDelta,
       topServicos,
+      topClientes,
     };
   }, [rows, ano, activeBusinessId, taxaFixaPct]);
 }
