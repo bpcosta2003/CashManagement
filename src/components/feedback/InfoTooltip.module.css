@@ -61,6 +61,47 @@
   border-top-color: var(--text);
 }
 
+/* Variante ancorada pela direita — balão cresce pra esquerda, não
+   estoura a borda direita da viewport no mobile. A seta fica sobre
+   o ícone (à direita do balão). */
+.bubbleEnd {
+  left: auto;
+  right: 0;
+  transform: none;
+  animation: tipInPlain 0.12s var(--ease);
+}
+
+.bubbleEnd::after {
+  left: auto;
+  right: 4px;
+  transform: none;
+}
+
+/* Variante ancorada pela esquerda — espelho da .bubbleEnd. */
+.bubbleStart {
+  left: 0;
+  transform: none;
+  animation: tipInPlain 0.12s var(--ease);
+}
+
+.bubbleStart::after {
+  left: 4px;
+  transform: none;
+}
+
+/* Animação sem translateX (-50%) — pras variantes start/end que não
+   são centralizadas. */
+@keyframes tipInPlain {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 :root[data-theme="dark"] .bubble {
   background: var(--surface-elevated);
   color: var(--text);

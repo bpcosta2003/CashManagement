@@ -4,6 +4,12 @@ import styles from "./InfoTooltip.module.css";
 interface Props {
   text: string;
   label?: string;
+  /** Alinhamento horizontal do balão em relação ao ícone:
+   *   - "center" (default): centralizado (bom no meio da tela)
+   *   - "end": ancorado pela direita (usar quando o ícone fica perto
+   *     da borda direita, senão o balão é cortado no mobile)
+   *   - "start": ancorado pela esquerda */
+  align?: "center" | "start" | "end";
 }
 
 /**
@@ -11,7 +17,11 @@ interface Props {
  * - Mobile: tap pra abrir, tap fora pra fechar
  * - Desktop: hover OR foco
  */
-export function InfoTooltip({ text, label = "Mais informação" }: Props) {
+export function InfoTooltip({
+  text,
+  label = "Mais informação",
+  align = "center",
+}: Props) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLSpanElement>(null);
 
@@ -65,7 +75,16 @@ export function InfoTooltip({ text, label = "Mais informação" }: Props) {
         </svg>
       </button>
       {open && (
-        <span className={styles.bubble} role="tooltip">
+        <span
+          className={`${styles.bubble} ${
+            align === "end"
+              ? styles.bubbleEnd
+              : align === "start"
+                ? styles.bubbleStart
+                : ""
+          }`}
+          role="tooltip"
+        >
           {text}
         </span>
       )}

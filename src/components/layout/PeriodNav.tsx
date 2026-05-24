@@ -10,6 +10,9 @@ interface Props {
   onChangePeriod: (p: Period) => void;
   onChangeMes: (mes: number, ano: number) => void;
   onChangeAno: (ano: number) => void;
+  /** Esconde o toggle Mês/Ano e força navegação mensal. Usado na
+   *  Projeção, que é inerentemente mês-a-mês (não faz sentido "ano"). */
+  hideToggle?: boolean;
 }
 
 export function PeriodNav({
@@ -19,7 +22,11 @@ export function PeriodNav({
   onChangePeriod,
   onChangeMes,
   onChangeAno,
+  hideToggle = false,
 }: Props) {
+  // Quando o toggle está escondido, a nav opera sempre em modo mês
+  // independente do `period` global (que pode estar em "year" de outra aba).
+  const effectivePeriod: Period = hideToggle ? "month" : period;
   const prevMonth = () => {
     let m = mes - 1;
     let y = ano;
@@ -52,8 +59,10 @@ export function PeriodNav({
       <div className={styles.bar}>
         <button
           className={styles.arrow}
-          onClick={period === "month" ? prevMonth : prevYear}
-          aria-label={period === "month" ? "Mês anterior" : "Ano anterior"}
+          onClick={effectivePeriod === "month" ? prevMonth : prevYear}
+          aria-label={
+            effectivePeriod === "month" ? "Mês anterior" : "Ano anterior"
+          }
         >
           <svg
             width="18"
@@ -71,31 +80,37 @@ export function PeriodNav({
         </button>
 
         <div className={styles.center}>
-          <div className={styles.toggle} role="tablist" aria-label="Tipo de período">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={period === "month"}
-              data-active={period === "month"}
-              className={styles.toggleBtn}
-              onClick={() => onChangePeriod("month")}
+          {!hideToggle && (
+            <div
+              className={styles.toggle}
+              role="tablist"
+              aria-label="Tipo de período"
             >
-              Mês
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={period === "year"}
-              data-active={period === "year"}
-              className={styles.toggleBtn}
-              onClick={() => onChangePeriod("year")}
-            >
-              Ano
-            </button>
-          </div>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={period === "month"}
+                data-active={period === "month"}
+                className={styles.toggleBtn}
+                onClick={() => onChangePeriod("month")}
+              >
+                Mês
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={period === "year"}
+                data-active={period === "year"}
+                className={styles.toggleBtn}
+                onClick={() => onChangePeriod("year")}
+              >
+                Ano
+              </button>
+            </div>
+          )}
 
           <div className={styles.label}>
-            {period === "month" ? (
+            {effectivePeriod === "month" ? (
               <>
                 <span className={styles.eyebrow}>Movimento de</span>
                 <span className={styles.value}>
@@ -116,8 +131,10 @@ export function PeriodNav({
 
         <button
           className={styles.arrow}
-          onClick={period === "month" ? nextMonth : nextYear}
-          aria-label={period === "month" ? "Próximo mês" : "Próximo ano"}
+          onClick={effectivePeriod === "month" ? nextMonth : nextYear}
+          aria-label={
+            effectivePeriod === "month" ? "Próximo mês" : "Próximo ano"
+          }
         >
           <svg
             width="18"
