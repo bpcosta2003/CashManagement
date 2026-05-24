@@ -56,6 +56,7 @@ Permanece grátis pra sempre:
 - Meta mensal
 - Taxas configuráveis
 - Tema, cor, instala como app (PWA)
+- **Cálculo automático de DAS/DARF** (Fase 4.5 — só o valor, sem PDF)
 
 Restrito (era ilimitado, vira limitado):
 - **1 empreendimento** (era ilimitado)
@@ -72,6 +73,7 @@ Tudo do Free, mais:
 - 30 análises por IA por mês
 - PDF anual e mensal completos
 - Notificações por email (resumo último dia útil + lembrete de meta)
+- **DARF/DAS em PDF pronta pra pagar** (Fase 4.5 — Em breve)
 
 ### Checklist de implementação Fase 1
 
@@ -169,6 +171,7 @@ Tudo do Pro, mais:
 - **Análise semanal + replanejamento mensal** — IA recompõe o plano com base no que foi (e não foi) executado.
 - **Análises por IA ilimitadas** (mensal + catálogo)
 - **Empreendimentos ilimitados**
+- **DARF/DAS gerada e agendada automaticamente** (Fase 4.5 — Em breve)
 
 ### Custo real por usuário Ultra
 
@@ -191,6 +194,87 @@ Tudo do Pro, mais:
 - [ ] Push notification (via service worker, web push) — Ultra-only
 - [ ] UI dedicada `/consultor` (chat-style, histórico de check-ins, plano semanal visível)
 - [ ] Trocar Stripe Checkout pra incluir SKU do Ultra
+
+---
+
+## Fase 4.5 — DARF / DAS Simples Nacional
+
+**Objetivo:** transformar a dor "quanto pago de imposto este mês?" em
+diferenciação de plano. MEI/Simples paga DARF/DAS todo mês 20 — todo
+mundo erra ou esquece. Liberar o cálculo no Free puxa adoção pelo
+SEO ("calcular DAS MEI", "gerar DARF"), e os tiers pagos ficam com a
+parte automática que dá trabalho real.
+
+**Quando:** depois da Fase 4 estabilizar (≥ 100 Ultra ativos). Antes
+disso, valida com waitlist pra ver se o pedido aparece organicamente.
+
+### Free — Cálculo automático de imposto
+
+- Lê o bruto do mês (faturamento) + tipo de regime tributário
+  (MEI / Simples Nacional anexos I-V) do empreendimento
+- Calcula a alíquota efetiva: tabela do Simples 2024 com fator R
+  pra anexo III/V; DAS fixo pra MEI por categoria (comércio,
+  serviços, ambos)
+- Mostra "Você deve aproximadamente R$ X em DAS/DARF este mês,
+  vencimento dia 20"
+- **Sem boleto, sem PDF.** Só o número. Usuário copia pra emitir
+  no portal oficial (gov.br/Receita).
+
+### Pro — PDF da DARF pronta pra pagar (Em breve)
+
+- Tudo do Free, mais:
+- Geração do **PDF da guia DAS/DARF** com código de barras válido,
+  pronto pra pagar no banco — eliminando o passo "ir no Simples
+  Nacional/Receita pra emitir"
+- Histórico anual: tabela de meses com valor pago + status
+  (em aberto / pago / atrasado)
+- Lembrete por email 3 dias antes do vencimento
+- Junto da exportação de PDF mês/ano — fluxo "fechar o mês"
+  vira: PDF do mês + PDF da DARF, dois cliques
+
+### Ultra — DARF automática (Em breve)
+
+- Tudo do Pro, mais:
+- **Geração + agendamento automático** no dia do vencimento, com
+  PIX QR Code pronto pra pagar (via Open Finance)
+- Pagamento agendado via integração com banco (PJ Pix Cobrança)
+  — opcional, com aprovação manual da primeira vez
+- Conciliação automática: marca como "pago" quando o débito cai
+  na conta vinculada
+- Aviso fiscal pré-mensal: "seu faturamento de [mês] está em
+  R$ X, projetando R$ Y no fim do mês. Seu DAS estimado é R$ Z."
+
+### Por que essa fase importa?
+
+Esse é o **único feature de produto que justifica pagamento sozinho**
+pra dono pequeno — todo MEI/Simples gasta 1-3h por mês com isso e
+muita gente paga R$ 50-100 pro contador só pra emitir guia. R$ 29
+do Pro paga ele mesmo num mês.
+
+Também tem efeito SEO: termos "calcular DAS MEI", "gerar DARF online",
+"DAS MEI automático" têm alto volume de busca e baixa competição
+qualificada (a maioria dos resultados é blog de contador, não app).
+
+### Riscos regulatórios
+
+- Geração de guia DARF tem requisitos da Receita (não pode inventar
+  código de barras). Solução: usar API oficial do Simples Nacional
+  (existe pra contadores via convênio) OU parceria com `e-financeira`
+  / serviço terceiro.
+- Pagamento automático (Ultra) precisa de Open Finance ou banco PJ
+  parceiro. Começar só com PIX Cobrança gerado pelo nosso lado,
+  usuário escaneia e paga — sem débito automático no MVP.
+
+### Checklist Fase 4.5
+
+- [ ] Campo `regimeTributario` em `Business` (MEI / Simples I-V)
+- [ ] Função `calcDarfMes(rows, regime, mes, ano)` em `src/lib/tax.ts`
+- [ ] UI no resumo mensal: card "Imposto estimado · R$ X" (Free)
+- [ ] Endpoint `/api/tax/generate-darf-pdf` (Pro) — Receita ou parceiro
+- [ ] Tabela `darf_history` (user_id, mes, ano, valor, status, paid_at)
+- [ ] Cron `/api/cron/darf-reminder-email` (3 dias antes do dia 20)
+- [ ] (Ultra) Integração PIX Cobrança via PSP (Asaas/Cora/Inter)
+- [ ] (Ultra) Conciliação automática com extrato vinculado
 
 ---
 
