@@ -9,6 +9,7 @@ import {
   isStoragePersisted,
   setLastBackup,
 } from "../../lib/storage";
+import { useConfirm } from "../feedback/ConfirmDialog";
 import styles from "./BackupPanel.module.css";
 
 const loadExcel = () => import("../../lib/excel");
@@ -56,6 +57,7 @@ export function BackupPanel({
   onToast,
 }: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
+  const askConfirm = useConfirm();
   const [preview, setPreview] = useState<PreviewState | null>(null);
   const [confirmReplace, setConfirmReplace] = useState(false);
   const [persisted, setPersisted] = useState(false);
@@ -97,11 +99,16 @@ export function BackupPanel({
     setPreview({ fileName: file.name, result });
   };
 
-  const handleClear = () => {
-    const msg = signedIn
-      ? "Apagar TODOS os dados do app?\n\nVocê está sincronizado — os dados também serão APAGADOS DA NUVEM e não poderão ser recuperados.\n\nEssa ação não pode ser desfeita."
-      : "Apagar TODOS os dados do app? Essa ação não pode ser desfeita.";
-    if (confirm(msg)) {
+  const handleClear = async () => {
+    const ok = await askConfirm({
+      title: "Apagar TODOS os dados do app?",
+      message: signedIn
+        ? "Você está sincronizado — os dados também serão APAGADOS DA NUVEM e não poderão ser recuperados.\n\nEssa ação não pode ser desfeita."
+        : "Essa ação não pode ser desfeita.",
+      confirmText: "Apagar tudo",
+      danger: true,
+    });
+    if (ok) {
       clearState();
       onClearAll();
       onToast?.("Todos os dados foram apagados");
