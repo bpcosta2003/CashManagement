@@ -740,3 +740,17 @@
   letter-spacing: -0.025em;
   flex-shrink: 0;
 }
+
+.clienteValue {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+  flex-shrink: 0;
+}
+
+.clienteValueLabel {
+  font-size: var(--t-caption);
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+}

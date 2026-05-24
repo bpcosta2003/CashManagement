@@ -164,7 +164,9 @@ export function exportMonthPdf({
       r.servico || "—",
       formaLabel,
       fmtBRL(r.v),
-      fmtBRL(r.taxaVal),
+      // Coluna "Taxa" agrega cartão + negócio + auxiliar pra bater com
+      // o total do rodapé (summary.taxas).
+      fmtBRL(r.taxaVal + r.taxaFixaVal + r.auxiliarVal),
       fmtBRL(r.custoVal),
       fmtBRL(r.liq),
       r.status,
@@ -591,7 +593,8 @@ export function exportYearPdf({ business, summary }: ExportYearOpts): void {
         r.servico || "—",
         formaLabel,
         fmtBRL(r.v),
-        fmtBRL(r.taxaVal),
+        // Agrega cartão + negócio + auxiliar (bate com o total do mês).
+        fmtBRL(r.taxaVal + r.taxaFixaVal + r.auxiliarVal),
         fmtBRL(r.custoVal),
         fmtBRL(r.liq),
         r.status,

@@ -210,7 +210,12 @@ export function exportToExcel(
       const label = `${MESES_FULL[+mesStr]}/${anoStr}`;
       const bruto = items.reduce((s, r) => s + r.v, 0);
       const descs = items.reduce((s, r) => s + r.descontoVal, 0);
-      const taxas = items.reduce((s, r) => s + r.taxaVal, 0);
+      // "Total Taxas" agrega cartão + taxa do negócio + auxiliar, igual
+      // ao resumo do app. As colunas individuais ficam na aba Lançamentos.
+      const taxas = items.reduce(
+        (s, r) => s + r.taxaVal + r.taxaFixaVal + r.auxiliarVal,
+        0,
+      );
       const custos = items.reduce((s, r) => s + r.custoVal, 0);
       const liq = items.reduce((s, r) => s + r.liq, 0);
       return [
