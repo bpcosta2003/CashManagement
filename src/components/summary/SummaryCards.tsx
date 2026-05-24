@@ -137,9 +137,11 @@ export function SummaryCards({
               {margemStr}
             </span>
           </div>
-          <span className={styles.kpiSub}>
-            Taxas + custos {fmtBRL(taxas + custos)}
-          </span>
+          {/* Taxas e custos separados — somar os dois esconde de onde
+              vem a mordida (cartão vs material). Dois sublabels empilhados
+              cabem confortavelmente abaixo do número grande. */}
+          <span className={styles.kpiSub}>Taxas {fmtBRL(taxas)}</span>
+          <span className={styles.kpiSub}>Custos {fmtBRL(custos)}</span>
         </article>
       </div>
     </section>
