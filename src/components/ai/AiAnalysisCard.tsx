@@ -69,7 +69,8 @@ export function AiAnalysisCard(props: Props) {
 
   const monthTiming = useMemo(() => classifyMonthTiming(ano, mes), [ano, mes]);
 
-  // ─── Tratamento de erro: alguns viram toast, outros ficam visíveis ──
+  // Erro de quota/budget: além do card, dá um toast (sinal forte de que
+  // a ação não rolou). Os demais erros ficam só no card.
   useEffect(() => {
     if (!error) return;
     if (
@@ -79,6 +80,9 @@ export function AiAnalysisCard(props: Props) {
       onToast(error.message, 5000);
     }
   }, [error, onToast]);
+
+  // Quota esgotada → não adianta oferecer "Gerar"/"Refazer".
+  const quotaExhausted = error?.code === "user_quota_exceeded";
 
   if (!enabled || !business) return null;
 
@@ -196,13 +200,23 @@ export function AiAnalysisCard(props: Props) {
               : `Pronta agora mesmo. Clique pra ler ou refazer se mudar dados.`)}
         </p>
 
-        {error &&
-          error.code !== "user_quota_exceeded" &&
-          error.code !== "service_budget_exceeded" && (
-            <div className={styles.errorBox} role="alert">
-              {error.message}
-            </div>
-          )}
+        {error && (
+          <div
+            className={`${styles.errorBox} ${
+              quotaExhausted || error.code === "service_budget_exceeded"
+                ? styles.errorBoxQuota
+                : ""
+            }`}
+            role="alert"
+          >
+            {error.message}
+            {quotaExhausted && quota && (
+              <span className={styles.errorBoxMeta}>
+                Você usou {quota.used} de {quota.limit} análises deste mês.
+              </span>
+            )}
+          </div>
+        )}
 
         <div className={styles.actions}>
           {status === "ready" && (
@@ -238,9 +252,9 @@ export function AiAnalysisCard(props: Props) {
               type="button"
               className={styles.primary}
               onClick={() => handleGenerate(false)}
-              disabled={loading || !business}
+              disabled={loading || !business || quotaExhausted}
             >
-              Gerar análise
+              {quotaExhausted ? "Limite do mês atingido" : "Gerar análise"}
             </button>
           )}
           {status === "loading" && (

@@ -113,6 +113,20 @@
   line-height: 1.45;
 }
 
+/* Quota/budget não é "erro" — é limite informativo. Cor neutra/âmbar
+   em vez de vermelho de falha. */
+.errorBoxQuota {
+  color: var(--text);
+  background: var(--accent-soft);
+}
+
+.errorBoxMeta {
+  display: block;
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
 .actions {
   display: flex;
   flex-wrap: wrap;
