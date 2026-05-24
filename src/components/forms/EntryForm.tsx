@@ -129,6 +129,19 @@ export function EntryForm({
   const [auxiliarText, setAuxiliarText] = useState(() =>
     formatDecimalBR(initial.auxiliarPct ?? 0),
   );
+  // Taxa do negócio agora é por-lançamento (v3) — texto controlado
+  // separado do draft pra preservar o que o usuário digita ("1,") sem
+  // truncar quando o número derivado é só "1". Modo vive em
+  // `draft.taxaNegocioMode` (mesmo padrão de `auxiliarMode`). Inicializa
+  // do campo novo se presente, senão tenta o snapshot legado (sempre %),
+  // senão 0.
+  const [taxaNegocioText, setTaxaNegocioText] = useState(() =>
+    formatDecimalBR(
+      initial.taxaNegocio !== undefined
+        ? initial.taxaNegocio
+        : (initial.taxaFixaPctSnapshot ?? 0),
+    ),
+  );
 
   // Modo multi-item: itemList.length > 0 → mostra a lista; senão usa os
   // campos Serviço + Valor singulares (modo legado). Quando a Row inicial
@@ -227,6 +240,15 @@ export function EntryForm({
         );
       }
 
+      // Taxa do negócio: prefere o campo novo do histórico; senão cai pro
+      // snapshot legado (que era sempre %).
+      const histTaxaNeg =
+        entry.taxaNegocio !== undefined
+          ? entry.taxaNegocio
+          : (entry.taxaFixaPctSnapshot ?? 0);
+      const histTaxaNegMode: "percent" | "value" =
+        entry.taxaNegocioMode === "value" ? "value" : "percent";
+
       setDraft((prev) => ({
         ...prev,
         servico: entry.servico,
@@ -246,12 +268,18 @@ export function EntryForm({
         // pra não vazar valor do draft anterior.
         auxiliarPct: entry.auxiliarPct,
         auxiliarMode: entry.auxiliarMode,
+        // Taxa do negócio do histórico — propagada igual aos demais
+        // campos pra "repetir atendimento" funcionar com fidelidade.
+        taxaNegocio: histTaxaNeg,
+        taxaNegocioMode: histTaxaNegMode,
       }));
-      // Sincroniza os inputs controlados (taxa e auxiliar) que mantêm
-      // texto bruto separado do draft — sem isso, o usuário via os
-      // valores antigos no input apesar do draft já estar atualizado.
+      // Sincroniza os inputs controlados (taxa, auxiliar e taxa do
+      // negócio) que mantêm texto bruto separado do draft — sem isso,
+      // o usuário via os valores antigos no input apesar do draft já
+      // estar atualizado.
       setTaxaText(formatDecimalBR(entry.taxa));
       setAuxiliarText(formatDecimalBR(entry.auxiliarPct ?? 0));
+      setTaxaNegocioText(formatDecimalBR(histTaxaNeg));
       setTaxaTouched(true);
       setErrors((prev) => {
         const next = { ...prev };
@@ -284,6 +312,13 @@ export function EntryForm({
     setSubmitted(false);
     setTaxaText(formatDecimalBR(initial.taxa));
     setAuxiliarText(formatDecimalBR(initial.auxiliarPct ?? 0));
+    setTaxaNegocioText(
+      formatDecimalBR(
+        initial.taxaNegocio !== undefined
+          ? initial.taxaNegocio
+          : (initial.taxaFixaPctSnapshot ?? 0),
+      ),
+    );
     setItemList(
       initial.items && initial.items.length > 0
         ? initial.items.map((it) => ({
@@ -446,10 +481,11 @@ export function EntryForm({
   // Row efetiva pra TODOS os cálculos (preview, validação, save).
   const effectiveDraft: Row =
     itemList.length > 0 ? { ...draft, valor: itemsTotal } : draft;
+  // calcRow lê `taxaNegocio`/`taxaNegocioMode` da própria row (v3). O prop
+  // `taxaFixaPct` é mantido como fallback de penúltimo recurso pra
+  // lançamentos pré-snapshot — calcRow só recorre a ele se a row não tem
+  // nem `taxaNegocio` nem `taxaFixaPctSnapshot`.
   const calc = calcRow(effectiveDraft, { taxaFixaPct });
-  // Taxa fixa efetivamente aplicada a este lançamento — snapshot do row
-  // quando existe (preserva histórico), senão a config atual do negócio.
-  const effectiveTaxaFixa = draft.taxaFixaPctSnapshot ?? taxaFixaPct;
   const taxaMode: "percent" | "value" = draft.taxaMode ?? "percent";
   // Auto-taxa só faz sentido em modo %. Em "value" o usuário sempre digita
   // o R$ exato manualmente.
@@ -489,6 +525,21 @@ export function EntryForm({
 
   const flipAuxiliarMode = () => {
     setAuxiliarMode(auxiliarMode === "percent" ? "value" : "percent");
+  };
+
+  // ── Taxa do negócio: mesmo padrão (% / R$) ──────────────────────────
+  const taxaNegocioMode: "percent" | "value" =
+    draft.taxaNegocioMode ?? "percent";
+
+  const setTaxaNegocioMode = (mode: "percent" | "value") => {
+    if (mode === taxaNegocioMode) return;
+    // Trocar de modo zera o input — 10% e R$ 10,00 não são equivalentes.
+    setDraft((d) => ({ ...d, taxaNegocioMode: mode, taxaNegocio: 0 }));
+    setTaxaNegocioText("");
+  };
+
+  const flipTaxaNegocioMode = () => {
+    setTaxaNegocioMode(taxaNegocioMode === "percent" ? "value" : "percent");
   };
 
   const submit = (e: React.FormEvent) => {
@@ -803,23 +854,45 @@ export function EntryForm({
         </>
       )}
 
-      <div className={styles.field}>
-        <label htmlFor="ef-desconto" className={styles.label}>
-          Desconto
-        </label>
-        <input
-          id="ef-desconto"
-          className={styles.input}
-          inputMode="decimal"
-          type="number"
-          step="0.01"
-          min="0"
-          value={draft.desconto === "" ? "" : draft.desconto}
-          onChange={(e) =>
-            update("desconto", e.target.value === "" ? "" : +e.target.value)
-          }
-          placeholder="0,00"
-        />
+      {/* Desconto e Custo na mesma linha 50/50 — ambos reduzem o vef
+          antes de qualquer taxa percentual (a partir da v3). */}
+      <div className={styles.row}>
+        <div className={styles.field}>
+          <label htmlFor="ef-desconto" className={styles.label}>
+            Desconto
+          </label>
+          <input
+            id="ef-desconto"
+            className={styles.input}
+            inputMode="decimal"
+            type="number"
+            step="0.01"
+            min="0"
+            value={draft.desconto === "" ? "" : draft.desconto}
+            onChange={(e) =>
+              update("desconto", e.target.value === "" ? "" : +e.target.value)
+            }
+            placeholder="0,00"
+          />
+        </div>
+        <div className={styles.field}>
+          <label htmlFor="ef-custo" className={styles.label}>
+            Custo do serviço
+          </label>
+          <input
+            id="ef-custo"
+            className={styles.input}
+            inputMode="decimal"
+            type="number"
+            step="0.01"
+            min="0"
+            value={draft.custo === "" ? "" : draft.custo}
+            onChange={(e) =>
+              update("custo", e.target.value === "" ? "" : +e.target.value)
+            }
+            placeholder="0,00"
+          />
+        </div>
       </div>
 
       <div className={styles.field}>
@@ -912,117 +985,91 @@ export function EntryForm({
         </div>
       )}
 
-      {draft.forma === "Débito" ? (
-        // Débito: Custo + Taxa lado a lado (Taxa é obrigatória).
-        <div className={styles.row}>
-          <div className={styles.field}>
-            <label className={styles.label}>Custo do serviço</label>
-            <input
-              className={styles.input}
-              inputMode="decimal"
-              type="number"
-              step="0.01"
-              min="0"
-              value={draft.custo === "" ? "" : draft.custo}
-              onChange={(e) =>
-                update("custo", e.target.value === "" ? "" : +e.target.value)
-              }
-              placeholder="0,00"
-            />
-          </div>
-          <div className={styles.field}>
-            <label className={styles.label}>
-              Taxa{" "}
-              <span className={styles.labelHintSoft}>
-                ({taxaMode === "value" ? "R$" : "%"})
-              </span>{" "}
-              <span className={styles.required}>*</span>
-              {isAutoTaxa && (
-                <span className={styles.labelHint}>· automática</span>
-              )}
-            </label>
-            <div className={styles.taxaInputWrap}>
-              <input
-                className={`${styles.input} ${styles.taxaInput} ${errors.taxa ? styles.inputError : ""}`}
-                type="text"
-                inputMode="decimal"
-                value={taxaText}
-                onChange={(e) => {
-                  const text = e.target.value;
-                  const allowed = sanitizeDecimalText(text);
-                  setTaxaText(allowed);
-                  update("taxa", parseDecimalBR(allowed));
-                }}
-                placeholder="0,00"
-                aria-invalid={!!errors.taxa}
-              />
-              <button
-                type="button"
-                className={styles.taxaModeToggle}
-                onClick={flipTaxaMode}
-                aria-label={`Modo atual: ${taxaMode === "value" ? "R$" : "porcentagem"}. Toque para alternar.`}
-                title={
-                  taxaMode === "value"
-                    ? "Em R$ — toque pra usar %"
-                    : "Em % — toque pra usar R$"
-                }
-              >
-                {taxaMode === "value" ? "R$" : "%"}
-              </button>
-            </div>
-            {errors.taxa && (
-              <span className={styles.errorMsg}>{errors.taxa}</span>
-            )}
-          </div>
-        </div>
-      ) : (
-        // Dinheiro, Pix ou Crédito: Custo sozinho na linha inteira.
-        // Crédito já mostra Parcelas+Taxa numa row própria acima — aqui
-        // só sobra o Custo.
+      {draft.forma === "Débito" && (
+        // Débito: só Taxa (Custo já está no topo, junto do Desconto).
+        // Taxa fica sozinha na linha pra acomodar o toggle %/R$ confortável.
         <div className={styles.field}>
-          <label className={styles.label}>Custo do serviço</label>
-          <input
-            className={styles.input}
-            inputMode="decimal"
-            type="number"
-            step="0.01"
-            min="0"
-            value={draft.custo === "" ? "" : draft.custo}
-            onChange={(e) =>
-              update("custo", e.target.value === "" ? "" : +e.target.value)
-            }
-            placeholder="0,00"
-          />
+          <label className={styles.label}>
+            Taxa{" "}
+            <span className={styles.labelHintSoft}>
+              ({taxaMode === "value" ? "R$" : "%"})
+            </span>{" "}
+            <span className={styles.required}>*</span>
+            {isAutoTaxa && (
+              <span className={styles.labelHint}>· automática</span>
+            )}
+          </label>
+          <div className={styles.taxaInputWrap}>
+            <input
+              className={`${styles.input} ${styles.taxaInput} ${errors.taxa ? styles.inputError : ""}`}
+              type="text"
+              inputMode="decimal"
+              value={taxaText}
+              onChange={(e) => {
+                const text = e.target.value;
+                const allowed = sanitizeDecimalText(text);
+                setTaxaText(allowed);
+                update("taxa", parseDecimalBR(allowed));
+              }}
+              placeholder="0,00"
+              aria-invalid={!!errors.taxa}
+            />
+            <button
+              type="button"
+              className={styles.taxaModeToggle}
+              onClick={flipTaxaMode}
+              aria-label={`Modo atual: ${taxaMode === "value" ? "R$" : "porcentagem"}. Toque para alternar.`}
+              title={
+                taxaMode === "value"
+                  ? "Em R$ — toque pra usar %"
+                  : "Em % — toque pra usar R$"
+              }
+            >
+              {taxaMode === "value" ? "R$" : "%"}
+            </button>
+          </div>
+          {errors.taxa && (
+            <span className={styles.errorMsg}>{errors.taxa}</span>
+          )}
         </div>
       )}
 
       <div className={styles.row}>
         <div className={styles.field}>
-          <label htmlFor="ef-taxa-fixa" className={styles.label}>
-            Taxa do negócio %{" "}
+          <label htmlFor="ef-taxa-negocio" className={styles.label}>
+            Taxa do negócio{" "}
             <span className={styles.labelHintSoft}>
-              {effectiveTaxaFixa !== taxaFixaPct ? "· histórica" : "· fixa"}
+              ({taxaNegocioMode === "value" ? "R$" : "%"})
             </span>
           </label>
-          <input
-            id="ef-taxa-fixa"
-            className={styles.input}
-            type="text"
-            inputMode="decimal"
-            value={
-              effectiveTaxaFixa > 0 ? formatDecimalBR(effectiveTaxaFixa) : ""
-            }
-            placeholder={effectiveTaxaFixa > 0 ? "" : "—"}
-            disabled
-            aria-label="Taxa fixa do negócio — configurada em Empreendimentos"
-            title={
-              effectiveTaxaFixa !== taxaFixaPct
-                ? "Taxa carimbada quando este lançamento foi criado. Mudanças posteriores na config do negócio não alteram lançamentos antigos."
-                : effectiveTaxaFixa > 0
-                  ? "Configurada no empreendimento. Edite em Empreendimentos."
-                  : "Não configurada. Defina em Empreendimentos pra aplicar a todos os lançamentos."
-            }
-          />
+          <div className={styles.taxaInputWrap}>
+            <input
+              id="ef-taxa-negocio"
+              className={`${styles.input} ${styles.taxaInput}`}
+              type="text"
+              inputMode="decimal"
+              value={taxaNegocioText}
+              onChange={(e) => {
+                const allowed = sanitizeDecimalText(e.target.value);
+                setTaxaNegocioText(allowed);
+                update("taxaNegocio", parseDecimalBR(allowed));
+              }}
+              placeholder="0,00"
+            />
+            <button
+              type="button"
+              className={styles.taxaModeToggle}
+              onClick={flipTaxaNegocioMode}
+              aria-label={`Modo atual: ${taxaNegocioMode === "value" ? "R$" : "porcentagem"}. Toque para alternar.`}
+              title={
+                taxaNegocioMode === "value"
+                  ? "Em R$ — toque pra usar %"
+                  : "Em % — toque pra usar R$"
+              }
+            >
+              {taxaNegocioMode === "value" ? "R$" : "%"}
+            </button>
+          </div>
         </div>
         <div className={styles.field}>
           <label htmlFor="ef-auxiliar" className={styles.label}>
@@ -1087,16 +1134,49 @@ export function EntryForm({
 
       <div className={styles.preview} role="status" aria-live="polite">
         <span className={styles["previewLabel-eyebrow"]}>Resultado</span>
+        {/* Cadeia da v3:
+              Valor bruto
+              − Desconto
+              − Custo            (ambos reduzem o vef antes de % nenhuma)
+              = Valor efetivo
+              − Taxa do negócio  (% sobre vef OU R$)
+              − Taxa cartão      (% sobre subtotal pós taxa do negócio OU R$)
+              − Auxiliar         (% sobre vef OU R$)
+              = LÍQUIDO
+            Mostramos cada linha explicitamente pra transparência —
+            esconde só as que são zero. */}
+        {calc.v > 0 && (
+          <div className={styles.previewRow}>
+            <span className={styles.previewLabel}>Valor</span>
+            <span className={styles.previewValue}>{fmtBRL(calc.v)}</span>
+          </div>
+        )}
+        {calc.descontoVal > 0 && (
+          <div className={styles.previewRow}>
+            <span className={styles.previewLabel}>Desconto</span>
+            <span className={styles.previewValue}>
+              − {fmtBRL(calc.descontoVal)}
+            </span>
+          </div>
+        )}
+        {calc.custoVal > 0 && (
+          <div className={styles.previewRow}>
+            <span className={styles.previewLabel}>Custo</span>
+            <span className={styles.previewValue}>
+              − {fmtBRL(calc.custoVal)}
+            </span>
+          </div>
+        )}
         <div className={styles.previewRow}>
           <span className={styles.previewLabel}>Valor efetivo</span>
           <span className={styles.previewValue}>{fmtBRL(calc.vef)}</span>
         </div>
-        {/* Ordem das deduções: taxa do negócio → taxa cartão → custo → auxiliar.
-            Cada % é aplicada sobre o subtotal naquele ponto da cadeia. */}
         {calc.taxaFixaVal > 0 && (
           <div className={styles.previewRow}>
             <span className={styles.previewLabel}>
-              Taxa do negócio ({formatDecimalBR(effectiveTaxaFixa)}%)
+              {taxaNegocioMode === "value"
+                ? "Taxa do negócio (R$)"
+                : `Taxa do negócio (${formatDecimalBR(draft.taxaNegocio ?? 0)}%)`}
             </span>
             <span className={styles.previewValue}>
               − {fmtBRL(calc.taxaFixaVal)}
@@ -1112,14 +1192,6 @@ export function EntryForm({
             </span>
             <span className={styles.previewValue}>
               − {fmtBRL(calc.taxaVal)}
-            </span>
-          </div>
-        )}
-        {calc.custoVal > 0 && (
-          <div className={styles.previewRow}>
-            <span className={styles.previewLabel}>Custo</span>
-            <span className={styles.previewValue}>
-              − {fmtBRL(calc.custoVal)}
             </span>
           </div>
         )}

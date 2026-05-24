@@ -343,17 +343,15 @@ export default function App() {
     }
 
     if (sheetMode.kind === "create") {
-      // Carimba a taxa fixa do negócio no momento da criação. Edições
-      // posteriores NUNCA mexem nesse snapshot — mudanças futuras na taxa
-      // do negócio não afetam lançamentos antigos.
-      commitRow({
-        ...row,
-        taxaFixaPctSnapshot: activeBusiness?.taxaFixaPct ?? 0,
-      });
+      // v3: taxa do negócio agora é digitada por lançamento (campos
+      // `taxaNegocio` + `taxaNegocioMode` no draft). Não carimbamos mais
+      // snapshot da config global — a row carrega seu próprio valor.
+      commitRow(row);
       pushToast("Lançamento adicionado");
     } else {
-      // Em edição NÃO escrevemos taxaFixaPctSnapshot — mantemos a taxa
-      // que estava vigente quando o lançamento foi criado.
+      // Em edição propagamos TODOS os campos do draft, incluindo
+      // `taxaNegocio`/`taxaNegocioMode`. O snapshot legado é preservado
+      // só pra rows muito antigos — não sobrescrevemos.
       (Object.keys(row) as (keyof Row)[]).forEach((k) => {
         if (k === "taxaFixaPctSnapshot") return;
         updateRow(sheetMode.id, k, row[k]);

@@ -87,12 +87,21 @@ export function exportToExcel(
           : r.parc <= 1
             ? "Próx. mês"
             : `${r.parc} parcelas`;
-      // Taxa fixa efetiva = snapshot do row (preserva histórico) OU
-      // fallback do negócio atual. Mesma lógica do calcRow.
-      const effectiveTaxaFixa =
-        r.taxaFixaPctSnapshot !== undefined
-          ? r.taxaFixaPctSnapshot
-          : taxaFixaPctFallback;
+      // Taxa do negócio efetiva — mesma prioridade do calcRow:
+      // 1. campo novo `taxaNegocio` (v3, com modo % ou R$)
+      // 2. snapshot legado (sempre %)
+      // 3. fallback do negócio (legacy pré-snapshot)
+      // Em modo "value" a coluna "% taxa negócio" sai como 0 — o valor
+      // R$ retido fica em "Taxa negócio (R$)".
+      let taxaNegPctCol = 0;
+      if (r.taxaNegocio !== undefined) {
+        taxaNegPctCol =
+          r.taxaNegocioMode === "value" ? 0 : (r.taxaNegocio ?? 0) / 100;
+      } else if (r.taxaFixaPctSnapshot !== undefined) {
+        taxaNegPctCol = r.taxaFixaPctSnapshot / 100;
+      } else {
+        taxaNegPctCol = taxaFixaPctFallback / 100;
+      }
       return [
         MESES_FULL[r.mes],
         r.ano,
@@ -110,7 +119,7 @@ export function exportToExcel(
         r.taxaMode === "value" ? 0 : +r.taxa / 100,
         calc.taxaVal,
         calc.custoVal,
-        effectiveTaxaFixa / 100,
+        taxaNegPctCol,
         calc.taxaFixaVal,
         // Em modo "value", auxiliarPct é R$ absoluto, então "Auxiliar %"
         // sai como 0 e "Auxiliar (R$)" carrega o valor. Em "percent",
