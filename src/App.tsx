@@ -31,6 +31,7 @@ import { AiAnalysisCard } from "./components/ai/AiAnalysisCard";
 import { exportMonthPdf } from "./lib/pdf";
 import { BackupPanel } from "./components/backup/BackupPanel";
 import { Toaster, useToast } from "./components/feedback/Toaster";
+import { useConfirm } from "./components/feedback/ConfirmDialog";
 import { BackupReminder } from "./components/feedback/BackupReminder";
 import { DailyReminder } from "./components/feedback/DailyReminder";
 import { FirstUseModal } from "./components/onboarding/FirstUseModal";
@@ -94,6 +95,7 @@ export default function App() {
   const { theme, accent, toggleTheme, setAccent } = useAppearance();
   const auth = useAuth();
   const { toasts, push: pushToast } = useToast();
+  const confirm = useConfirm();
   const sync = useSync({
     user: auth.user,
     state,
@@ -369,16 +371,19 @@ export default function App() {
   };
 
   const handleDeleteInline = useCallback(
-    (id: string, cliente: string) => {
+    async (id: string, cliente: string) => {
       const label = cliente.trim() || "este lançamento";
-      const ok = window.confirm(
-        `Remover ${label}?\n\nEssa ação não pode ser desfeita.`,
-      );
+      const ok = await confirm({
+        title: `Remover ${label}?`,
+        message: "Essa ação não pode ser desfeita.",
+        confirmText: "Remover",
+        danger: true,
+      });
       if (!ok) return;
       deleteRow(id);
       pushToast("Lançamento removido");
     },
-    [deleteRow, pushToast],
+    [confirm, deleteRow, pushToast],
   );
 
   const handleSubmitBusiness = (profile: BusinessProfile) => {

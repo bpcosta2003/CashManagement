@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { fmtBRL } from "../../lib/calc";
 import { MESES_FULL } from "../../constants";
+import { useConfirm } from "../feedback/ConfirmDialog";
 import styles from "./MonthGoalCard.module.css";
 
 interface Props {
@@ -35,6 +36,7 @@ export function MonthGoalCard({
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
+  const confirm = useConfirm();
 
   const hasGoal = !!target && target > 0;
   const monthLabel = MESES_FULL[mes];
@@ -59,14 +61,17 @@ export function MonthGoalCard({
     setEditing(false);
   };
 
-  const handleRemove = () => {
+  const handleRemove = async () => {
     if (!hasGoal) {
       setEditing(false);
       return;
     }
-    if (
-      window.confirm(`Remover a meta de ${monthLabel}?`)
-    ) {
+    const ok = await confirm({
+      title: `Remover a meta de ${monthLabel}?`,
+      confirmText: "Remover",
+      danger: true,
+    });
+    if (ok) {
       onSave(0);
       setEditing(false);
     }

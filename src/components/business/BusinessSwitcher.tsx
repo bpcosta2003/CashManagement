@@ -3,6 +3,7 @@ import type { Business, BusinessType } from "../../types";
 import { fmtBRL } from "../../lib/calc";
 import { MESES_FULL } from "../../constants";
 import { resizeImageToDataUrl } from "../../lib/imageResize";
+import { useConfirm } from "../feedback/ConfirmDialog";
 import styles from "./BusinessSwitcher.module.css";
 
 /** KPIs do mês corrente por empreendimento — calculados no App. */
@@ -81,6 +82,7 @@ export function BusinessSwitcher({
   onDelete,
 }: Props) {
   const [view, setView] = useState<View>({ mode: "list" });
+  const confirm = useConfirm();
 
   if (!open) return null;
 
@@ -189,10 +191,14 @@ export function BusinessSwitcher({
               onCancel={() => setView({ mode: "list" })}
               onDelete={
                 businesses.length > 1
-                  ? () => {
-                      const ok = window.confirm(
-                        `Apagar "${view.business.name}" e todos os lançamentos desse empreendimento?\n\nEssa ação não pode ser desfeita.`,
-                      );
+                  ? async () => {
+                      const ok = await confirm({
+                        title: `Apagar "${view.business.name}"?`,
+                        message:
+                          "Todos os lançamentos desse empreendimento também serão removidos. Essa ação não pode ser desfeita.",
+                        confirmText: "Apagar tudo",
+                        danger: true,
+                      });
                       if (!ok) return;
                       onDelete(view.business.id);
                       setView({ mode: "list" });

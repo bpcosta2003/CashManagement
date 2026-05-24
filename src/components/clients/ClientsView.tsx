@@ -7,6 +7,7 @@ import { BrandMark } from "../layout/Brand";
 import { Sheet } from "../forms/Sheet";
 import { ClientForm } from "./ClientForm";
 import { FitText } from "../feedback/FitText";
+import { useConfirm } from "../feedback/ConfirmDialog";
 import styles from "./ClientsView.module.css";
 
 interface EditingState {
@@ -38,6 +39,7 @@ function formatRelativeDate(iso: string | null): string {
 }
 
 export function ClientsView({ clients, onCreate, onUpdate, onDelete }: Props) {
+  const confirm = useConfirm();
   const [query, setQuery] = useState("");
   const [editing, setEditing] = useState<EditingState | null>(null);
   const [adding, setAdding] = useState(false);
@@ -66,10 +68,14 @@ export function ClientsView({ clients, onCreate, onUpdate, onDelete }: Props) {
 
   const total = clients.length;
 
-  const handleDelete = (id: string, name: string) => {
-    const ok = window.confirm(
-      `Apagar o cliente "${name}"?\n\nOs lançamentos com esse nome não serão apagados — só o registro do cliente.`,
-    );
+  const handleDelete = async (id: string, name: string) => {
+    const ok = await confirm({
+      title: `Apagar o cliente "${name}"?`,
+      message:
+        "Os lançamentos com esse nome não serão apagados — só o registro do cliente.",
+      confirmText: "Apagar",
+      danger: true,
+    });
     if (!ok) return;
     onDelete(id);
   };

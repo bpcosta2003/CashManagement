@@ -3,6 +3,7 @@ import { useAiAnalysis } from "../../hooks/useAiAnalysis";
 import { MESES_FULL } from "../../constants";
 import type { Business, MonthGoal, Row } from "../../types";
 import { AiAnalysisModal } from "./AiAnalysisModal";
+import { useConfirm } from "../feedback/ConfirmDialog";
 import styles from "./AiAnalysisCard.module.css";
 
 interface Props {
@@ -50,6 +51,7 @@ function classifyMonthTiming(ano: number, mes: number, today = new Date()): Mont
 export function AiAnalysisCard(props: Props) {
   const { business, rows, goal, mes, ano, signedIn, onToast } = props;
   const { enabled, loading, result, error, analyze, reset } = useAiAnalysis();
+  const confirm = useConfirm();
   const [modalOpen, setModalOpen] = useState(false);
 
   // Reseta resultado/erro quando muda o contexto (mês, ano, business).
@@ -88,9 +90,13 @@ export function AiAnalysisCard(props: Props) {
   const handleGenerate = async (force = false) => {
     if (!business) return;
     if (monthTiming === "early") {
-      const ok = window.confirm(
-        "O mês ainda não terminou. A análise vai usar só os dados lançados até hoje — pode faltar informação importante.\n\nO ideal é gerar no último dia útil do mês.\n\nDeseja continuar mesmo assim?",
-      );
+      const ok = await confirm({
+        title: "O mês ainda não terminou",
+        message:
+          "A análise vai usar só os dados lançados até hoje — pode faltar informação importante. O ideal é gerar no último dia útil do mês.",
+        confirmText: "Continuar mesmo assim",
+        danger: false,
+      });
       if (!ok) return;
     }
     // Mandamos só os dados brutos do empreendimento — o servidor monta
@@ -211,10 +217,14 @@ export function AiAnalysisCard(props: Props) {
               <button
                 type="button"
                 className={styles.secondary}
-                onClick={() => {
-                  const ok = window.confirm(
-                    "Refazer a análise vai usar 1 das suas análises do mês.\n\nDeseja continuar?",
-                  );
+                onClick={async () => {
+                  const ok = await confirm({
+                    title: "Refazer análise?",
+                    message:
+                      "Vai usar 1 das suas análises do mês.",
+                    confirmText: "Refazer",
+                    danger: false,
+                  });
                   if (ok) handleGenerate(true);
                 }}
                 disabled={loading}
@@ -249,11 +259,14 @@ export function AiAnalysisCard(props: Props) {
           businessName={business.name}
           result={result}
           onClose={() => setModalOpen(false)}
-          onRefresh={() => {
+          onRefresh={async () => {
             setModalOpen(false);
-            const ok = window.confirm(
-              "Refazer a análise vai usar 1 das suas análises do mês.\n\nDeseja continuar?",
-            );
+            const ok = await confirm({
+              title: "Refazer análise?",
+              message: "Vai usar 1 das suas análises do mês.",
+              confirmText: "Refazer",
+              danger: false,
+            });
             if (ok) handleGenerate(true);
           }}
         />
