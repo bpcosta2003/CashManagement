@@ -42,7 +42,15 @@ export function useCalc(
     const valid = monthRows.filter((r) => r.v > 0);
     const bruto = valid.reduce((s, r) => s + r.v, 0);
     const descontos = valid.reduce((s, r) => s + r.descontoVal, 0);
-    const taxas = valid.reduce((s, r) => s + r.taxaVal, 0);
+    // "Taxas" agrega TODAS as deduções percentuais: taxa do cartão +
+    // taxa do negócio + auxiliar. Manter separado escondia parte da
+    // mordida real — quem olha o resumo precisa ver tudo que saiu via
+    // "taxa de algum tipo" num só lugar. Custos ficam à parte por
+    // serem categoria diferente (material/insumo, não fee).
+    const taxas = valid.reduce(
+      (s, r) => s + r.taxaVal + r.taxaFixaVal + r.auxiliarVal,
+      0,
+    );
     const custos = valid.reduce((s, r) => s + r.custoVal, 0);
     const liq = valid.reduce((s, r) => s + r.liq, 0);
     const margem = bruto ? (liq / bruto) * 100 : 0;
