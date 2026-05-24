@@ -182,7 +182,7 @@ export function useStorage() {
   const updateBusiness = useCallback(
     (
       id: string,
-      patch: Partial<Pick<Business, "name" | "type" | "logo" | "taxaFixaPct">>,
+      patch: Partial<Pick<Business, "name" | "type" | "logo">>,
     ) => {
       mutate((prev) => ({
         ...prev,
@@ -192,14 +192,6 @@ export function useStorage() {
           // "logo: undefined" no patch significa remover a logo
           if ("logo" in patch && patch.logo === undefined) {
             const { logo: _drop, ...rest } = next;
-            return rest as Business;
-          }
-          // taxaFixaPct=0 → remove pra manter os Business antigos limpos.
-          if (
-            "taxaFixaPct" in patch &&
-            (!patch.taxaFixaPct || patch.taxaFixaPct === 0)
-          ) {
-            const { taxaFixaPct: _drop2, ...rest } = next;
             return rest as Business;
           }
           return next;

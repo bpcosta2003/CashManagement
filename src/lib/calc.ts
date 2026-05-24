@@ -27,20 +27,29 @@ export function addMes(m: number, y: number, n: number) {
 }
 
 /**
- * Calcula totais e líquido de um lançamento, considerando:
- *   1. Valor bruto (preço)
- *   2. Desconto → valor efetivo (vef)
- *   3. Taxa fixa do negócio (% sobre vef) — passa por opts ou snapshot do row
- *   4. Taxa do cartão (% sobre o subtotal pós taxa do negócio)
- *   5. Custo absoluto do serviço
- *   6. Auxiliar do serviço (% sobre vef — base sempre o valor efetivo,
- *      independente das outras deduções na cadeia)
+ * Calcula totais e líquido de um lançamento. Cadeia de deduções:
  *
- * Líquido = vef − taxaFixaVal − taxaVal − custo − auxiliarVal.
+ *   valor (bruto)
+ *   − desconto
+ *   − custo                          ← novo: custo entra junto com desconto
+ *   = valor efetivo (vef)
+ *   − taxa do negócio  (% sobre vef OU R$ absoluto)
+ *   − taxa do cartão   (% sobre subtotal pós taxa do negócio OU R$ absoluto)
+ *   − auxiliar         (% sobre vef OU R$ absoluto)
+ *   = líquido
+ *
+ * Custo agora reduz o vef (como desconto) — modela o caso "não pago
+ * imposto/taxa sobre matéria-prima/material consumido". Auxiliar
+ * continua com base em vef (sempre).
  *
  * A margem é calculada sobre o bruto (valor), preservando o significado
- * histórico ("quanto sobra de cada real vendido"). Bruto NÃO muda — todas
- * as deduções reduzem o que sobra, não o que entrou.
+ * "quanto sobra de cada real vendido". Bruto NÃO muda.
+ *
+ * Fontes da taxa do negócio (prioridade decrescente):
+ *   1. r.taxaNegocio + r.taxaNegocioMode (v3, atual)
+ *   2. r.taxaFixaPctSnapshot (v2, legado — sempre %)
+ *   3. opts.taxaFixaPct (pré-v2, fallback business config global)
+ *   4. 0
  */
 export function calcRow(
   r: Row,
@@ -48,25 +57,36 @@ export function calcRow(
 ): CalculatedRow {
   const v = +r.valor || 0;
   const d = Math.min(+r.desconto || 0, v);
-  const vef = v - d;
+  const c = +r.custo || 0;
+  // vef = valor − desconto − custo. Clamp em 0 pra evitar base
+  // negativa quando custo > (valor − desconto).
+  const vef = Math.max(0, v - d - c);
 
-  // 1. Taxa fixa do negócio sobre vef.
-  //    Preferência: snapshot carimbado no Row (preserva histórico) →
-  //    fallback pra taxa fixa atual do negócio (lançamentos pré-feature).
-  const rawPct =
-    r.taxaFixaPctSnapshot !== undefined
-      ? r.taxaFixaPctSnapshot
-      : (opts?.taxaFixaPct ?? 0);
-  const taxaFixaPct = Math.max(0, Math.min(100, +rawPct || 0));
-  const taxaFixaVal = (vef * taxaFixaPct) / 100;
+  // Taxa do negócio. Prioridade: novos campos → snapshot legado →
+  // opts (fallback pré-snapshot) → 0.
+  let taxaFixaVal = 0;
+  let taxaNegocioMode: "percent" | "value" = "percent";
+  if (r.taxaNegocio !== undefined && r.taxaNegocio !== null) {
+    taxaNegocioMode = r.taxaNegocioMode === "value" ? "value" : "percent";
+    if (taxaNegocioMode === "value") {
+      const raw = Math.max(0, +r.taxaNegocio || 0);
+      taxaFixaVal = Math.min(raw, vef);
+    } else {
+      const pct = Math.max(0, Math.min(100, +r.taxaNegocio || 0));
+      taxaFixaVal = (vef * pct) / 100;
+    }
+  } else if (r.taxaFixaPctSnapshot !== undefined) {
+    const pct = Math.max(0, Math.min(100, +r.taxaFixaPctSnapshot || 0));
+    taxaFixaVal = (vef * pct) / 100;
+  } else if (opts?.taxaFixaPct) {
+    const pct = Math.max(0, Math.min(100, +opts.taxaFixaPct || 0));
+    taxaFixaVal = (vef * pct) / 100;
+  }
   const afterTaxaFixa = vef - taxaFixaVal;
 
-  // 2. Taxa do cartão. Dois modos:
-  //    - "value": o usuário digitou o R$ absoluto retido pelo cartão.
-  //      Usamos direto, clamp em [0, afterTaxaFixa] pra nunca virar líq.
-  //      negativo só pela taxa.
-  //    - "percent" (default): aplica o % sobre o subtotal pós taxa do
-  //      negócio.
+  // Taxa do cartão. Modos:
+  //   - "value": R$ absoluto retido pelo cartão. Clamp em [0, afterTaxaFixa].
+  //   - "percent" (default): % sobre subtotal pós taxa do negócio.
   let t = 0;
   if (r.taxaMode === "value") {
     const raw = Math.max(0, +r.taxa || 0);
@@ -75,26 +95,18 @@ export function calcRow(
     t = (afterTaxaFixa * (+r.taxa || 0)) / 100;
   }
 
-  // 3. Custo absoluto.
-  const c = +r.custo || 0;
-
-  // 4. Auxiliar do serviço. Dois modos análogos à taxa do cartão:
-  //    - "value": auxiliarPct é R$ absoluto. Clamp em [0, vef] pra
-  //      nunca virar o líquido negativo só pelo auxiliar.
-  //    - "percent" (default): % SEMPRE sobre vef, independente da
-  //      cadeia de descontos acima. Modela o caso onde o auxiliar é
-  //      pago como fração do que o cliente realmente pagou (o "valor
-  //      efetivo"), não do que sobra pro dono depois das taxas/custo.
+  // Auxiliar do serviço. Base é sempre vef (o cliente efetivamente pagou
+  // isso — auxiliar fica com sua fração disso, não do líquido).
   let auxiliarVal = 0;
   if (r.auxiliarMode === "value") {
     const raw = Math.max(0, +(r.auxiliarPct || 0));
-    auxiliarVal = Math.min(raw, Math.max(0, vef));
+    auxiliarVal = Math.min(raw, vef);
   } else {
     const auxPct = Math.max(0, Math.min(100, +(r.auxiliarPct || 0)));
     auxiliarVal = (vef * auxPct) / 100;
   }
 
-  const liq = vef - taxaFixaVal - t - c - auxiliarVal;
+  const liq = vef - taxaFixaVal - t - auxiliarVal;
 
   return {
     ...r,
@@ -102,6 +114,8 @@ export function calcRow(
     descontoVal: d,
     vef,
     taxaVal: t,
+    // custoVal preserva o valor original do custo pra display.
+    // O custo já foi subtraído dentro do vef, não é descontado de novo.
     custoVal: c,
     taxaFixaVal,
     auxiliarVal,

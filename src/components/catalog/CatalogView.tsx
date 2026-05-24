@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import type { CatalogItem } from "../../types";
 import { fmtBRL } from "../../lib/calc";
 import { BrandMark } from "../layout/Brand";
+import { useConfirm } from "../feedback/ConfirmDialog";
 import styles from "./CatalogView.module.css";
 
 interface Props {
@@ -25,6 +26,7 @@ interface Props {
  * EntryForm — assim os nomes ficam consistentes nos relatórios.
  */
 export function CatalogView({ items, onAdd, onUpdate, onDelete }: Props) {
+  const confirm = useConfirm();
   const [query, setQuery] = useState("");
   const [adding, setAdding] = useState(false);
   const [newName, setNewName] = useState("");
@@ -53,10 +55,14 @@ export function CatalogView({ items, onAdd, onUpdate, onDelete }: Props) {
     setAdding(false);
   };
 
-  const handleDelete = (id: string, name: string) => {
-    const ok = window.confirm(
-      `Remover "${name}" do catálogo?\n\nOs lançamentos antigos com esse nome não serão alterados — só a sugestão é apagada.`,
-    );
+  const handleDelete = async (id: string, name: string) => {
+    const ok = await confirm({
+      title: `Remover "${name}" do catálogo?`,
+      message:
+        "Os lançamentos antigos com esse nome não serão alterados — só a sugestão é apagada.",
+      confirmText: "Remover",
+      danger: true,
+    });
     if (!ok) return;
     onDelete(id);
   };

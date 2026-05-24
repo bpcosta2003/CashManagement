@@ -26,11 +26,10 @@ export interface Business {
   createdAt: string;
   /** Logo customizada (data URL PNG/JPG ~256x256). Substitui a logo padrão. */
   logo?: string;
-  /** Taxa fixa do negócio em % — modela cenários onde um percentual vai
-   *  sempre para uma terceira parte (ex.: barbearia que cede cadeira pro
-   *  profissional, salão que repassa % pro estabelecimento). Aplicada a
-   *  TODOS os lançamentos do empreendimento, calculada sobre o subtotal
-   *  após desconto, taxa de cartão e custo. Default 0 (sem taxa). */
+  /** @deprecated — Taxa fixa global do negócio em %. Foi substituído
+   *  por `Row.taxaNegocio` (por lançamento, com modo % ou R$) na v3.
+   *  Mantido no schema pra preservar storage legado, mas não é mais
+   *  editável nem lido pelo calcRow nos novos lançamentos. */
   taxaFixaPct?: number;
 }
 
@@ -118,11 +117,22 @@ export interface Row {
    *   - "value": valor é R$ absoluto repassado ao auxiliar.
    *  Quando undefined, comportamento legado = "percent". */
   auxiliarMode?: "percent" | "value";
-  /** Snapshot da taxa fixa do negócio (%) no momento em que o lançamento
-   *  foi criado. Garante histórico fiel: alterar a taxa do negócio mais
-   *  tarde NÃO mexe nos cálculos dos lançamentos antigos. Quando undefined
-   *  (lançamentos pré-feature), o calcRow cai pra taxa fixa atual do
-   *  negócio. */
+  /** Taxa do negócio do lançamento — % ou R$ (modo controlado por
+   *  `taxaNegocioMode`). Substitui a antiga `Business.taxaFixaPct`
+   *  global por valor por lançamento, permitindo o caso onde a taxa
+   *  muda por atendimento (e não é uniforme pro negócio inteiro).
+   *  Aplicada sobre o valor efetivo (= valor − desconto − custo).
+   *  Default 0 (sem taxa). */
+  taxaNegocio?: number;
+  /** Como interpretar `taxaNegocio`:
+   *   - "percent" (default): % sobre vef.
+   *   - "value": R$ absoluto retido.
+   *  Quando undefined, comportamento legado = "percent". */
+  taxaNegocioMode?: "percent" | "value";
+  /** @deprecated — Snapshot da taxa fixa global (%) no momento da
+   *  criação do lançamento. Foi substituído por `taxaNegocio` na v3.
+   *  Mantido como fallback no calcRow pra lançamentos pré-v3 que
+   *  ainda têm o snapshot mas não têm `taxaNegocio`. */
   taxaFixaPctSnapshot?: number;
   /** Múltiplos serviços/produtos vendidos no mesmo atendimento.
    *  Quando presente:
