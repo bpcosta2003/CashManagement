@@ -1,9 +1,10 @@
-import { useEffect, useRef } from "react";
-import type { Summary } from "../../types";
+import { useEffect, useRef, useState } from "react";
+import type { CalculatedRow, Summary } from "../../types";
 import { fmtBRL, fmtPct } from "../../lib/calc";
 import { observeFit } from "../../lib/fitText";
-import { MESES_SHORT } from "../../constants";
+import { MESES_SHORT, MESES_FULL } from "../../constants";
 import { useBreakpoint } from "../../hooks/useBreakpoint";
+import { BrutoDetailModal, MargemInfoModal } from "./SummaryDetailModals";
 import styles from "./SummaryCards.module.css";
 
 interface Props {
@@ -11,6 +12,8 @@ interface Props {
   mes: number;
   liqDelta: number | null;
   prevMonthLabel: string;
+  /** Lançamentos do mês — usados no modal de detalhe do Bruto. */
+  monthRows: CalculatedRow[];
 }
 
 export function SummaryCards({
@@ -18,9 +21,13 @@ export function SummaryCards({
   mes,
   liqDelta,
   prevMonthLabel,
+  monthRows,
 }: Props) {
   const { bruto, descontos, taxas, custos, liq, margem, futuro } = summary;
   const { isMobile } = useBreakpoint();
+  const [brutoOpen, setBrutoOpen] = useState(false);
+  const [margemOpen, setMargemOpen] = useState(false);
+  const monthFull = MESES_FULL[mes];
   const liqPositive = liq >= 0;
   const monthLabel = MESES_SHORT[mes];
 
@@ -108,13 +115,49 @@ export function SummaryCards({
 
       <div className={styles.grid}>
         <article className={styles.kpi}>
-          <span className={styles.kpiLabel}>Bruto</span>
+          <div className={styles.kpiHead}>
+            <span className={styles.kpiLabel}>Bruto</span>
+            <button
+              type="button"
+              className={styles.kpiInfoBtn}
+              onClick={() => setBrutoOpen(true)}
+              aria-label="Ver detalhamento de descontos, taxas e custos"
+              title="Ver detalhamento"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <line x1="8" y1="6" x2="21" y2="6" />
+                <line x1="8" y1="12" x2="21" y2="12" />
+                <line x1="8" y1="18" x2="21" y2="18" />
+                <line x1="3" y1="6" x2="3.01" y2="6" />
+                <line x1="3" y1="12" x2="3.01" y2="12" />
+                <line x1="3" y1="18" x2="3.01" y2="18" />
+              </svg>
+            </button>
+          </div>
           <div className={styles.kpiValueWrap}>
             <span ref={brutoRef} className={styles.kpiValue} title={brutoStr}>
               {brutoStr}
             </span>
           </div>
-          <span className={styles.kpiSub}>Descontos {fmtBRL(descontos)}</span>
+          {/* Desconto / Custos / Taxas: empilhado no desktop, inline com
+              • no mobile. */}
+          <div
+            className={`${styles.kpiBreakdown} ${isMobile ? styles.kpiBreakdownInline : ""}`}
+          >
+            <span className={styles.kpiSub}>Descontos {fmtBRL(descontos)}</span>
+            <span className={styles.kpiSub}>Custos {fmtBRL(custos)}</span>
+            <span className={styles.kpiSub}>Taxas {fmtBRL(taxas)}</span>
+          </div>
         </article>
 
         <article className={styles.kpi}>
@@ -128,7 +171,32 @@ export function SummaryCards({
         </article>
 
         <article className={styles.kpi}>
-          <span className={styles.kpiLabel}>Margem</span>
+          <div className={styles.kpiHead}>
+            <span className={styles.kpiLabel}>Margem</span>
+            <button
+              type="button"
+              className={styles.kpiInfoBtn}
+              onClick={() => setMargemOpen(true)}
+              aria-label="Ver como a margem é calculada"
+              title="Como a margem é calculada"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="16" x2="12" y2="12" />
+                <line x1="12" y1="8" x2="12.01" y2="8" />
+              </svg>
+            </button>
+          </div>
           <div className={styles.kpiValueWrap}>
             <span
               ref={margemRef}
@@ -137,13 +205,23 @@ export function SummaryCards({
               {margemStr}
             </span>
           </div>
-          {/* Taxas e custos separados — somar os dois esconde de onde
-              vem a mordida (cartão vs material). Dois sublabels empilhados
-              cabem confortavelmente abaixo do número grande. */}
-          <span className={styles.kpiSub}>Taxas {fmtBRL(taxas)}</span>
-          <span className={styles.kpiSub}>Custos {fmtBRL(custos)}</span>
+          <span className={styles.kpiSub}>do bruto vira líquido</span>
         </article>
       </div>
+
+      <BrutoDetailModal
+        open={brutoOpen}
+        onClose={() => setBrutoOpen(false)}
+        summary={summary}
+        monthRows={monthRows}
+        monthLabel={monthFull}
+      />
+      <MargemInfoModal
+        open={margemOpen}
+        onClose={() => setMargemOpen(false)}
+        summary={summary}
+        monthLabel={monthFull}
+      />
     </section>
   );
 }

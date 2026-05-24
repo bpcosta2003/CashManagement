@@ -513,6 +513,7 @@ export default function App() {
             mes={mes}
             liqDelta={liqDelta}
             prevMonthLabel={prevMonthLabel}
+            monthRows={monthRows}
           />
           <MonthGoalCard
             realized={summary.bruto}
