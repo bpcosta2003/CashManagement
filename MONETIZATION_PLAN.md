@@ -97,7 +97,7 @@ Tudo do Free, mais:
 - [ ] Email cron (`/api/cron/email-reminders`) só dispara pra Pro+
 - [ ] Migrar usuários beta atuais: snapshot dos que estão no banco antes do dia X, marcar `legacy: true`, dar 1 mês de Pro grátis
 - [ ] Página `/conta` mostrando plano atual, próxima cobrança, opção de cancelar
-- [ ] Pricing page: trocar CTA "Quero ser avisado" por "Assinar Pro" (Stripe Checkout)
+- [ ] Pricing page: trocar CTA "Garantir meu desconto" (waitlist Fase 0) por "Assinar Pro" (Stripe Checkout)
 - [ ] Banner global após login se ainda no Free explicando os limites novos
 
 ---

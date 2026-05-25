@@ -23,7 +23,7 @@ import styles from "./PricingPage.module.css";
 type Tier = "pro" | "ultra";
 
 interface PlanFeature {
-  label: React.ReactNode;
+  label: string;
   /** Feature ainda não construída — sai numa fase futura
    *  ("Em breve" — accent-soft pill). */
   soon?: boolean;
@@ -32,8 +32,6 @@ interface PlanFeature {
    *  — accent sólido pill, sinaliza urgência sem retirar acesso
    *  agora). */
   limited?: boolean;
-  /** Destaque visual — feature âncora do plano (label em negrito). */
-  strong?: boolean;
 }
 
 interface Plan {
@@ -57,20 +55,9 @@ const PLANS: Plan[] = [
     priceHint: "pra sempre",
     features: [
       { label: "Lançamentos ilimitados, mesmo offline" },
-      {
-        label: (
-          <span>
-            Sincroniza celular{" "}
-            <span className={styles.syncArrow}>↔</span> computador
-          </span>
-        ),
-      },
-      { label: "Taxa do cartão, do negócio e auxiliar por atendimento" },
-      {
-        label:
-          "Detalhamento mensal e anual completo, com resumo dos valores: bruto, líquido, margem, ticket médio e LTV",
-        strong: true,
-      },
+      { label: "Sincroniza os dados do celular para o computador e vice-versa" },
+      { label: "Detalhamento de taxas" },
+      { label: "Detalhamento mensal e anual completo" },
       { label: "Projeção de recebimentos futuros mês a mês" },
       { label: "Alertas automáticos do que muda no caixa" },
       { label: "Clientes e catálogo de serviços" },
@@ -87,7 +74,7 @@ const PLANS: Plan[] = [
     name: "Pro",
     forWhom: "Pra quem toca mais de um negócio, lança todo dia e quer IA junto da rotina.",
     price: "R$ 29",
-    priceHint: "por mês",
+    priceHint: "por mês · menos de R$ 1 por dia",
     highlight: true,
     badge: "Mais escolhido",
     features: [
@@ -99,7 +86,7 @@ const PLANS: Plan[] = [
       { label: "Lembrete diário por email e WhatsApp", soon: true },
       { label: "Export automático pro contador, todo dia 5", soon: true },
     ],
-    ctaLabel: "Quero ser avisado",
+    ctaLabel: "Garantir meu desconto",
   },
   {
     id: "ultra",
@@ -118,7 +105,7 @@ const PLANS: Plan[] = [
       { label: "Catálogo por IA, comparativo de preço e alerta de estoque", soon: true },
       { label: "DAS/DARF completo: cálculo, PDF e agendamento via PIX", soon: true },
     ],
-    ctaLabel: "Quero ser avisado",
+    ctaLabel: "Garantir meu desconto",
   },
 ];
 
@@ -148,7 +135,7 @@ const APP_FEATURES: FeatureCard[] = [
   },
   {
     icon: "💳",
-    title: "Taxa do cartão, do negócio e auxiliar",
+    title: "Detalhamento de taxas",
     body:
       "Em cada atendimento desconta a taxa da maquininha, o repasse da casa (cadeira/comissão) e o auxiliar. Você vê na hora quanto sobrou de fato pra você.",
   },
@@ -264,6 +251,29 @@ const PAINS: Pain[] = [
   },
 ];
 
+interface Step {
+  title: string;
+  body: string;
+}
+
+const STEPS: Step[] = [
+  {
+    title: "Lança a venda em 10 segundos",
+    body:
+      "Cliente, valor e forma de pagamento. No celular, durante o atendimento — funciona até offline.",
+  },
+  {
+    title: "O app calcula o líquido na hora",
+    body:
+      "Desconta taxa do cartão, repasse da casa e custo. Você vê quanto sobrou de fato pra você, na hora.",
+  },
+  {
+    title: "Fecha o mês num scroll",
+    body:
+      "Faturamento, líquido, ticket médio, meta e projeção — tudo calculado. Sem planilha, sem fim de mês perdido.",
+  },
+];
+
 interface Differentiator {
   title: string;
   body: string;
@@ -325,6 +335,28 @@ function getSourceFromUrl(): string {
   }
 }
 
+// Tracking vendor-agnóstico de funil. Empurra pro dataLayer (GTM) e
+// chama PostHog/Plausible se estiverem presentes — no-op se nenhum
+// estiver carregado. Permite plugar a ferramenta de analytics depois
+// sem mexer nos pontos de evento.
+type TrackWindow = Window & {
+  dataLayer?: Record<string, unknown>[];
+  posthog?: { capture?: (e: string, p?: Record<string, unknown>) => void };
+  plausible?: (e: string, opts?: { props?: Record<string, unknown> }) => void;
+};
+
+function track(event: string, props: Record<string, unknown> = {}): void {
+  if (typeof window === "undefined") return;
+  const w = window as TrackWindow;
+  try {
+    (w.dataLayer = w.dataLayer ?? []).push({ event, ...props });
+    w.posthog?.capture?.(event, props);
+    w.plausible?.(event, { props });
+  } catch {
+    /* analytics nunca pode quebrar a página */
+  }
+}
+
 export function PricingPage() {
   const [openTier, setOpenTier] = useState<Tier | null>(null);
   const [email, setEmail] = useState("");
@@ -335,6 +367,10 @@ export function PricingPage() {
     | { kind: "error"; message: string }
   >({ kind: "idle" });
   const [openFaq, setOpenFaq] = useState<number | null>(0);
+
+  useEffect(() => {
+    track("pricing_view", { src: getSourceFromUrl() });
+  }, []);
 
   // ─── Carousel de features ───
   // Snap horizontal nativo + botões prev/next + contador.
@@ -398,6 +434,7 @@ export function PricingPage() {
   }, []);
 
   const handleOpen = (tier: Tier) => {
+    track("waitlist_open", { tier });
     setOpenTier(tier);
     setStatus({ kind: "idle" });
     setEmail("");
@@ -432,6 +469,7 @@ export function PricingPage() {
         });
         return;
       }
+      track("waitlist_submit", { tier: openTier });
       setStatus({ kind: "success", tier: openTier });
       setEmail("");
     } catch (err) {
@@ -452,7 +490,11 @@ export function PricingPage() {
           <BrandMark size={32} />
           <span className={styles.brandName}>Controle de Caixa</span>
         </a>
-        <a href="/" className={styles.headerCta}>
+        <a
+          href="/"
+          className={styles.headerCta}
+          onClick={() => track("cta_click", { location: "header", target: "app" })}
+        >
           Abrir o app
         </a>
       </header>
@@ -468,16 +510,23 @@ export function PricingPage() {
             <span className={styles.titleAccent}>antes de fechar a porta</span>.
           </h1>
           <p className={styles.subtitle}>
-            Lançamento em 10 segundos no celular. Caixa do mês inteiro num
-            scroll. Taxa, custo e repasse descontados na hora — você vê quanto
-            é seu. Análise por IA que fala português. Sem planilha, sem ERP, sem
-            contador no meio.
+            Lança em 10 segundos no celular e vê o líquido real na hora — taxa,
+            custo e repasse já descontados. Fecha o mês inteiro num scroll, sem
+            planilha, sem ERP e sem contador no meio.
           </p>
           <div className={styles.heroCtas}>
-            <a href="/" className={styles.heroPrimary}>
+            <a
+              href="/"
+              className={styles.heroPrimary}
+              onClick={() => track("cta_click", { location: "hero", target: "free" })}
+            >
               Começar grátis em 30s
             </a>
-            <a href="#planos" className={styles.heroSecondary}>
+            <a
+              href="#planos"
+              className={styles.heroSecondary}
+              onClick={() => track("cta_click", { location: "hero", target: "planos" })}
+            >
               Ver planos
             </a>
           </div>
@@ -510,6 +559,27 @@ export function PricingPage() {
               </article>
             ))}
           </div>
+        </section>
+
+        {/* ─── Como funciona (3 passos) ─── */}
+        <section className={styles.section}>
+          <header className={styles.sectionHeader}>
+            <span className={styles.sectionEyebrow}>Simples assim</span>
+            <h2 className={styles.sectionTitle}>
+              Do atendimento ao mês fechado, em 3 passos.
+            </h2>
+          </header>
+          <ol className={styles.steps}>
+            {STEPS.map((s, i) => (
+              <li key={s.title} className={styles.stepCard}>
+                <span className={styles.stepNum} aria-hidden="true">
+                  {i + 1}
+                </span>
+                <h3 className={styles.stepTitle}>{s.title}</h3>
+                <p className={styles.stepBody}>{s.body}</p>
+              </li>
+            ))}
+          </ol>
         </section>
 
         {/* ─── Diferenciais ─── */}
@@ -639,9 +709,7 @@ export function PricingPage() {
                       <span className={styles.featureDot} aria-hidden="true">
                         ✓
                       </span>
-                      <span
-                        className={`${styles.featureLabel} ${f.strong ? styles.featureStrong : ""}`}
-                      >
+                      <span className={styles.featureLabel}>
                         {f.label}
                         {f.soon && (
                           <span className={styles.soonTag}>Em breve</span>
@@ -655,8 +723,19 @@ export function PricingPage() {
                     </li>
                   ))}
                 </ul>
+                {plan.id !== "free" && (
+                  <p className={styles.earlyBird}>
+                    <span aria-hidden="true">🔒</span> Entre na lista agora e
+                    trave <strong>20% de desconto vitalício</strong> no
+                    lançamento.
+                  </p>
+                )}
                 {plan.id === "free" ? (
-                  <a className={styles.ctaFree} href="/">
+                  <a
+                    className={styles.ctaFree}
+                    href="/"
+                    onClick={() => track("cta_click", { location: "plan", target: "free" })}
+                  >
                     {plan.ctaLabel}
                   </a>
                 ) : (
@@ -684,7 +763,8 @@ export function PricingPage() {
                 Por tempo limitado no Free
               </span>{" "}
               estão liberados pra todo mundo hoje e migram pro Pro quando os
-              planos lançarem. Quem entrar no beta trava desconto vitalício.
+              planos lançarem. Quem entrar na lista agora trava 20% de desconto
+              vitalício.
             </p>
           </div>
         </section>
@@ -731,7 +811,11 @@ export function PricingPage() {
             fechado — e sabe quanto realmente sobrou.
           </p>
           <div className={styles.heroCtas}>
-            <a href="/" className={styles.heroPrimary}>
+            <a
+              href="/"
+              className={styles.heroPrimary}
+              onClick={() => track("cta_click", { location: "final", target: "free" })}
+            >
               Usar grátis agora
             </a>
           </div>
@@ -770,13 +854,15 @@ export function PricingPage() {
               {status.kind === "success" ? (
                 <p className={styles.modalSuccess}>
                   Vamos te avisar no lançamento. Quem entrou pela lista de
-                  espera ganha desconto e prioridade no acesso beta.
+                  espera trava 20% de desconto vitalício e prioridade no acesso
+                  beta.
                 </p>
               ) : (
                 <form className={styles.form} onSubmit={handleSubmit}>
                   <p className={styles.modalIntro}>
                     Sem spam. Só uma mensagem quando o {openTier === "pro" ? "Pro" : "Ultra"}{" "}
-                    estiver disponível — com desconto pra quem entrou cedo.
+                    estiver disponível — com 20% de desconto vitalício pra quem
+                    entrou cedo.
                   </p>
                   <label className={styles.label} htmlFor="pi-email">
                     Seu e-mail
