@@ -205,6 +205,12 @@
   grid-template-columns: 16px 1fr auto;
 }
 
+/* A última dedução antes do resultado não leva border-bottom — senão
+   soma com o border-top do resultado e vira uma linha dupla. */
+.chainRow:nth-last-child(2) {
+  border-bottom: none;
+}
+
 .chainResult {
   border-bottom: none;
   border-top: 1.5px solid var(--border);
@@ -256,51 +262,38 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 6px;
   background: var(--accent-soft);
   border-radius: var(--radius-md, 12px);
-  padding: 16px;
+  padding: 18px 16px;
   margin-top: 16px;
   text-align: center;
-}
-
-.formulaTop {
-  font-size: var(--t-body);
-  color: var(--text);
-  font-weight: 600;
-}
-
-.formulaCalc {
-  font-size: var(--t-caption);
-  color: var(--text-muted);
-  font-variant-numeric: tabular-nums;
 }
 
 .formulaResult {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: var(--t-h1, 32px);
+  font-size: var(--t-h1, 34px);
   color: var(--accent);
   letter-spacing: -0.02em;
-  margin-top: 2px;
+  line-height: 1;
 }
 
-/* ─── Glossário ──────────────────────────────────────────────────── */
-
-.glossary {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+.formulaPlain {
+  font-size: var(--t-body);
+  color: var(--text);
+  line-height: 1.5;
+  max-width: 30ch;
 }
 
-.glossaryItem {
+.formulaPlain strong {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.formulaCalc {
   font-size: var(--t-caption);
   color: var(--text-muted);
-  line-height: 1.5;
-  margin: 0;
-}
-
-.glossaryItem strong {
-  color: var(--text);
-  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }

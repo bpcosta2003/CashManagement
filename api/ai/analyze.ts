@@ -39,6 +39,25 @@ export default async function handler(
     return res.status(405).json({ error: "method_not_allowed" });
   }
 
+  // Blindagem de topo: qualquer exceção não prevista (ex.: falha ao
+  // construir o client do Supabase, query que lança em vez de devolver
+  // {error}, timeout do SDK) cairia num 500 SEM corpo JSON — e o cliente
+  // mostraria o fallback genérico "falhou ao responder" sem saber a
+  // causa. Aqui garantimos que SEMPRE sai um JSON com error+message.
+  try {
+    return await runAnalyze(req, res);
+  } catch (err) {
+    console.error("[ai/analyze] unhandled error", err);
+    if (res.headersSent) return;
+    return res.status(500).json({
+      error: "internal_error",
+      message:
+        "Erro interno ao gerar a análise. Tente novamente; se persistir, avise o suporte.",
+    });
+  }
+}
+
+async function runAnalyze(req: VercelRequest, res: VercelResponse) {
   // ─── 1. Auth ──────────────────────────────────────────────────
   // Validate env vars first so a misconfigured deployment returns 500, not 401.
   let supabaseOk = true;

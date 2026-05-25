@@ -406,13 +406,14 @@ export function SettingsModal({
             </div>
           </section>
 
-          {/* Rodapé minimalista — só a versão. Build SHA fica como
-              tooltip pra debug rápido sem poluir a UI. */}
+          {/* Rodapé — versão + build SHA (muda a cada deploy). Data
+              completa fica no tooltip pra debug. */}
           <div
             className={styles.versionFooter}
             title={`build ${__APP_BUILD__} · ${new Date(__APP_BUILT_AT__).toLocaleString("pt-BR")}`}
           >
             v{__APP_VERSION__}
+            {__APP_BUILD__ !== "dev" ? ` · ${__APP_BUILD__}` : ""}
           </div>
         </div>
       </div>

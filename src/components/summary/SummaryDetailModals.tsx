@@ -104,7 +104,9 @@ function CategoryBreakdown({ d }: { d: BreakdownData }) {
             <span className={`${styles.dot} ${styles.segTaxas}`} />
             <span className={styles.catLabel}>Taxas</span>
             <span className={styles.catPct}>{fmtPct(pct(d.taxas))}</span>
-            <span className={styles.catValue}>− {fmtBRL(d.taxas)}</span>
+            <span className={`${styles.catValue} ${styles.neg}`}>
+              − {fmtBRL(d.taxas)}
+            </span>
           </div>
         )}
         {taxaSub.map((s) => (
@@ -112,7 +114,9 @@ function CategoryBreakdown({ d }: { d: BreakdownData }) {
             <span className={styles.dotSpacer} />
             <span className={styles.catLabel}>↳ {s.label}</span>
             <span className={styles.catPct}>{fmtPct(pct(s.value))}</span>
-            <span className={styles.catValueSub}>{fmtBRL(s.value)}</span>
+            <span className={`${styles.catValueSub} ${styles.neg}`}>
+              {fmtBRL(s.value)}
+            </span>
           </div>
         ))}
         {d.custos > 0 && (
@@ -120,7 +124,9 @@ function CategoryBreakdown({ d }: { d: BreakdownData }) {
             <span className={`${styles.dot} ${styles.segCustos}`} />
             <span className={styles.catLabel}>Custos</span>
             <span className={styles.catPct}>{fmtPct(pct(d.custos))}</span>
-            <span className={styles.catValue}>− {fmtBRL(d.custos)}</span>
+            <span className={`${styles.catValue} ${styles.neg}`}>
+              − {fmtBRL(d.custos)}
+            </span>
           </div>
         )}
         {d.descontos > 0 && (
@@ -128,7 +134,9 @@ function CategoryBreakdown({ d }: { d: BreakdownData }) {
             <span className={`${styles.dot} ${styles.segDesc}`} />
             <span className={styles.catLabel}>Descontos</span>
             <span className={styles.catPct}>{fmtPct(pct(d.descontos))}</span>
-            <span className={styles.catValue}>− {fmtBRL(d.descontos)}</span>
+            <span className={`${styles.catValue} ${styles.neg}`}>
+              − {fmtBRL(d.descontos)}
+            </span>
           </div>
         )}
       </div>
@@ -283,39 +291,14 @@ export function MargemInfoModal({ open, onClose, data, label }: MargemProps) {
       </div>
 
       <div className={styles.formula}>
-        <span className={styles.formulaTop}>Margem = Líquido ÷ Bruto</span>
-        <span className={styles.formulaCalc}>
-          {fmtBRL(data.liq)} ÷ {fmtBRL(data.bruto)}
-        </span>
         <span className={styles.formulaResult}>{fmtPct(data.margem)}</span>
-      </div>
-
-      <span className={styles.eyebrow}>O que cada termo significa</span>
-      <div className={styles.glossary}>
-        <p className={styles.glossaryItem}>
-          <strong>Bruto</strong> — tudo que entrou em vendas, antes de qualquer
-          dedução.
-        </p>
-        <p className={styles.glossaryItem}>
-          <strong>Descontos</strong> — abatimentos dados aos clientes no preço
-          cheio.
-        </p>
-        <p className={styles.glossaryItem}>
-          <strong>Custos</strong> — material e insumo consumido pra entregar o
-          serviço/produto.
-        </p>
-        <p className={styles.glossaryItem}>
-          <strong>Taxas</strong> — o que foi retido por terceiros: maquininha
-          (cartão), taxa do negócio (repasse fixo) e auxiliar.
-        </p>
-        <p className={styles.glossaryItem}>
-          <strong>Líquido</strong> — o que realmente sobrou pra você depois de
-          tudo.
-        </p>
-        <p className={styles.glossaryItem}>
-          <strong>Margem</strong> — quanto de cada R$ 1,00 vendido virou lucro
-          ({fmtPct(data.margem)} sobra de cada venda).
-        </p>
+        <span className={styles.formulaPlain}>
+          De cada <strong>{fmtBRL(data.bruto)}</strong> que entrou,
+          sobraram <strong>{fmtBRL(data.liq)}</strong> de lucro.
+        </span>
+        <span className={styles.formulaCalc}>
+          margem = líquido ÷ bruto
+        </span>
       </div>
     </Sheet>
   );
