@@ -251,6 +251,29 @@ const PAINS: Pain[] = [
   },
 ];
 
+interface Step {
+  title: string;
+  body: string;
+}
+
+const STEPS: Step[] = [
+  {
+    title: "Lança a venda em 10 segundos",
+    body:
+      "Cliente, valor e forma de pagamento. No celular, durante o atendimento — funciona até offline.",
+  },
+  {
+    title: "O app calcula o líquido na hora",
+    body:
+      "Desconta taxa do cartão, repasse da casa e custo. Você vê quanto sobrou de fato pra você, na hora.",
+  },
+  {
+    title: "Fecha o mês num scroll",
+    body:
+      "Faturamento, líquido, ticket médio, meta e projeção — tudo calculado. Sem planilha, sem fim de mês perdido.",
+  },
+];
+
 interface Differentiator {
   title: string;
   body: string;
@@ -312,6 +335,28 @@ function getSourceFromUrl(): string {
   }
 }
 
+// Tracking vendor-agnóstico de funil. Empurra pro dataLayer (GTM) e
+// chama PostHog/Plausible se estiverem presentes — no-op se nenhum
+// estiver carregado. Permite plugar a ferramenta de analytics depois
+// sem mexer nos pontos de evento.
+type TrackWindow = Window & {
+  dataLayer?: Record<string, unknown>[];
+  posthog?: { capture?: (e: string, p?: Record<string, unknown>) => void };
+  plausible?: (e: string, opts?: { props?: Record<string, unknown> }) => void;
+};
+
+function track(event: string, props: Record<string, unknown> = {}): void {
+  if (typeof window === "undefined") return;
+  const w = window as TrackWindow;
+  try {
+    (w.dataLayer = w.dataLayer ?? []).push({ event, ...props });
+    w.posthog?.capture?.(event, props);
+    w.plausible?.(event, { props });
+  } catch {
+    /* analytics nunca pode quebrar a página */
+  }
+}
+
 export function PricingPage() {
   const [openTier, setOpenTier] = useState<Tier | null>(null);
   const [email, setEmail] = useState("");
@@ -322,6 +367,10 @@ export function PricingPage() {
     | { kind: "error"; message: string }
   >({ kind: "idle" });
   const [openFaq, setOpenFaq] = useState<number | null>(0);
+
+  useEffect(() => {
+    track("pricing_view", { src: getSourceFromUrl() });
+  }, []);
 
   // ─── Carousel de features ───
   // Snap horizontal nativo + botões prev/next + contador.
@@ -385,6 +434,7 @@ export function PricingPage() {
   }, []);
 
   const handleOpen = (tier: Tier) => {
+    track("waitlist_open", { tier });
     setOpenTier(tier);
     setStatus({ kind: "idle" });
     setEmail("");
@@ -419,6 +469,7 @@ export function PricingPage() {
         });
         return;
       }
+      track("waitlist_submit", { tier: openTier });
       setStatus({ kind: "success", tier: openTier });
       setEmail("");
     } catch (err) {
@@ -439,7 +490,11 @@ export function PricingPage() {
           <BrandMark size={32} />
           <span className={styles.brandName}>Controle de Caixa</span>
         </a>
-        <a href="/" className={styles.headerCta}>
+        <a
+          href="/"
+          className={styles.headerCta}
+          onClick={() => track("cta_click", { location: "header", target: "app" })}
+        >
           Abrir o app
         </a>
       </header>
@@ -460,10 +515,18 @@ export function PricingPage() {
             planilha, sem ERP e sem contador no meio.
           </p>
           <div className={styles.heroCtas}>
-            <a href="/" className={styles.heroPrimary}>
+            <a
+              href="/"
+              className={styles.heroPrimary}
+              onClick={() => track("cta_click", { location: "hero", target: "free" })}
+            >
               Começar grátis em 30s
             </a>
-            <a href="#planos" className={styles.heroSecondary}>
+            <a
+              href="#planos"
+              className={styles.heroSecondary}
+              onClick={() => track("cta_click", { location: "hero", target: "planos" })}
+            >
               Ver planos
             </a>
           </div>
@@ -496,6 +559,27 @@ export function PricingPage() {
               </article>
             ))}
           </div>
+        </section>
+
+        {/* ─── Como funciona (3 passos) ─── */}
+        <section className={styles.section}>
+          <header className={styles.sectionHeader}>
+            <span className={styles.sectionEyebrow}>Simples assim</span>
+            <h2 className={styles.sectionTitle}>
+              Do atendimento ao mês fechado, em 3 passos.
+            </h2>
+          </header>
+          <ol className={styles.steps}>
+            {STEPS.map((s, i) => (
+              <li key={s.title} className={styles.stepCard}>
+                <span className={styles.stepNum} aria-hidden="true">
+                  {i + 1}
+                </span>
+                <h3 className={styles.stepTitle}>{s.title}</h3>
+                <p className={styles.stepBody}>{s.body}</p>
+              </li>
+            ))}
+          </ol>
         </section>
 
         {/* ─── Diferenciais ─── */}
@@ -642,11 +726,16 @@ export function PricingPage() {
                 {plan.id !== "free" && (
                   <p className={styles.earlyBird}>
                     <span aria-hidden="true">🔒</span> Entre na lista agora e
-                    trave <strong>desconto vitalício</strong> no lançamento.
+                    trave <strong>20% de desconto vitalício</strong> no
+                    lançamento.
                   </p>
                 )}
                 {plan.id === "free" ? (
-                  <a className={styles.ctaFree} href="/">
+                  <a
+                    className={styles.ctaFree}
+                    href="/"
+                    onClick={() => track("cta_click", { location: "plan", target: "free" })}
+                  >
                     {plan.ctaLabel}
                   </a>
                 ) : (
@@ -674,7 +763,8 @@ export function PricingPage() {
                 Por tempo limitado no Free
               </span>{" "}
               estão liberados pra todo mundo hoje e migram pro Pro quando os
-              planos lançarem. Quem entrar no beta trava desconto vitalício.
+              planos lançarem. Quem entrar na lista agora trava 20% de desconto
+              vitalício.
             </p>
           </div>
         </section>
@@ -721,7 +811,11 @@ export function PricingPage() {
             fechado — e sabe quanto realmente sobrou.
           </p>
           <div className={styles.heroCtas}>
-            <a href="/" className={styles.heroPrimary}>
+            <a
+              href="/"
+              className={styles.heroPrimary}
+              onClick={() => track("cta_click", { location: "final", target: "free" })}
+            >
               Usar grátis agora
             </a>
           </div>
@@ -760,13 +854,15 @@ export function PricingPage() {
               {status.kind === "success" ? (
                 <p className={styles.modalSuccess}>
                   Vamos te avisar no lançamento. Quem entrou pela lista de
-                  espera ganha desconto e prioridade no acesso beta.
+                  espera trava 20% de desconto vitalício e prioridade no acesso
+                  beta.
                 </p>
               ) : (
                 <form className={styles.form} onSubmit={handleSubmit}>
                   <p className={styles.modalIntro}>
                     Sem spam. Só uma mensagem quando o {openTier === "pro" ? "Pro" : "Ultra"}{" "}
-                    estiver disponível — com desconto pra quem entrou cedo.
+                    estiver disponível — com 20% de desconto vitalício pra quem
+                    entrou cedo.
                   </p>
                   <label className={styles.label} htmlFor="pi-email">
                     Seu e-mail
