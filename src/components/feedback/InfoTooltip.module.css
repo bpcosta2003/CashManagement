@@ -89,6 +89,22 @@
   transform: none;
 }
 
+/* Variante responsiva: centralizada no desktop, ancorada à direita só
+   no mobile (≤720px), onde o balão centralizado estouraria a borda. */
+@media (max-width: 720px) {
+  .bubbleEndMobile {
+    left: auto;
+    right: 0;
+    transform: none;
+    animation: tipInPlain 0.12s var(--ease);
+  }
+  .bubbleEndMobile::after {
+    left: auto;
+    right: 4px;
+    transform: none;
+  }
+}
+
 /* Animação sem translateX (-50%) — pras variantes start/end que não
    são centralizadas. */
 @keyframes tipInPlain {

@@ -1,7 +1,6 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { FORMAS_PAGAMENTO } from "../../constants";
 import { fmtBRL, fmtPct } from "../../lib/calc";
-import type { CalculatedRow } from "../../types";
 import type { AnnualSummary } from "../../hooks/useAnnual";
 import type { MonthActivity } from "../../hooks/useActivity";
 import { ActivityTimeline } from "./ActivityTimeline";
@@ -10,7 +9,7 @@ import { BrandMark } from "../layout/Brand";
 import { FitText } from "../feedback/FitText";
 import {
   AnnualBrutoDetailModal,
-  EntriesListModal,
+  MargemInfoModal,
 } from "../summary/SummaryDetailModals";
 import styles from "./AnnualDashboard.module.css";
 
@@ -53,38 +52,7 @@ export function AnnualDashboard({
   const liqStr = fmtBRL(total.liq);
 
   const [brutoOpen, setBrutoOpen] = useState(false);
-  // Modal de lançamentos filtrados por cliente/serviço clicado nos tops.
-  const [entries, setEntries] = useState<{
-    title: string;
-    subtitle?: string;
-    rows: CalculatedRow[];
-  } | null>(null);
-
-  // Todos os lançamentos do ano (achatado dos buckets mensais) — base
-  // pros filtros dos modais de cliente/serviço.
-  const allYearRows = useMemo(
-    () => monthly.flatMap((b) => b.rows),
-    [monthly],
-  );
-
-  const openClient = (name: string) => {
-    const key = name.trim().toLowerCase();
-    const rows = allYearRows.filter(
-      (r) => r.cliente.trim().toLowerCase() === key,
-    );
-    setEntries({ title: name, subtitle: `Cliente · ${year}`, rows });
-  };
-
-  const openService = (name: string) => {
-    const key = name.trim().toLowerCase();
-    const rows = allYearRows.filter((r) => {
-      if (r.servico.trim().toLowerCase() === key) return true;
-      return (r.items ?? []).some(
-        (it) => it.name.trim().toLowerCase() === key,
-      );
-    });
-    setEntries({ title: name, subtitle: `Serviço · ${year}`, rows });
-  };
+  const [margemOpen, setMargemOpen] = useState(false);
 
   // Max líquido pra normalizar as barras do grid
   const maxLiq = Math.max(...monthly.map((m) => Math.abs(m.liq)), 1);
@@ -254,7 +222,32 @@ export function AnnualDashboard({
           </span>
         </article>
         <article className={styles.kpi}>
-          <span className={styles.kpiLabel}>Margem média</span>
+          <div className={styles.kpiHead}>
+            <span className={styles.kpiLabel}>Margem média</span>
+            <button
+              type="button"
+              className={styles.kpiInfoBtn}
+              onClick={() => setMargemOpen(true)}
+              aria-label="Ver como a margem do ano é calculada"
+              title="Como a margem é calculada"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="16" x2="12" y2="12" />
+                <line x1="12" y1="8" x2="12.01" y2="8" />
+              </svg>
+            </button>
+          </div>
           <div className={styles.kpiValueWrap}>
             <FitText
               className={`${styles.kpiValue} ${styles.kpiValueAccent}`}
@@ -410,29 +403,22 @@ export function AnnualDashboard({
                   const pct =
                     total.bruto > 0 ? (c.ltv / total.bruto) * 100 : 0;
                   return (
-                    <li key={c.name}>
-                      <button
-                        type="button"
-                        className={`${styles.servicoItem} ${styles.servicoBtn}`}
-                        onClick={() => openClient(c.name)}
-                        aria-label={`Ver lançamentos de ${c.name}`}
-                      >
-                        <span className={styles.servicoRank}>{idx + 1}</span>
-                        <div className={styles.servicoMain}>
-                          <span className={styles.servicoName}>{c.name}</span>
-                          <span className={styles.servicoMeta}>
-                            {c.count} lançamento{c.count === 1 ? "" : "s"} ·
-                            ticket {fmtBRL(c.ticketMedio)}
-                            {pct > 0 ? ` · ${fmtPct(pct, 0)} do bruto` : ""}
-                          </span>
-                        </div>
-                        <div className={styles.clienteValue}>
-                          <span className={styles.servicoValue}>
-                            {fmtBRL(c.ltv)}
-                          </span>
-                          <span className={styles.clienteValueLabel}>LTV</span>
-                        </div>
-                      </button>
+                    <li key={c.name} className={styles.servicoItem}>
+                      <span className={styles.servicoRank}>{idx + 1}</span>
+                      <div className={styles.servicoMain}>
+                        <span className={styles.servicoName}>{c.name}</span>
+                        <span className={styles.servicoMeta}>
+                          {c.count} lançamento{c.count === 1 ? "" : "s"} · ticket{" "}
+                          {fmtBRL(c.ticketMedio)}
+                          {pct > 0 ? ` · ${fmtPct(pct, 0)} do bruto` : ""}
+                        </span>
+                      </div>
+                      <div className={styles.clienteValue}>
+                        <span className={styles.servicoValue}>
+                          {fmtBRL(c.ltv)}
+                        </span>
+                        <span className={styles.clienteValueLabel}>LTV</span>
+                      </div>
                     </li>
                   );
                 })}
@@ -458,25 +444,18 @@ export function AnnualDashboard({
               {topServicos.map((s, idx) => {
                 const pct = total.bruto > 0 ? (s.bruto / total.bruto) * 100 : 0;
                 return (
-                  <li key={s.name}>
-                    <button
-                      type="button"
-                      className={`${styles.servicoItem} ${styles.servicoBtn}`}
-                      onClick={() => openService(s.name)}
-                      aria-label={`Ver lançamentos de ${s.name}`}
-                    >
-                      <span className={styles.servicoRank}>{idx + 1}</span>
-                      <div className={styles.servicoMain}>
-                        <span className={styles.servicoName}>{s.name}</span>
-                        <span className={styles.servicoMeta}>
-                          {s.count} lançamento{s.count === 1 ? "" : "s"}
-                          {pct > 0 ? ` · ${fmtPct(pct, 0)} do bruto` : ""}
-                        </span>
-                      </div>
-                      <span className={styles.servicoValue}>
-                        {fmtBRL(s.bruto)}
+                  <li key={s.name} className={styles.servicoItem}>
+                    <span className={styles.servicoRank}>{idx + 1}</span>
+                    <div className={styles.servicoMain}>
+                      <span className={styles.servicoName}>{s.name}</span>
+                      <span className={styles.servicoMeta}>
+                        {s.count} lançamento{s.count === 1 ? "" : "s"}
+                        {pct > 0 ? ` · ${fmtPct(pct, 0)} do bruto` : ""}
                       </span>
-                    </button>
+                    </div>
+                    <span className={styles.servicoValue}>
+                      {fmtBRL(s.bruto)}
+                    </span>
                   </li>
                 );
               })}
@@ -544,17 +523,12 @@ export function AnnualDashboard({
         total={total}
         monthly={monthly}
         year={year}
-        onSelectMonth={(m) => {
-          setBrutoOpen(false);
-          onSelectMonth(m, year);
-        }}
       />
-      <EntriesListModal
-        open={entries !== null}
-        onClose={() => setEntries(null)}
-        title={entries?.title ?? ""}
-        subtitle={entries?.subtitle}
-        rows={entries?.rows ?? []}
+      <MargemInfoModal
+        open={margemOpen}
+        onClose={() => setMargemOpen(false)}
+        data={total}
+        label={String(year)}
       />
     </section>
   );

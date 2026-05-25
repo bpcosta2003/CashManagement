@@ -149,11 +149,9 @@ export function SummaryCards({
               {brutoStr}
             </span>
           </div>
-          {/* Desconto / Custos / Taxas: empilhado no desktop, inline com
-              • no mobile. */}
-          <div
-            className={`${styles.kpiBreakdown} ${isMobile ? styles.kpiBreakdownInline : ""}`}
-          >
+          {/* Desconto / Custos / Taxas sempre empilhados — no mobile a
+              linha única com • cortava os valores. */}
+          <div className={styles.kpiBreakdown}>
             <span className={styles.kpiSub}>Descontos {fmtBRL(descontos)}</span>
             <span className={styles.kpiSub}>Custos {fmtBRL(custos)}</span>
             <span className={styles.kpiSub}>Taxas {fmtBRL(taxas)}</span>
@@ -219,8 +217,8 @@ export function SummaryCards({
       <MargemInfoModal
         open={margemOpen}
         onClose={() => setMargemOpen(false)}
-        summary={summary}
-        monthLabel={monthFull}
+        data={summary}
+        label={monthFull}
       />
     </section>
   );

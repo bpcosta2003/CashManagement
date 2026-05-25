@@ -55,6 +55,28 @@ interface AnalyzePayload {
 const AI_ENABLED =
   String(import.meta.env.VITE_AI_ENABLED ?? "").toLowerCase() === "true";
 
+/** Mensagem amigável quando o servidor não mandou uma `message` própria
+ *  (ex.: resposta não-JSON, 500 sem corpo, função não deployada). Mapeia
+ *  pelo status HTTP pra o usuário entender o que houve. */
+function fallbackMessageForStatus(status: number): string {
+  switch (status) {
+    case 401:
+      return "Sua sessão expirou. Saia e entre de novo pra gerar a análise.";
+    case 402:
+      return "Sem créditos de IA disponíveis no momento. Tente mais tarde.";
+    case 429:
+      return "Você atingiu o limite de análises deste mês. Ele renova no dia 1º.";
+    case 503:
+      return "A IA está indisponível agora (limite de uso atingido). Tente mais tarde.";
+    case 500:
+    case 502:
+    case 504:
+      return "O servidor da IA falhou ao responder. Tente de novo em instantes.";
+    default:
+      return "Não foi possível gerar a análise. Tente novamente.";
+  }
+}
+
 /**
  * Hook que chama POST /api/ai/analyze com o JWT do Supabase no header.
  * Requer usuário logado (a auth do app já cuida disso).
@@ -124,7 +146,7 @@ export function useAiAnalysis() {
         const errMessage =
           typeof json?.message === "string"
             ? json.message
-            : "Não foi possível gerar a análise. Tente novamente.";
+            : fallbackMessageForStatus(response.status);
         setError({
           code: errCode,
           message: errMessage,

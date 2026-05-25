@@ -271,25 +271,12 @@
   outline: none;
 }
 
-/* Breakdown do Bruto: stacked no desktop, inline (•) no mobile */
+/* Breakdown do Bruto: Descontos / Custos / Taxas empilhados */
 .kpiBreakdown {
   display: flex;
   flex-direction: column;
   gap: 2px;
   margin-top: 4px;
-}
-
-.kpiBreakdownInline {
-  flex-direction: row;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0;
-}
-
-.kpiBreakdownInline .kpiSub:not(:last-child)::after {
-  content: " • ";
-  color: var(--text-dim);
-  white-space: pre;
 }
 
 .kpiValue {

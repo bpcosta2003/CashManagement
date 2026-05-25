@@ -1,187 +1,291 @@
 /* Conteúdo dos modais de detalhe do resumo (Bruto e Margem).
    O shell (backdrop/header/scroll) vem do componente Sheet. */
 
-.section {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.section + .section {
-  margin-top: 22px;
-}
-
-.sectionTitle {
+.eyebrow {
+  display: block;
   font-size: var(--t-caption);
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--text-muted);
-  margin-bottom: 2px;
+  margin: 18px 0 8px;
 }
 
-/* Linha genérica label · valor (totais por categoria, cadeia do cálculo) */
-.row {
+.eyebrow:first-child {
+  margin-top: 0;
+}
+
+/* ─── Hero Bruto → Líquido (modal de composição) ─────────────────── */
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px 18px;
+  background: var(--surface-2);
+  border-radius: var(--radius-md, 12px);
+}
+
+.heroRow {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: 12px;
+}
+
+.heroLabel {
+  font-size: var(--t-caption);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  flex-shrink: 0;
+}
+
+.heroBruto {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--t-h3);
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  text-align: right;
+}
+
+.heroLiq {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--t-h2);
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  text-align: right;
+}
+
+.heroMargemRow {
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid var(--border-soft);
+  padding-top: 6px;
+}
+
+.heroMargem {
+  font-size: var(--t-caption);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── Barra de composição ────────────────────────────────────────── */
+
+.bar {
+  display: flex;
+  width: 100%;
+  height: 12px;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  margin-top: 14px;
+  background: var(--surface-2);
+  gap: 2px;
+}
+
+.barSeg {
+  height: 100%;
+  min-width: 3px;
+}
+
+/* Cores dos segmentos / dots */
+.segLiq {
+  background: var(--accent);
+}
+.segTaxas {
+  background: #c97a7a;
+}
+.segCustos {
+  background: #d6a86a;
+}
+.segDesc {
+  background: #8a93a8;
+}
+
+/* ─── Lista por categoria ────────────────────────────────────────── */
+
+.cats {
+  display: flex;
+  flex-direction: column;
+  margin-top: 14px;
+}
+
+.catRow {
+  display: grid;
+  grid-template-columns: 14px 1fr auto auto;
+  align-items: baseline;
+  gap: 10px;
   padding: 9px 0;
   border-bottom: 1px solid var(--border-soft);
 }
 
-.row:last-child {
+.catRow:last-child {
   border-bottom: none;
 }
 
-.rowLabel {
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  align-self: center;
+}
+
+.dotSpacer {
+  width: 10px;
+}
+
+.catLabel {
   font-size: var(--t-body);
   color: var(--text);
+  min-width: 0;
 }
 
-.rowSub {
+.catPct {
   font-size: var(--t-caption);
   color: var(--text-muted);
-  margin-left: 6px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
 }
 
-.rowValue {
+.catValue {
   font-family: var(--font-display);
   font-weight: 600;
   font-size: var(--t-body);
   color: var(--text);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+  text-align: right;
 }
 
-.rowValueNeg {
-  color: var(--negative, #c0392b);
+.catValueSub {
+  font-size: var(--t-caption);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  text-align: right;
 }
 
-/* Linha de total/resultado (Bruto, Líquido) — mais forte */
-.rowStrong {
-  padding: 12px 0;
+.catSub {
+  padding: 5px 0;
   border-bottom: none;
-  border-top: 1.5px solid var(--border);
 }
 
-.rowStrong .rowLabel {
-  font-weight: 700;
-}
-
-.rowStrong .rowValue {
-  font-size: var(--t-body-lg);
-  font-weight: 700;
+.catSub .catLabel {
+  font-size: var(--t-caption);
+  color: var(--text-muted);
 }
 
 .accent {
   color: var(--accent);
 }
 
-/* Fórmula da margem em destaque */
-.formula {
-  background: var(--surface-2);
-  border-radius: var(--radius-md, 10px);
-  padding: 14px 16px;
-  text-align: center;
-  font-size: var(--t-body);
-  color: var(--text);
-  line-height: 1.6;
-  margin-top: 4px;
-}
+/* ─── Cadeia do cálculo (modal margem) ───────────────────────────── */
 
-.formula strong {
-  font-family: var(--font-display);
-  color: var(--accent);
-  font-size: var(--t-body-lg);
-}
-
-/* Lista por lançamento */
-.lancList {
+.chain {
   display: flex;
   flex-direction: column;
 }
 
-.lancItem {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 11px 0;
-  border-bottom: 1px solid var(--border-soft);
-}
-
-.lancItem:last-child {
-  border-bottom: none;
-}
-
-/* Item de mês clicável (modal do Bruto anual) */
-.lancItemBtn {
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid var(--border-soft);
-  text-align: left;
-  width: 100%;
-  cursor: pointer;
-  border-radius: 6px;
-  transition: background 0.15s var(--ease);
-}
-
-.lancItemBtn:hover {
-  background: var(--surface-2);
-}
-
-.lancItemBtn:last-child {
-  border-bottom: none;
-}
-
-.lancHead {
-  display: flex;
+.chainRow {
+  display: grid;
+  grid-template-columns: 16px 1fr auto;
   align-items: baseline;
-  justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border-soft);
 }
 
-.lancName {
-  font-weight: 600;
+.chainRow:first-child {
+  /* "Bruto" não tem operador — alinha o label na 2ª coluna */
+  grid-template-columns: 16px 1fr auto;
+}
+
+.chainResult {
+  border-bottom: none;
+  border-top: 1.5px solid var(--border);
+  margin-top: 2px;
+  padding-top: 11px;
+}
+
+.chainOp {
+  font-family: var(--font-display);
+  color: var(--text-dim);
+  font-weight: 700;
+  text-align: center;
+}
+
+.chainLabel {
   font-size: var(--t-body);
   color: var(--text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-.lancCliente {
+.chainHint {
+  display: block;
   font-size: var(--t-caption);
   color: var(--text-muted);
-  font-weight: 400;
-  margin-left: 6px;
+  margin-top: 1px;
 }
 
-.lancBruto {
+.chainValue {
   font-family: var(--font-display);
   font-weight: 600;
   font-size: var(--t-body);
   color: var(--text);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+  text-align: right;
 }
 
-/* Chips de desconto/taxa/custo por lançamento */
-.lancChips {
+.chainResult .chainValue {
+  font-size: var(--t-body-lg);
+  font-weight: 700;
+}
+
+.neg {
+  color: var(--negative, #c0392b);
+}
+
+/* ─── Fórmula em destaque ─────────────────────────────────────────── */
+
+.formula {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  background: var(--accent-soft);
+  border-radius: var(--radius-md, 12px);
+  padding: 16px;
+  margin-top: 16px;
+  text-align: center;
 }
 
-.chip {
+.formulaTop {
+  font-size: var(--t-body);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.formulaCalc {
   font-size: var(--t-caption);
-  color: var(--text-soft, var(--text-muted));
-  background: var(--surface-2);
-  border-radius: var(--radius-pill);
-  padding: 2px 9px;
-  white-space: nowrap;
+  color: var(--text-muted);
   font-variant-numeric: tabular-nums;
 }
+
+.formulaResult {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--t-h1, 32px);
+  color: var(--accent);
+  letter-spacing: -0.02em;
+  margin-top: 2px;
+}
+
+/* ─── Glossário ──────────────────────────────────────────────────── */
 
 .glossary {
   display: flex;
@@ -193,16 +297,10 @@
   font-size: var(--t-caption);
   color: var(--text-muted);
   line-height: 1.5;
+  margin: 0;
 }
 
 .glossaryItem strong {
   color: var(--text);
   font-weight: 600;
-}
-
-.emptyNote {
-  font-size: var(--t-caption);
-  color: var(--text-muted);
-  text-align: center;
-  padding: 8px 0;
 }

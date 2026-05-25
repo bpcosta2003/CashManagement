@@ -6,10 +6,11 @@ interface Props {
   label?: string;
   /** Alinhamento horizontal do balão em relação ao ícone:
    *   - "center" (default): centralizado (bom no meio da tela)
-   *   - "end": ancorado pela direita (usar quando o ícone fica perto
-   *     da borda direita, senão o balão é cortado no mobile)
-   *   - "start": ancorado pela esquerda */
-  align?: "center" | "start" | "end";
+   *   - "end": ancorado pela direita
+   *   - "start": ancorado pela esquerda
+   *   - "end-mobile": centralizado no desktop, ancorado à direita só no
+   *     mobile (onde o balão centralizado estouraria a borda) */
+  align?: "center" | "start" | "end" | "end-mobile";
 }
 
 /**
@@ -81,7 +82,9 @@ export function InfoTooltip({
               ? styles.bubbleEnd
               : align === "start"
                 ? styles.bubbleStart
-                : ""
+                : align === "end-mobile"
+                  ? styles.bubbleEndMobile
+                  : ""
           }`}
           role="tooltip"
         >
