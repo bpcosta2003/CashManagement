@@ -74,7 +74,7 @@ const PLANS: Plan[] = [
     name: "Pro",
     forWhom: "Pra quem toca mais de um negócio, lança todo dia e quer IA junto da rotina.",
     price: "R$ 29",
-    priceHint: "por mês",
+    priceHint: "por mês · menos de R$ 1 por dia",
     highlight: true,
     badge: "Mais escolhido",
     features: [
@@ -86,7 +86,7 @@ const PLANS: Plan[] = [
       { label: "Lembrete diário por email e WhatsApp", soon: true },
       { label: "Export automático pro contador, todo dia 5", soon: true },
     ],
-    ctaLabel: "Quero ser avisado",
+    ctaLabel: "Garantir meu desconto",
   },
   {
     id: "ultra",
@@ -105,7 +105,7 @@ const PLANS: Plan[] = [
       { label: "Catálogo por IA, comparativo de preço e alerta de estoque", soon: true },
       { label: "DAS/DARF completo: cálculo, PDF e agendamento via PIX", soon: true },
     ],
-    ctaLabel: "Quero ser avisado",
+    ctaLabel: "Garantir meu desconto",
   },
 ];
 
@@ -455,10 +455,9 @@ export function PricingPage() {
             <span className={styles.titleAccent}>antes de fechar a porta</span>.
           </h1>
           <p className={styles.subtitle}>
-            Lançamento em 10 segundos no celular. Caixa do mês inteiro num
-            scroll. Taxa, custo e repasse descontados na hora — você vê quanto
-            é seu. Análise por IA que fala português. Sem planilha, sem ERP, sem
-            contador no meio.
+            Lança em 10 segundos no celular e vê o líquido real na hora — taxa,
+            custo e repasse já descontados. Fecha o mês inteiro num scroll, sem
+            planilha, sem ERP e sem contador no meio.
           </p>
           <div className={styles.heroCtas}>
             <a href="/" className={styles.heroPrimary}>
@@ -640,6 +639,12 @@ export function PricingPage() {
                     </li>
                   ))}
                 </ul>
+                {plan.id !== "free" && (
+                  <p className={styles.earlyBird}>
+                    <span aria-hidden="true">🔒</span> Entre na lista agora e
+                    trave <strong>desconto vitalício</strong> no lançamento.
+                  </p>
+                )}
                 {plan.id === "free" ? (
                   <a className={styles.ctaFree} href="/">
                     {plan.ctaLabel}

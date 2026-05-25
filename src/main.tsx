@@ -14,6 +14,10 @@ import { ConfirmProvider } from "./components/feedback/ConfirmDialog";
 const path = window.location.pathname;
 const isPricing = path === "/pricing" || path === "/pricing/";
 
+if (isPricing) {
+  document.title = "Planos — Controle de Caixa | Saiba quanto sobrou antes de fechar a porta";
+}
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ErrorBoundary>
