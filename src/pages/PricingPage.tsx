@@ -335,28 +335,6 @@ function getSourceFromUrl(): string {
   }
 }
 
-// Tracking vendor-agnóstico de funil. Empurra pro dataLayer (GTM) e
-// chama PostHog/Plausible se estiverem presentes — no-op se nenhum
-// estiver carregado. Permite plugar a ferramenta de analytics depois
-// sem mexer nos pontos de evento.
-type TrackWindow = Window & {
-  dataLayer?: Record<string, unknown>[];
-  posthog?: { capture?: (e: string, p?: Record<string, unknown>) => void };
-  plausible?: (e: string, opts?: { props?: Record<string, unknown> }) => void;
-};
-
-function track(event: string, props: Record<string, unknown> = {}): void {
-  if (typeof window === "undefined") return;
-  const w = window as TrackWindow;
-  try {
-    (w.dataLayer = w.dataLayer ?? []).push({ event, ...props });
-    w.posthog?.capture?.(event, props);
-    w.plausible?.(event, { props });
-  } catch {
-    /* analytics nunca pode quebrar a página */
-  }
-}
-
 export function PricingPage() {
   const [openTier, setOpenTier] = useState<Tier | null>(null);
   const [email, setEmail] = useState("");
@@ -367,10 +345,6 @@ export function PricingPage() {
     | { kind: "error"; message: string }
   >({ kind: "idle" });
   const [openFaq, setOpenFaq] = useState<number | null>(0);
-
-  useEffect(() => {
-    track("pricing_view", { src: getSourceFromUrl() });
-  }, []);
 
   // ─── Carousel de features ───
   // Snap horizontal nativo + botões prev/next + contador.
@@ -434,7 +408,6 @@ export function PricingPage() {
   }, []);
 
   const handleOpen = (tier: Tier) => {
-    track("waitlist_open", { tier });
     setOpenTier(tier);
     setStatus({ kind: "idle" });
     setEmail("");
@@ -469,7 +442,6 @@ export function PricingPage() {
         });
         return;
       }
-      track("waitlist_submit", { tier: openTier });
       setStatus({ kind: "success", tier: openTier });
       setEmail("");
     } catch (err) {
@@ -490,11 +462,7 @@ export function PricingPage() {
           <BrandMark size={32} />
           <span className={styles.brandName}>Controle de Caixa</span>
         </a>
-        <a
-          href="/"
-          className={styles.headerCta}
-          onClick={() => track("cta_click", { location: "header", target: "app" })}
-        >
+        <a href="/" className={styles.headerCta}>
           Abrir o app
         </a>
       </header>
@@ -515,18 +483,10 @@ export function PricingPage() {
             planilha, sem ERP e sem contador no meio.
           </p>
           <div className={styles.heroCtas}>
-            <a
-              href="/"
-              className={styles.heroPrimary}
-              onClick={() => track("cta_click", { location: "hero", target: "free" })}
-            >
+            <a href="/" className={styles.heroPrimary}>
               Começar grátis em 30s
             </a>
-            <a
-              href="#planos"
-              className={styles.heroSecondary}
-              onClick={() => track("cta_click", { location: "hero", target: "planos" })}
-            >
+            <a href="#planos" className={styles.heroSecondary}>
               Ver planos
             </a>
           </div>
@@ -552,10 +512,12 @@ export function PricingPage() {
             {PAINS.map((p) => (
               <article key={p.pain} className={styles.painCard}>
                 <p className={styles.painText}>{p.pain}</p>
-                <div className={styles.painArrow} aria-hidden="true">
-                  →
+                <div className={styles.painRelief}>
+                  <span className={styles.painReliefIcon} aria-hidden="true">
+                    ✓
+                  </span>
+                  <p className={styles.reliefText}>{p.relief}</p>
                 </div>
-                <p className={styles.reliefText}>{p.relief}</p>
               </article>
             ))}
           </div>
@@ -724,18 +686,19 @@ export function PricingPage() {
                   ))}
                 </ul>
                 {plan.id !== "free" && (
-                  <p className={styles.earlyBird}>
-                    <span aria-hidden="true">🔒</span> Entre na lista agora e
-                    trave <strong>20% de desconto vitalício</strong> no
-                    lançamento.
-                  </p>
+                  <div className={styles.earlyBird}>
+                    <span className={styles.earlyBirdBadge} aria-hidden="true">
+                      <strong>−20%</strong>
+                      <span>vitalício</span>
+                    </span>
+                    <p className={styles.earlyBirdText}>
+                      Entre na lista agora e trave seu desconto pra sempre no
+                      lançamento.
+                    </p>
+                  </div>
                 )}
                 {plan.id === "free" ? (
-                  <a
-                    className={styles.ctaFree}
-                    href="/"
-                    onClick={() => track("cta_click", { location: "plan", target: "free" })}
-                  >
+                  <a className={styles.ctaFree} href="/">
                     {plan.ctaLabel}
                   </a>
                 ) : (
@@ -811,11 +774,7 @@ export function PricingPage() {
             fechado — e sabe quanto realmente sobrou.
           </p>
           <div className={styles.heroCtas}>
-            <a
-              href="/"
-              className={styles.heroPrimary}
-              onClick={() => track("cta_click", { location: "final", target: "free" })}
-            >
+            <a href="/" className={styles.heroPrimary}>
               Usar grátis agora
             </a>
           </div>
