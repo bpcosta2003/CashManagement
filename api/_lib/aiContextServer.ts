@@ -8,8 +8,8 @@ import type {
   StatusPagamento,
   Summary,
 } from "../../src/types";
-import { calcRow } from "../../src/lib/calc";
-import { buildAiContext } from "../../src/lib/aiContext";
+import { calcRow } from "../../src/lib/calc.js";
+import { buildAiContext } from "../../src/lib/aiContext.js";
 
 /**
  * Constrói o XML de contexto da IA **a partir do payload bruto** enviado

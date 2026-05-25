@@ -1,13 +1,13 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getSupabaseAdmin } from "../_lib/supabaseAdmin";
-import { env } from "../_lib/env";
+import { getSupabaseAdmin } from "../_lib/supabaseAdmin.js";
+import { env } from "../_lib/env.js";
 import {
   todayInBrt,
   lastBusinessDayOfMonth,
   processFirstDayUser,
   processLastDayUser,
   type StateShape,
-} from "../_lib/notifications";
+} from "../_lib/notifications.js";
 
 interface StateRow {
   user_id: string;
