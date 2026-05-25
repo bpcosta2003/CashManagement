@@ -9,14 +9,15 @@ import styles from "./PricingPage.module.css";
  *  - Hero: promessa direta (caixa fechado em 1 min) + CTAs
  *  - Painel de dores: 4 problemas comuns que o app resolve
  *  - 3 diferenciais bold: o que separa esse app de planilha e ERP
- *  - 3 planos curados (Free/Pro/Ultra) — 5-7 features cada,
- *    ordenadas por gatilho emocional, com "pra quem é" subtitle
+ *  - 3 planos curados (Free/Pro/Ultra), features ordenadas por
+ *    gatilho emocional, com "pra quem é" subtitle
  *  - Garantia + FAQ rápido pra derrubar objeção
  *  - CTA final dedicado
  *
- * Marketplaces (ML+Shopee no Pro, Amazon no Ultra) aparecem com tag
- * "Em breve". Sinaliza intenção pra vendedores online sem prometer
- * entrega imediata.
+ * Marketplaces (Mercado Livre, Shopee e Amazon), análise de catálogo
+ * por IA, comparativo de preço e automação fiscal (DAS/DARF) são
+ * exclusividade Ultra, com tag "Em breve". Sinaliza intenção pra quem
+ * vende online sem prometer entrega imediata.
  */
 
 type Tier = "pro" | "ultra";
@@ -59,14 +60,13 @@ const PLANS: Plan[] = [
       { label: "Mês e ano lado a lado, com gráfico de 12 meses" },
       { label: "Resumo do mês: bruto, líquido, margem, ticket e top serviços" },
       { label: "Projeção de recebimentos futuros mês a mês" },
-      { label: "Insights automáticos do que muda no caixa" },
+      { label: "Alertas automáticos do que muda no caixa" },
       { label: "Clientes (LTV) e catálogo de serviços" },
       { label: "Backup e restore Excel manual" },
+      { label: "Lembretes in-app e por email (resumo do mês e meta)" },
       { label: "Múltiplos empreendimentos", limited: true },
       { label: "3 análises por IA por mês", limited: true },
       { label: "PDF anual e mensal completos", limited: true },
-      { label: "Notificações por email (resumo + meta)", limited: true },
-      { label: "Cálculo automático de DAS/DARF (MEI e Simples)", soon: true },
     ],
     ctaLabel: "Usar grátis",
   },
@@ -79,16 +79,13 @@ const PLANS: Plan[] = [
     highlight: true,
     badge: "Mais escolhido",
     features: [
-      { label: "Tudo do Free, sem limites de tempo" },
+      { label: "Tudo do Free, sem tag de tempo limitado — pra sempre" },
       { label: "Até 5 empreendimentos, troca em 1 toque" },
       { label: "30 análises por IA por mês" },
       { label: "PDF anual e mensal completos, sempre" },
-      { label: "Notificações por email (resumo, meta, lembretes)" },
+      { label: "Insights com IA (pendências e sugestões de ação)", soon: true },
+      { label: "Lembrete diário por email e WhatsApp", soon: true },
       { label: "Export automático pro contador, todo dia 5", soon: true },
-      { label: "Insights aprimorados com IA (pendências, sugestões)", soon: true },
-      { label: "Lembrete diário via WhatsApp", soon: true },
-      { label: "30 análises de catálogo por IA / mês", soon: true },
-      { label: "DARF/DAS em PDF pronta pra pagar + lembrete por email", soon: true },
     ],
     ctaLabel: "Quero ser avisado",
   },
@@ -106,8 +103,8 @@ const PLANS: Plan[] = [
       { label: "Análises por IA ilimitadas" },
       { label: "Empreendimentos ilimitados" },
       { label: "Integração com Mercado Livre, Shopee e Amazon", soon: true },
-      { label: "Comparativo público de preço + alerta de estoque", soon: true },
-      { label: "DARF/DAS gerada e agendada (PIX automático)", soon: true },
+      { label: "Catálogo por IA, comparativo de preço e alerta de estoque", soon: true },
+      { label: "DAS/DARF completo: cálculo, PDF e agendamento via PIX", soon: true },
     ],
     ctaLabel: "Quero ser avisado",
   },
@@ -163,7 +160,7 @@ const APP_FEATURES: FeatureCard[] = [
   },
   {
     icon: "💡",
-    title: "Insights automáticos",
+    title: "Alertas automáticos",
     body:
       "Detecto queda de faturamento, pagamentos pendentes acumulando, concentração em um cliente. Aviso só o que importa.",
   },
