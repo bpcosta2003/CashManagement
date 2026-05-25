@@ -119,7 +119,7 @@ export function ClientForm({
               <span className={styles.metricLabel}>
                 LTV (bruto)
                 <InfoTooltip
-                  align="end"
+                  align="end-mobile"
                   text="Lifetime Value — total faturado bruto com esse cliente desde o primeiro atendimento. Ajuda a identificar clientes mais valiosos."
                 />
               </span>

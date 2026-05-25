@@ -691,28 +691,6 @@
   background: var(--surface-2);
 }
 
-/* Variante botão — item clicável (abre lançamentos do cliente/serviço) */
-.servicoBtn {
-  width: 100%;
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid var(--border-soft);
-  font: inherit;
-  color: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.servicoBtn:last-child {
-  border-bottom: none;
-}
-
-.servicoBtn:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: -2px;
-  border-radius: 6px;
-}
-
 /* Cabeçalho do KPI com botão de detalhe (mesmo do resumo mensal) */
 .kpiHead {
   display: flex;
@@ -786,9 +764,9 @@
 .servicoMeta {
   font-size: var(--t-caption);
   color: var(--text-muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  /* Pode quebrar em 2 linhas — no mobile a meta do top cliente
+     (lançamentos · ticket · % do bruto) cortava com ellipsis. */
+  line-height: 1.35;
 }
 
 .servicoValue {
