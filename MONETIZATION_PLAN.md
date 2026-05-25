@@ -2,9 +2,16 @@
 
 > Estratégia em 5 fases pra transformar o app gratuito em SaaS pago sem queimar o trust de quem está no beta.
 
+> **Manutenção:** este doc é a fonte de verdade da estratégia e anda junto da landing `/pricing` (`src/pages/PricingPage.tsx`). Toda mudança de preço, tier, feature por plano ou posicionamento na landing deve ser refletida aqui — e vice-versa.
+
 **Status atual:** Fase 0 — landing `/pricing` capturando interesse em Pro e Ultra. Nenhum pagamento processado ainda. App inteiro é grátis pra qualquer usuário cadastrado.
 
 **Princípio geral:** quem entra no beta e marca interesse trava desconto vitalício. Features marcadas como `Por tempo limitado no Free` no pricing page hoje migram pro Pro no lançamento — usuário sabe disso de antemão, sem retirada surpresa.
+
+**Público-alvo (dois perfis):** o app não é só pro **dono** do negócio — serve também pro **profissional que atende por conta** dentro de um estabelecimento (cabeleireiro/barbeiro que aluga a cadeira, manicure, vendedor comissionado, freelancer). Esse segundo perfil precisa controlar as próprias vendas e saber quanto fica com ele depois do repasse pro estabelecimento — exatamente o que a **taxa do negócio por lançamento** resolve. Implicações de monetização:
+- O profissional costuma ser usuário **Free** (1 empreendimento = o controle dele), então a taxa do negócio/auxiliar precisa continuar gratuita — é o gancho de aquisição desse público.
+- O **dono** é quem converte pra **Pro/Ultra** (multi-negócio, IA, relatórios, automação fiscal).
+- A landing `/pricing` fala com os dois perfis explicitamente (hero, dores, FAQ "trabalho por comissão / alugo a cadeira").
 
 ---
 
@@ -19,7 +26,7 @@ Tudo grátis. Os limites abaixo já existem mas não geram paywall ainda.
 | **Seu empreendimento** (multi-negócio com switcher, KPIs por negócio, logo customizada) | Ilimitado | → Pro (5) / Ultra (∞) na Fase 1 |
 | **Sincronização na nuvem** (Supabase, magic link) | Ilimitado | Permanece Free |
 | **Preferências** (tema, cor, lembretes, PWA install, tour, contato) | — | Permanece Free |
-| **Taxas configuráveis** (crédito, débito, parcelado) | — | Permanece Free |
+| **Taxa do cartão, do negócio e auxiliar** (por lançamento — repasse pra cadeira/comissão, custo, auxiliar) | — | Permanece Free (gancho de aquisição do profissional que atende por conta) |
 | **Mês e ano em foco** (toggle Mês/Ano, gráfico 12 meses, timeline) | — | Permanece Free |
 | **Resumo do mês** (bruto, líquido, margem, drill-down) | — | Permanece Free |
 | **Meta mensal** (barra colorida, "faltam R$ X") | 1 meta por mês por negócio | Permanece Free |
@@ -54,7 +61,7 @@ Permanece grátis pra sempre:
 - Catálogo de serviços
 - Backup e restore Excel manual
 - Meta mensal
-- Taxas configuráveis
+- Taxa do cartão, do negócio e auxiliar por lançamento (separa o que é seu do repasse — chave pro profissional que atende por conta)
 - Tema, cor, instala como app (PWA)
 - **Cálculo automático de DAS/DARF** (Fase 4.5 — só o valor, sem PDF)
 
@@ -247,9 +254,9 @@ disso, valida com waitlist pra ver se o pedido aparece organicamente.
 ### Por que essa fase importa?
 
 Esse é o **único feature de produto que justifica pagamento sozinho**
-pra dono pequeno — todo MEI/Simples gasta 1-3h por mês com isso e
-muita gente paga R$ 50-100 pro contador só pra emitir guia. R$ 29
-do Pro paga ele mesmo num mês.
+pra dono pequeno (e pro profissional MEI que atende por conta) — todo
+MEI/Simples gasta 1-3h por mês com isso e muita gente paga R$ 50-100
+pro contador só pra emitir guia. R$ 29 do Pro paga ele mesmo num mês.
 
 Também tem efeito SEO: termos "calcular DAS MEI", "gerar DARF online",
 "DAS MEI automático" têm alto volume de busca e baixa competição
