@@ -9,14 +9,15 @@ import styles from "./PricingPage.module.css";
  *  - Hero: promessa direta (caixa fechado em 1 min) + CTAs
  *  - Painel de dores: 4 problemas comuns que o app resolve
  *  - 3 diferenciais bold: o que separa esse app de planilha e ERP
- *  - 3 planos curados (Free/Pro/Ultra) — 5-7 features cada,
- *    ordenadas por gatilho emocional, com "pra quem é" subtitle
+ *  - 3 planos curados (Free/Pro/Ultra), features ordenadas por
+ *    gatilho emocional, com "pra quem é" subtitle
  *  - Garantia + FAQ rápido pra derrubar objeção
  *  - CTA final dedicado
  *
- * Marketplaces (ML+Shopee no Pro, Amazon no Ultra) aparecem com tag
- * "Em breve". Sinaliza intenção pra vendedores online sem prometer
- * entrega imediata.
+ * Marketplaces (Mercado Livre, Shopee e Amazon), análise de catálogo
+ * por IA, comparativo de preço e automação fiscal (DAS/DARF) são
+ * exclusividade Ultra, com tag "Em breve". Sinaliza intenção pra quem
+ * vende online sem prometer entrega imediata.
  */
 
 type Tier = "pro" | "ultra";
@@ -49,23 +50,23 @@ const PLANS: Plan[] = [
   {
     id: "free",
     name: "Free",
-    forWhom: "Pra quem quer entender o caixa de verdade, no celular — começando hoje, sem custo.",
+    forWhom: "Pra dono ou profissional que atende por conta — e quer saber quanto sobrou, no celular, sem custo.",
     price: "R$ 0",
     priceHint: "pra sempre",
     features: [
       { label: "Lançamentos ilimitados, mesmo offline" },
       { label: "Sincroniza celular ↔ computador" },
+      { label: "Taxa do cartão, do negócio e auxiliar por atendimento" },
       { label: "Mês e ano lado a lado, com gráfico de 12 meses" },
       { label: "Resumo do mês: bruto, líquido, margem, ticket e top serviços" },
       { label: "Projeção de recebimentos futuros mês a mês" },
-      { label: "Insights automáticos do que muda no caixa" },
+      { label: "Alertas automáticos do que muda no caixa" },
       { label: "Clientes (LTV) e catálogo de serviços" },
       { label: "Backup e restore Excel manual" },
+      { label: "Lembretes in-app e por email (resumo do mês e meta)" },
       { label: "Múltiplos empreendimentos", limited: true },
       { label: "3 análises por IA por mês", limited: true },
       { label: "PDF anual e mensal completos", limited: true },
-      { label: "Notificações por email (resumo + meta)", limited: true },
-      { label: "Cálculo automático de DAS/DARF (MEI e Simples)", soon: true },
     ],
     ctaLabel: "Usar grátis",
   },
@@ -78,16 +79,13 @@ const PLANS: Plan[] = [
     highlight: true,
     badge: "Mais escolhido",
     features: [
-      { label: "Tudo do Free, sem limites de tempo" },
+      { label: "Tudo do Free, sem tag de tempo limitado — pra sempre" },
       { label: "Até 5 empreendimentos, troca em 1 toque" },
       { label: "30 análises por IA por mês" },
       { label: "PDF anual e mensal completos, sempre" },
-      { label: "Notificações por email (resumo, meta, lembretes)" },
+      { label: "Insights com IA (pendências e sugestões de ação)", soon: true },
+      { label: "Lembrete diário por email e WhatsApp", soon: true },
       { label: "Export automático pro contador, todo dia 5", soon: true },
-      { label: "Insights aprimorados com IA (pendências, sugestões)", soon: true },
-      { label: "Lembrete diário via WhatsApp", soon: true },
-      { label: "30 análises de catálogo por IA / mês", soon: true },
-      { label: "DARF/DAS em PDF pronta pra pagar + lembrete por email", soon: true },
     ],
     ctaLabel: "Quero ser avisado",
   },
@@ -105,8 +103,8 @@ const PLANS: Plan[] = [
       { label: "Análises por IA ilimitadas" },
       { label: "Empreendimentos ilimitados" },
       { label: "Integração com Mercado Livre, Shopee e Amazon", soon: true },
-      { label: "Comparativo público de preço + alerta de estoque", soon: true },
-      { label: "DARF/DAS gerada e agendada (PIX automático)", soon: true },
+      { label: "Catálogo por IA, comparativo de preço e alerta de estoque", soon: true },
+      { label: "DAS/DARF completo: cálculo, PDF e agendamento via PIX", soon: true },
     ],
     ctaLabel: "Quero ser avisado",
   },
@@ -138,9 +136,9 @@ const APP_FEATURES: FeatureCard[] = [
   },
   {
     icon: "💳",
-    title: "Taxas configuráveis",
+    title: "Taxa do cartão, do negócio e auxiliar",
     body:
-      "Crédito, débito, parcelado — cada modalidade com sua taxa. Vem com padrões do mercado, ajusta pro que sua maquininha cobra.",
+      "Por atendimento: taxa da maquininha, repasse pro estabelecimento (cadeira, comissão) e auxiliar. Vê na hora quanto é seu e quanto vai pra terceiros.",
   },
   {
     icon: "📅",
@@ -162,7 +160,7 @@ const APP_FEATURES: FeatureCard[] = [
   },
   {
     icon: "💡",
-    title: "Insights automáticos",
+    title: "Alertas automáticos",
     body:
       "Detecto queda de faturamento, pagamentos pendentes acumulando, concentração em um cliente. Aviso só o que importa.",
   },
@@ -228,9 +226,19 @@ const PAINS: Pain[] = [
       "O app desconta taxa, custo e auxiliar automaticamente. Você vê o líquido real na hora — não no fim do mês.",
   },
   {
+    pain: "“Quanto desse atendimento foi meu e quanto foi da casa?”",
+    relief:
+      "Configure a taxa do negócio (repasse da cadeira/comissão) por atendimento. O app separa o que é seu do que vai pro estabelecimento, na hora.",
+  },
+  {
     pain: "“Será que vou bater a meta esse mês?”",
     relief:
       "Projeção diária baseada no seu ritmo. Se está abaixo, o app avisa antes de virar problema.",
+  },
+  {
+    pain: "“Anoto num caderninho e quando vejo, sumiu.”",
+    relief:
+      "Cada venda salva no celular e sincronizada na nuvem. Caderno não calcula líquido, não faz backup nem mostra seus melhores clientes.",
   },
   {
     pain: "“Demoro 2 horas pra fechar o mês.”",
@@ -287,7 +295,11 @@ const FAQ: Faq[] = [
   },
   {
     q: "Pra que tipo de negócio serve?",
-    a: "Salão, restaurante, lojinha, prestador de serviço, freelancer, comércio online. Qualquer um que precise entender entrada, saída, custo e taxa — sem virar contador.",
+    a: "Salão, barbearia, restaurante, lojinha, prestador de serviço, freelancer, comércio online. Qualquer um que precise entender entrada, saída, custo e taxa — sem virar contador.",
+  },
+  {
+    q: "Trabalho por comissão ou alugo a cadeira. Serve pra mim?",
+    a: "Serve, e foi pensado pra isso também. Configure a taxa do negócio (quanto vai pro estabelecimento) em cada atendimento e o app mostra na hora quanto ficou seu, já separado do repasse. Você controla suas vendas mesmo sem ser o dono do espaço.",
   },
 ];
 
@@ -425,15 +437,18 @@ export function PricingPage() {
       <main className={styles.main}>
         {/* ─── Hero ─── */}
         <section className={styles.hero}>
-          <span className={styles.eyebrow}>Pra quem faz o caixa girar</span>
+          <span className={styles.eyebrow}>
+            Pro dono — e pra quem atende por conta
+          </span>
           <h1 className={styles.title}>
             Saiba quanto sobrou{" "}
             <span className={styles.titleAccent}>antes de fechar a porta</span>.
           </h1>
           <p className={styles.subtitle}>
             Lançamento em 10 segundos no celular. Caixa do mês inteiro num
-            scroll. Análise por IA que fala português. Sem planilha, sem ERP,
-            sem contador no meio.
+            scroll. Taxa, custo e repasse descontados na hora — você vê quanto
+            é seu. Análise por IA que fala português. Sem planilha, sem ERP, sem
+            contador no meio.
           </p>
           <div className={styles.heroCtas}>
             <a href="/" className={styles.heroPrimary}>
@@ -456,8 +471,9 @@ export function PricingPage() {
               Você não precisa virar contador pra ter controle.
             </h2>
             <p className={styles.sectionLead}>
-              A gente pegou as 4 dores que todo dono pequeno reclama — e fez o
-              app resolver cada uma na origem.
+              As dores de quem vive de atender — seja o dono do negócio ou o
+              profissional que trabalha por conta. O app resolve cada uma na
+              origem.
             </p>
           </header>
           <div className={styles.painGrid}>
@@ -506,8 +522,9 @@ export function PricingPage() {
               Tudo o que você precisa, num app só.
             </h2>
             <p className={styles.sectionLead}>
-              15 funcionalidades pensadas pro dia-a-dia do dono. Arraste pro
-              lado pra ver todas — cada uma resolve uma parte do caixa.
+              15 funcionalidades pensadas pro dia-a-dia de quem atende — dono ou
+              profissional. Arraste pro lado pra ver todas; cada uma resolve uma
+              parte do caixa.
             </p>
           </header>
 

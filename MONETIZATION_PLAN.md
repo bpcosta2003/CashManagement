@@ -2,9 +2,16 @@
 
 > Estratégia em 5 fases pra transformar o app gratuito em SaaS pago sem queimar o trust de quem está no beta.
 
+> **Manutenção:** este doc é a fonte de verdade da estratégia e anda junto da landing `/pricing` (`src/pages/PricingPage.tsx`). Toda mudança de preço, tier, feature por plano ou posicionamento na landing deve ser refletida aqui — e vice-versa.
+
 **Status atual:** Fase 0 — landing `/pricing` capturando interesse em Pro e Ultra. Nenhum pagamento processado ainda. App inteiro é grátis pra qualquer usuário cadastrado.
 
 **Princípio geral:** quem entra no beta e marca interesse trava desconto vitalício. Features marcadas como `Por tempo limitado no Free` no pricing page hoje migram pro Pro no lançamento — usuário sabe disso de antemão, sem retirada surpresa.
+
+**Público-alvo (dois perfis):** o app não é só pro **dono** do negócio — serve também pro **profissional que atende por conta** dentro de um estabelecimento (cabeleireiro/barbeiro que aluga a cadeira, manicure, vendedor comissionado, freelancer). Esse segundo perfil precisa controlar as próprias vendas e saber quanto fica com ele depois do repasse pro estabelecimento — exatamente o que a **taxa do negócio por lançamento** resolve. Implicações de monetização:
+- O profissional costuma ser usuário **Free** (1 empreendimento = o controle dele), então a taxa do negócio/auxiliar precisa continuar gratuita — é o gancho de aquisição desse público.
+- O **dono** é quem converte pra **Pro/Ultra** (multi-negócio, IA, relatórios, automação fiscal).
+- A landing `/pricing` fala com os dois perfis explicitamente (hero, dores, FAQ "trabalho por comissão / alugo a cadeira").
 
 ---
 
@@ -19,11 +26,11 @@ Tudo grátis. Os limites abaixo já existem mas não geram paywall ainda.
 | **Seu empreendimento** (multi-negócio com switcher, KPIs por negócio, logo customizada) | Ilimitado | → Pro (5) / Ultra (∞) na Fase 1 |
 | **Sincronização na nuvem** (Supabase, magic link) | Ilimitado | Permanece Free |
 | **Preferências** (tema, cor, lembretes, PWA install, tour, contato) | — | Permanece Free |
-| **Taxas configuráveis** (crédito, débito, parcelado) | — | Permanece Free |
+| **Taxa do cartão, do negócio e auxiliar** (por lançamento — repasse pra cadeira/comissão, custo, auxiliar) | — | Permanece Free (gancho de aquisição do profissional que atende por conta) |
 | **Mês e ano em foco** (toggle Mês/Ano, gráfico 12 meses, timeline) | — | Permanece Free |
 | **Resumo do mês** (bruto, líquido, margem, drill-down) | — | Permanece Free |
 | **Meta mensal** (barra colorida, "faltam R$ X") | 1 meta por mês por negócio | Permanece Free |
-| **Insights automáticos** (queda, pendência, concentração, novo recorde) | Heurísticas básicas | Pro ganha "insights aprimorados com IA" na Fase 2 |
+| **Alertas automáticos** (queda, pendência, concentração, novo recorde) | Heurísticas básicas | Permanece Free. Pro/Ultra ganham "insights com IA" na Fase 2 |
 | **Análise por IA (Claude)** | 3/mês por usuário | → Free 1/mês (2 no 1º mês), Pro 30/mês — Fase 1 |
 | **Lançamentos do mês** | Ilimitados | Permanece Free |
 | **Projeção futura** (parcelas de cartão mês a mês) | — | Permanece Free |
@@ -31,7 +38,7 @@ Tudo grátis. Os limites abaixo já existem mas não geram paywall ainda.
 | **Catálogo de serviços/produtos** | Ilimitado | Permanece Free |
 | **Backup e restauração Excel** (5 abas, mesclar/substituir, auto-backup 14d) | Ilimitado | Manual permanece Free. Export automático pro contador vira Pro na Fase 2. |
 | **PDF anual e mensal** | Disponível | → Pro na Fase 1 |
-| **Notificações por email** (resumo último dia útil + lembrete de meta no 1º) | Disponível | → Pro na Fase 1/2 |
+| **Lembretes in-app + notificações por email** (resumo último dia útil + lembrete de meta no 1º) | Disponível | Permanece Free. Lembrete diário por email e WhatsApp viram Pro na Fase 2 |
 
 ---
 
@@ -49,14 +56,14 @@ Permanece grátis pra sempre:
 - Mês e ano lado a lado, gráfico de 12 meses, timeline
 - Resumo do mês: bruto, líquido, margem, ticket médio, top serviços
 - Projeção de recebimentos futuros mês a mês
-- Insights automáticos (heurísticas básicas)
+- Alertas automáticos (heurísticas básicas)
 - Clientes com LTV
 - Catálogo de serviços
 - Backup e restore Excel manual
 - Meta mensal
-- Taxas configuráveis
+- Taxa do cartão, do negócio e auxiliar por lançamento (separa o que é seu do repasse — chave pro profissional que atende por conta)
 - Tema, cor, instala como app (PWA)
-- **Cálculo automático de DAS/DARF** (Fase 4.5 — só o valor, sem PDF)
+- Lembretes in-app + notificações por email (resumo último dia útil + lembrete de meta no 1º)
 
 Restrito (era ilimitado, vira limitado):
 - **1 empreendimento** (era ilimitado)
@@ -64,7 +71,6 @@ Restrito (era ilimitado, vira limitado):
 
 Removido do Free:
 - PDF anual e mensal completos → Pro
-- Notificações por email (resumo + meta) → Pro
 
 ### Pro — R$ 29/mês
 
@@ -72,8 +78,9 @@ Tudo do Free, mais:
 - Até 5 empreendimentos, troca em 1 toque
 - 30 análises por IA por mês
 - PDF anual e mensal completos
-- Notificações por email (resumo último dia útil + lembrete de meta)
-- **DARF/DAS em PDF pronta pra pagar** (Fase 4.5 — Em breve)
+- **Insights com IA** (pendências + sugestões de ação — Fase 2)
+- **Lembrete diário por email e WhatsApp** (Fase 2)
+- **Export automático pro contador, todo dia 5** (Fase 2)
 
 ### Checklist de implementação Fase 1
 
@@ -121,13 +128,13 @@ Tudo do Free, mais:
 
 ---
 
-## Fase 3 — IA por item do catálogo
+## Fase 3 — IA por item do catálogo (Ultra-exclusive)
 
-**Objetivo:** primeiro pé na inteligência além do financeiro. Valida apetite por IA antes de investir no Consultor.
+**Objetivo:** inteligência de catálogo como diferencial high-ticket. Junto do comparativo público de preço (Fase 5), forma a camada de "inteligência de preço/produto" exclusiva do Ultra.
 
 **Quando:** Pro estável (MRR ≥ R$ 1.500), churn < 8%/mês.
 
-### Free e Pro ganham:
+### Ultra ganha:
 
 - Botão **"Analisar com IA"** em cada item do catálogo
 - IA recebe nome do item + histórico de vendas (frequência, ticket médio, sazonalidade)
@@ -136,13 +143,12 @@ Tudo do Free, mais:
 
 ### Limites:
 
-- **Free:** 5 análises de catálogo por mês
-- **Pro:** 30 análises de catálogo por mês
-- **Ultra:** ilimitado (quando lançar)
+- **Free / Pro:** sem acesso
+- **Ultra:** ilimitado
 
 ### Por que essa fase importa?
 
-A análise mensal já valida que usuário quer IA. Essa é POR PRODUTO — útil pra qualquer tipo de negócio (não só e-commerce). Funciona como onboarding pra Ultra: usuário vê IA contextual e quer mais.
+É a IA POR PRODUTO — útil pra qualquer tipo de negócio (não só e-commerce). Consolidada no Ultra junto do comparativo público de preço (#29) e dos marketplaces, vira uma frente única de "inteligência de preço" que justifica o high-ticket: quem vende online e quer otimizar catálogo vai Ultra.
 
 ### Checklist Fase 3
 
@@ -171,7 +177,9 @@ Tudo do Pro, mais:
 - **Análise semanal + replanejamento mensal** — IA recompõe o plano com base no que foi (e não foi) executado.
 - **Análises por IA ilimitadas** (mensal + catálogo)
 - **Empreendimentos ilimitados**
-- **DARF/DAS gerada e agendada automaticamente** (Fase 4.5 — Em breve)
+- **Análise de catálogo por IA + comparativo público de preço + alerta de estoque** (Fases 3 e 5 — Em breve)
+- **Integração com Mercado Livre, Shopee e Amazon** (Fase 5 — Em breve)
+- **DAS/DARF completo: cálculo, PDF e agendamento via PIX** (Fase 4.5 — Em breve)
 
 ### Custo real por usuário Ultra
 
@@ -200,16 +208,20 @@ Tudo do Pro, mais:
 ## Fase 4.5 — DARF / DAS Simples Nacional
 
 **Objetivo:** transformar a dor "quanto pago de imposto este mês?" em
-diferenciação de plano. MEI/Simples paga DARF/DAS todo mês 20 — todo
-mundo erra ou esquece. Liberar o cálculo no Free puxa adoção pelo
-SEO ("calcular DAS MEI", "gerar DARF"), e os tiers pagos ficam com a
-parte automática que dá trabalho real.
+diferenciação high-ticket. MEI/Simples paga DARF/DAS todo mês 20 — todo
+mundo erra ou esquece. A automação fiscal inteira (do cálculo ao
+pagamento) é **exclusividade Ultra**: é trabalho real, recorrente e que
+muita gente paga contador pra fazer — exatamente o tipo de dor que
+sustenta o preço do Ultra.
 
 **Quando:** depois da Fase 4 estabilizar (≥ 100 Ultra ativos). Antes
 disso, valida com waitlist pra ver se o pedido aparece organicamente.
 
-### Free — Cálculo automático de imposto
+### Ultra — Automação fiscal completa (Em breve)
 
+Recurso fiscal inteiro num plano só. Três camadas, todas no Ultra:
+
+**1. Cálculo automático do imposto**
 - Lê o bruto do mês (faturamento) + tipo de regime tributário
   (MEI / Simples Nacional anexos I-V) do empreendimento
 - Calcula a alíquota efetiva: tabela do Simples 2024 com fator R
@@ -217,14 +229,10 @@ disso, valida com waitlist pra ver se o pedido aparece organicamente.
   serviços, ambos)
 - Mostra "Você deve aproximadamente R$ X em DAS/DARF este mês,
   vencimento dia 20"
-- **Sem boleto, sem PDF.** Só o número. Usuário copia pra emitir
-  no portal oficial (gov.br/Receita).
 
-### Pro — PDF da DARF pronta pra pagar (Em breve)
-
-- Tudo do Free, mais:
+**2. PDF da guia pronta pra pagar**
 - Geração do **PDF da guia DAS/DARF** com código de barras válido,
-  pronto pra pagar no banco — eliminando o passo "ir no Simples
+  pronto pra pagar no banco — elimina o passo "ir no Simples
   Nacional/Receita pra emitir"
 - Histórico anual: tabela de meses com valor pago + status
   (em aberto / pago / atrasado)
@@ -232,11 +240,9 @@ disso, valida com waitlist pra ver se o pedido aparece organicamente.
 - Junto da exportação de PDF mês/ano — fluxo "fechar o mês"
   vira: PDF do mês + PDF da DARF, dois cliques
 
-### Ultra — DARF automática (Em breve)
-
-- Tudo do Pro, mais:
-- **Geração + agendamento automático** no dia do vencimento, com
-  PIX QR Code pronto pra pagar (via Open Finance)
+**3. Geração + agendamento automático**
+- **Agendamento automático** no dia do vencimento, com PIX QR Code
+  pronto pra pagar (via Open Finance)
 - Pagamento agendado via integração com banco (PJ Pix Cobrança)
   — opcional, com aprovação manual da primeira vez
 - Conciliação automática: marca como "pago" quando o débito cai
@@ -246,14 +252,17 @@ disso, valida com waitlist pra ver se o pedido aparece organicamente.
 
 ### Por que essa fase importa?
 
-Esse é o **único feature de produto que justifica pagamento sozinho**
-pra dono pequeno — todo MEI/Simples gasta 1-3h por mês com isso e
-muita gente paga R$ 50-100 pro contador só pra emitir guia. R$ 29
-do Pro paga ele mesmo num mês.
+Esse é o **feature de produto que justifica pagamento sozinho** pro
+dono pequeno (e pro profissional MEI que atende por conta) — todo
+MEI/Simples gasta 1-3h por mês com isso e muita gente paga R$ 50-100
+pro contador só pra emitir guia. Como diferencial Ultra, ancora o
+high-ticket: quem quer "nunca mais pensar no imposto" vai Ultra.
 
-Também tem efeito SEO: termos "calcular DAS MEI", "gerar DARF online",
-"DAS MEI automático" têm alto volume de busca e baixa competição
-qualificada (a maioria dos resultados é blog de contador, não app).
+**Tradeoff aceito:** ao não liberar nem o cálculo no Free, abrimos mão
+do gancho de SEO ("calcular DAS MEI", "gerar DARF online") em troca de
+preservar a automação fiscal inteira como alavanca de conversão pro
+Ultra. Se o SEO se mostrar crítico na validação, reavaliar liberar só
+o número (sem PDF) no Free numa fase futura.
 
 ### Riscos regulatórios
 
@@ -261,20 +270,20 @@ qualificada (a maioria dos resultados é blog de contador, não app).
   código de barras). Solução: usar API oficial do Simples Nacional
   (existe pra contadores via convênio) OU parceria com `e-financeira`
   / serviço terceiro.
-- Pagamento automático (Ultra) precisa de Open Finance ou banco PJ
-  parceiro. Começar só com PIX Cobrança gerado pelo nosso lado,
-  usuário escaneia e paga — sem débito automático no MVP.
+- Pagamento automático precisa de Open Finance ou banco PJ parceiro.
+  Começar só com PIX Cobrança gerado pelo nosso lado, usuário escaneia
+  e paga — sem débito automático no MVP.
 
 ### Checklist Fase 4.5
 
 - [ ] Campo `regimeTributario` em `Business` (MEI / Simples I-V)
-- [ ] Função `calcDarfMes(rows, regime, mes, ano)` em `src/lib/tax.ts`
-- [ ] UI no resumo mensal: card "Imposto estimado · R$ X" (Free)
-- [ ] Endpoint `/api/tax/generate-darf-pdf` (Pro) — Receita ou parceiro
+- [ ] Função `calcDarfMes(rows, regime, mes, ano)` em `src/lib/tax.ts` — Ultra-gated
+- [ ] UI no resumo mensal: card "Imposto estimado · R$ X" (Ultra)
+- [ ] Endpoint `/api/tax/generate-darf-pdf` (Ultra) — Receita ou parceiro
 - [ ] Tabela `darf_history` (user_id, mes, ano, valor, status, paid_at)
 - [ ] Cron `/api/cron/darf-reminder-email` (3 dias antes do dia 20)
-- [ ] (Ultra) Integração PIX Cobrança via PSP (Asaas/Cora/Inter)
-- [ ] (Ultra) Conciliação automática com extrato vinculado
+- [ ] Integração PIX Cobrança via PSP (Asaas/Cora/Inter)
+- [ ] Conciliação automática com extrato vinculado
 
 ---
 
@@ -331,7 +340,6 @@ A partir de [data], o app ganha planos pagos (Pro R$ 29/mês). Algumas coisas qu
 - Mais de 1 empreendimento (Pro: até 5)
 - Análises por IA além de 1/mês (Pro: 30/mês)
 - PDF anual e mensal
-- Resumo mensal por email
 
 **Você tem 3 caminhos:**
 
@@ -393,9 +401,14 @@ Hierarquia visual: `Por tempo limitado no Free` POP mais que `Em breve` — uma 
 - **Sync na nuvem é Free pra sempre.** Hoje é opt-in via login mágico, custo no Supabase é desprezível, e ter no Free aumenta retenção e força adoção multi-device.
 - **Backup Excel manual é Free pra sempre.** O que vira Pro é o export AUTOMÁTICO pro contador (dia 5 do mês, anexo no email do contador) — feature nova, fase 2.
 - **PDF anual e mensal migram pro Pro** porque são percebidos como features "premium de relatório", e historicamente é o gatilho de compra pra quem precisa entregar pro contador/banco/sócio.
-- **Análise por IA mensal hoje tem 3/mês.** Vira 1/mês no Free (2 no 1º mês como bônus de onboarding) e 30/mês no Pro. Limite atual do Anthropic + cache por data_hash já cobre o custo do Free.
+- **Análise por IA mensal hoje tem 3/mês.** Vira 1/mês no Free (2 no 1º mês como bônus de onboarding), 30/mês no Pro e ilimitada no Ultra. Limite atual do Anthropic + cache por data_hash já cobre o custo do Free.
+- **Empreendimentos:** Free 1 · Pro até 5 · Ultra ilimitado. Multi-empreendimento é a alavanca principal de conversão do dono.
+- **Insights viram escada.** Free tem **alertas automáticos** (heurística: queda, pendência, concentração). Pro/Ultra ganham **insights com IA** (pendências enriquecidas + sugestões de ação). A diferença verbal "alertas" × "insights" reforça o upgrade.
+- **Lembretes/notificações viram escada.** Free tem in-app + email básico (resumo do mês + meta) — permanece grátis. Pro ganha **lembrete diário por email e WhatsApp** (Fase 2). Email básico deixou de ser "por tempo limitado".
+- **Análise de catálogo por IA e comparativo público de preço são Ultra**, não Pro. Consolidados junto dos marketplaces numa frente única de "inteligência de preço/produto".
+- **DAS/DARF inteiro (cálculo, PDF e agendamento PIX) é exclusividade Ultra.** Abrimos mão do gancho de SEO-via-Free em troca de preservar a automação fiscal como alavanca de conversão high-ticket.
 - **Marketplaces ficam todas no Ultra**, não distribuídas entre Pro e Ultra. Mensagem fica simples: "quem vende online vai Ultra".
 
 ---
 
-> Última atualização: 2026-05-23. Mantenha esse arquivo sincronizado com a `PricingPage.tsx` e com o roadmap real conforme cada fase fechar.
+> Última atualização: 2026-05-25. Mantenha esse arquivo sincronizado com a `PricingPage.tsx` e com o roadmap real conforme cada fase fechar.
