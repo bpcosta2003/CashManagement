@@ -135,7 +135,7 @@ const APP_FEATURES: FeatureCard[] = [
   },
   {
     icon: "💳",
-    title: "Taxa do cartão, do negócio e auxiliar",
+    title: "Detalhamento de taxas",
     body:
       "Em cada atendimento desconta a taxa da maquininha, o repasse da casa (cadeira/comissão) e o auxiliar. Você vê na hora quanto sobrou de fato pra você.",
   },
