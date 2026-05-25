@@ -299,8 +299,7 @@
   color: var(--accent);
   font-weight: 700;
   font-size: 14px;
-  line-height: 26px;
-  text-align: center;
+  line-height: 1;
 }
 
 .reliefText {
@@ -645,20 +644,6 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 6px;
-}
-
-.featureStrong {
-  font-weight: 700;
-  color: var(--text);
-}
-
-.syncArrow {
-  display: inline-block;
-  vertical-align: middle;
-  font-size: 0.9em;
-  line-height: 1;
-  color: var(--accent);
-  transform: translateY(-0.05em);
 }
 
 .soonTag,

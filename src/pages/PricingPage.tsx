@@ -23,7 +23,7 @@ import styles from "./PricingPage.module.css";
 type Tier = "pro" | "ultra";
 
 interface PlanFeature {
-  label: React.ReactNode;
+  label: string;
   /** Feature ainda não construída — sai numa fase futura
    *  ("Em breve" — accent-soft pill). */
   soon?: boolean;
@@ -32,8 +32,6 @@ interface PlanFeature {
    *  — accent sólido pill, sinaliza urgência sem retirar acesso
    *  agora). */
   limited?: boolean;
-  /** Destaque visual — feature âncora do plano (label em negrito). */
-  strong?: boolean;
 }
 
 interface Plan {
@@ -57,20 +55,9 @@ const PLANS: Plan[] = [
     priceHint: "pra sempre",
     features: [
       { label: "Lançamentos ilimitados, mesmo offline" },
-      {
-        label: (
-          <span>
-            Sincroniza celular{" "}
-            <span className={styles.syncArrow}>↔</span> computador
-          </span>
-        ),
-      },
-      { label: "Taxa do cartão, do negócio e auxiliar por atendimento" },
-      {
-        label:
-          "Detalhamento mensal e anual completo, com resumo dos valores: bruto, líquido, margem, ticket médio e LTV",
-        strong: true,
-      },
+      { label: "Sincroniza os dados do celular para o computador e vice-versa" },
+      { label: "Detalhamento de taxas" },
+      { label: "Detalhamento mensal e anual completo" },
       { label: "Projeção de recebimentos futuros mês a mês" },
       { label: "Alertas automáticos do que muda no caixa" },
       { label: "Clientes e catálogo de serviços" },
@@ -639,9 +626,7 @@ export function PricingPage() {
                       <span className={styles.featureDot} aria-hidden="true">
                         ✓
                       </span>
-                      <span
-                        className={`${styles.featureLabel} ${f.strong ? styles.featureStrong : ""}`}
-                      >
+                      <span className={styles.featureLabel}>
                         {f.label}
                         {f.soon && (
                           <span className={styles.soonTag}>Em breve</span>
