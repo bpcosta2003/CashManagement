@@ -375,6 +375,59 @@ export function AnnualDashboard({
         </div>
       </div>
 
+      {/* Composição anual */}
+      {totalCompo > 0 && (
+        <div className={styles.compoWrap}>
+          <div className={styles.compoShell}>
+            <header className={styles.compoHead}>
+              <span className={styles.compoEyebrow}>Composição do ano</span>
+              <span className={styles.compoTotal}>{fmtBRL(totalCompo)}</span>
+            </header>
+            <div className={styles.compoBar}>
+              {FORMAS_PAGAMENTO.map((forma) => {
+                const value = paymentBreakdown[forma]?.bruto || 0;
+                const pct = (value / totalCompo) * 100;
+                if (pct === 0) return null;
+                return (
+                  <span
+                    key={forma}
+                    className={styles.compoSegment}
+                    style={{
+                      width: `${pct}%`,
+                      background: SEGMENT_VAR[forma],
+                    }}
+                    title={`${forma}: ${fmtPct(pct)}`}
+                  />
+                );
+              })}
+            </div>
+            <div className={styles.compoLegend}>
+              {FORMAS_PAGAMENTO.map((forma) => {
+                const data = paymentBreakdown[forma] || {
+                  count: 0,
+                  bruto: 0,
+                  liq: 0,
+                };
+                const pct = totalCompo > 0 ? (data.bruto / totalCompo) * 100 : 0;
+                return (
+                  <div key={forma} className={styles.compoItem}>
+                    <span
+                      className={styles.compoSwatch}
+                      style={{ background: SEGMENT_VAR[forma] }}
+                      aria-hidden="true"
+                    />
+                    <span className={styles.compoName}>{forma}</span>
+                    <span className={styles.compoValue}>
+                      {fmtPct(pct, 0)}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Atividade do ano (timeline) */}
       <ActivityTimeline activity={activity} onSelectMonth={onSelectMonth} />
 
@@ -408,7 +461,7 @@ export function AnnualDashboard({
                       <div className={styles.servicoMain}>
                         <span className={styles.servicoName}>{c.name}</span>
                         <span className={styles.servicoMeta}>
-                          {c.count} lançamento{c.count === 1 ? "" : "s"} · ticket{" "}
+                          {c.count} lançamento{c.count === 1 ? "" : "s"} · Ticket{" "}
                           {fmtBRL(c.ticketMedio)}
                           {pct > 0 ? ` · ${fmtPct(pct, 0)} do bruto` : ""}
                         </span>
@@ -460,59 +513,6 @@ export function AnnualDashboard({
                 );
               })}
             </ol>
-          </div>
-        </div>
-      )}
-
-      {/* Composição anual */}
-      {totalCompo > 0 && (
-        <div className={styles.compoWrap}>
-          <div className={styles.compoShell}>
-            <header className={styles.compoHead}>
-              <span className={styles.compoEyebrow}>Composição do ano</span>
-              <span className={styles.compoTotal}>{fmtBRL(totalCompo)}</span>
-            </header>
-            <div className={styles.compoBar}>
-              {FORMAS_PAGAMENTO.map((forma) => {
-                const value = paymentBreakdown[forma]?.bruto || 0;
-                const pct = (value / totalCompo) * 100;
-                if (pct === 0) return null;
-                return (
-                  <span
-                    key={forma}
-                    className={styles.compoSegment}
-                    style={{
-                      width: `${pct}%`,
-                      background: SEGMENT_VAR[forma],
-                    }}
-                    title={`${forma}: ${fmtPct(pct)}`}
-                  />
-                );
-              })}
-            </div>
-            <div className={styles.compoLegend}>
-              {FORMAS_PAGAMENTO.map((forma) => {
-                const data = paymentBreakdown[forma] || {
-                  count: 0,
-                  bruto: 0,
-                  liq: 0,
-                };
-                const pct = totalCompo > 0 ? (data.bruto / totalCompo) * 100 : 0;
-                return (
-                  <div key={forma} className={styles.compoItem}>
-                    <span
-                      className={styles.compoSwatch}
-                      style={{ background: SEGMENT_VAR[forma] }}
-                      aria-hidden="true"
-                    />
-                    <span className={styles.compoName}>{forma}</span>
-                    <span className={styles.compoValue}>
-                      {fmtPct(pct, 0)}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
           </div>
         </div>
       )}

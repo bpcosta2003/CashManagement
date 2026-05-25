@@ -32,8 +32,9 @@ export function ActivityTimeline({ activity, onSelectMonth }: Props) {
               >
                 <header className={styles.itemHead}>
                   <span className={styles.monthLabel}>{m.label}</span>
-                  <span className={styles.monthTotal}>
-                    {fmtBRL(m.bruto)}
+                  <span className={styles.monthTotalWrap}>
+                    <span className={styles.monthTotal}>{fmtBRL(m.bruto)}</span>
+                    <span className={styles.monthTotalLabel}>bruto</span>
                   </span>
                 </header>
                 <ul className={styles.events}>
