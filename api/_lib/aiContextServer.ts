@@ -145,8 +145,18 @@ function validateRow(input: unknown, businessId: string): Row | null {
         : clampNumber(auxiliarRaw, 0, 100)
       : undefined;
 
-  // Snapshot da taxa fixa do negócio carimbado no row (preserva
-  // histórico — não muda quando a config do negócio muda).
+  // Taxa do negócio por lançamento (v3) — % (cap 100) ou R$ (cap MAX).
+  const taxaNegocioMode: "percent" | "value" =
+    r.taxaNegocioMode === "value" ? "value" : "percent";
+  const taxaNegocioRaw = asFiniteNumber(r.taxaNegocio, NaN);
+  const taxaNegocio = Number.isFinite(taxaNegocioRaw)
+    ? taxaNegocioMode === "value"
+      ? clampNumber(taxaNegocioRaw, 0, MAX_VALOR)
+      : clampNumber(taxaNegocioRaw, 0, 100)
+    : undefined;
+
+  // Snapshot da taxa fixa do negócio carimbado no row (legado pré-v3 —
+  // fallback no calcRow quando taxaNegocio ausente).
   const taxaFixaSnapshotRaw = asFiniteNumber(r.taxaFixaPctSnapshot, NaN);
   const taxaFixaPctSnapshot = Number.isFinite(taxaFixaSnapshotRaw)
     ? clampNumber(taxaFixaSnapshotRaw, 0, 100)
@@ -198,6 +208,10 @@ function validateRow(input: unknown, businessId: string): Row | null {
     desconto,
     ...(auxiliarPct !== undefined ? { auxiliarPct } : {}),
     ...(auxiliarMode === "value" ? { auxiliarMode } : {}),
+    ...(taxaNegocio !== undefined ? { taxaNegocio } : {}),
+    ...(taxaNegocio !== undefined && taxaNegocioMode === "value"
+      ? { taxaNegocioMode }
+      : {}),
     ...(taxaFixaPctSnapshot !== undefined
       ? { taxaFixaPctSnapshot }
       : {}),
@@ -292,7 +306,10 @@ export function validateAndBuildContext(body: AnalyzeBody): BuildContextResult {
     (acc, r) => {
       acc.bruto += r.v;
       acc.descontos += r.descontoVal;
-      acc.taxas += r.taxaVal;
+      // "taxas" agrega as três deduções percentuais (cartão + taxa do
+      // negócio + auxiliar), igual ao resumo do app — senão a IA recebe
+      // taxas subdimensionadas e tira conclusões erradas.
+      acc.taxas += r.taxaVal + r.taxaFixaVal + r.auxiliarVal;
       acc.custos += r.custoVal;
       acc.liq += r.liq;
       if (r.forma !== "Crédito") acc.estesMes += r.liq;

@@ -297,7 +297,7 @@ export function MargemInfoModal({ open, onClose, data, label }: MargemProps) {
           sobraram <strong>{fmtBRL(data.liq)}</strong> de lucro.
         </span>
         <span className={styles.formulaCalc}>
-          margem = líquido ÷ bruto
+          margem = líquido / bruto
         </span>
       </div>
     </Sheet>
