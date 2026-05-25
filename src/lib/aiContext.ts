@@ -6,8 +6,8 @@ import type {
   Row,
   Summary,
 } from "../types";
-import { calcRow } from "./calc";
-import { MESES_FULL } from "../constants";
+import { calcRow } from "./calc.js";
+import { MESES_FULL } from "../constants.js";
 
 export interface AiContextInput {
   business: Business;

@@ -2,20 +2,20 @@
  * Helpers de envio compartilhados com o cron diário. Mantém o template
  * e a lógica de composição num só lugar.
  */
-import { env } from "./env";
+import { env } from "./env.js";
 import {
   computeInsights,
   pendingRows,
   type Row,
   type Insight,
-} from "./insights";
+} from "./insights.js";
 import {
   sendEmail,
   renderEmailHtml,
   renderEmailText,
   SUBJECT_PREFIX,
   type EmailBlock,
-} from "./email";
+} from "./email.js";
 
 export const MES_LABEL = [
   "Janeiro",
