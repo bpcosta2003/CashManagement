@@ -23,7 +23,7 @@ import styles from "./PricingPage.module.css";
 type Tier = "pro" | "ultra";
 
 interface PlanFeature {
-  label: string;
+  label: React.ReactNode;
   /** Feature ainda não construída — sai numa fase futura
    *  ("Em breve" — accent-soft pill). */
   soon?: boolean;
@@ -32,6 +32,8 @@ interface PlanFeature {
    *  — accent sólido pill, sinaliza urgência sem retirar acesso
    *  agora). */
   limited?: boolean;
+  /** Destaque visual — feature âncora do plano (label em negrito). */
+  strong?: boolean;
 }
 
 interface Plan {
@@ -55,13 +57,23 @@ const PLANS: Plan[] = [
     priceHint: "pra sempre",
     features: [
       { label: "Lançamentos ilimitados, mesmo offline" },
-      { label: "Sincroniza celular ↔ computador" },
+      {
+        label: (
+          <span>
+            Sincroniza celular{" "}
+            <span className={styles.syncArrow}>↔</span> computador
+          </span>
+        ),
+      },
       { label: "Taxa do cartão, do negócio e auxiliar por atendimento" },
-      { label: "Mês e ano lado a lado, com gráfico de 12 meses" },
-      { label: "Resumo do mês: bruto, líquido, margem, ticket e top serviços" },
+      {
+        label:
+          "Detalhamento mensal e anual completo, com resumo dos valores: bruto, líquido, margem, ticket médio e LTV",
+        strong: true,
+      },
       { label: "Projeção de recebimentos futuros mês a mês" },
       { label: "Alertas automáticos do que muda no caixa" },
-      { label: "Clientes (LTV) e catálogo de serviços" },
+      { label: "Clientes e catálogo de serviços" },
       { label: "Backup e restore Excel manual" },
       { label: "Lembretes in-app e por email (resumo do mês e meta)" },
       { label: "Múltiplos empreendimentos", limited: true },
@@ -126,91 +138,91 @@ const APP_FEATURES: FeatureCard[] = [
     icon: "🏪",
     title: "Seu empreendimento",
     body:
-      "Troca entre negócios em 1 toque. Salão + freelance + comércio, cada um com caixa, clientes, catálogo e metas próprios.",
+      "Toca mais de um negócio? Cada um com caixa, clientes, catálogo e metas separados — e você troca entre eles em 1 toque.",
   },
   {
     icon: "☁️",
     title: "Sincronização na nuvem",
     body:
-      "Login só com email, sem senha. Funciona offline e sincroniza automaticamente quando volta a conexão.",
+      "Entra só com o email, sem senha. Lança offline e tudo sobe pra nuvem sozinho quando a conexão volta — celular e computador sempre iguais.",
   },
   {
     icon: "💳",
     title: "Taxa do cartão, do negócio e auxiliar",
     body:
-      "Por atendimento: taxa da maquininha, repasse pro estabelecimento (cadeira, comissão) e auxiliar. Vê na hora quanto é seu e quanto vai pra terceiros.",
+      "Em cada atendimento desconta a taxa da maquininha, o repasse da casa (cadeira/comissão) e o auxiliar. Você vê na hora quanto sobrou de fato pra você.",
   },
   {
     icon: "📅",
     title: "Mês e ano em foco",
     body:
-      "Navegue por mês ou alterne pra visão anual com gráfico dos 12 meses, timeline de atividade e comparativo entre negócios.",
+      "Veja o mês em detalhe ou abra a visão anual: gráfico dos 12 meses, linha do tempo e comparação entre os seus negócios.",
   },
   {
     icon: "💰",
     title: "Resumo do mês",
     body:
-      "Bruto, descontos, taxas e líquido em tempo real. Toque nos cards pra ver clientes, formas de pagamento e top serviços.",
+      "Bruto, descontos, taxas e líquido em tempo real. Toque em cada card pra abrir clientes, formas de pagamento e os serviços que mais renderam.",
   },
   {
     icon: "🎯",
     title: "Meta mensal",
     body:
-      "Defina quanto quer faturar. Barra colorida (vermelho → dourado) e \"faltam R$ X\" ao vivo, sem precisar abrir planilha.",
+      "Defina quanto quer faturar no mês. A barra vai de vermelho a dourado e mostra \"faltam R$ X\" ao vivo — sem abrir planilha.",
   },
   {
     icon: "💡",
     title: "Alertas automáticos",
     body:
-      "Detecto queda de faturamento, pagamentos pendentes acumulando, concentração em um cliente. Aviso só o que importa.",
+      "O app avisa quando o faturamento cai, as pendências se acumulam ou um cliente concentra demais. Só o alerta que importa, sem ruído.",
   },
   {
     icon: "🤖",
     title: "Análise por IA",
     body:
-      "No fim do mês, gere análise inteligente com Claude: insights profundos, comparações e ações práticas em português.",
+      "Gere uma análise com IA quando quiser: o que mudou no mês, comparações e próximos passos práticos, explicados em português.",
   },
   {
     icon: "📝",
     title: "Lançamentos do mês",
     body:
-      "Cada venda fica aqui: cliente, serviço, valor, forma de pagamento, status. Pendentes destacados pra você dar baixa.",
+      "Cada venda registrada: cliente, serviço, valor, forma de pagamento e status. As pendentes ficam destacadas pra você dar baixa rápido.",
   },
   {
     icon: "📆",
     title: "Projeção futura",
     body:
-      "Vendas no crédito caem nos próximos meses (parceladas ou não). Veja quanto entra e quando, sem fazer conta.",
+      "Vendas no crédito, parceladas ou não, caem nos próximos meses. Veja quanto entra e em qual mês, sem fazer conta na mão.",
   },
   {
     icon: "👥",
     title: "Clientes e LTV",
     body:
-      "Lista todos os clientes com faturamento total, ticket médio, última visita e telefone. Identifique melhores e quem sumiu.",
+      "Todos os clientes com faturamento total, ticket médio, última visita e telefone. Veja num relance os melhores e quem sumiu.",
   },
   {
     icon: "📚",
     title: "Catálogo de serviços",
     body:
-      "Seus serviços com valor sugerido. Ao selecionar no lançamento, o valor vem preenchido — economiza digitação e evita erro.",
+      "Cadastre seus serviços com preço sugerido. No lançamento é só selecionar e o valor vem preenchido — menos digitação, menos erro.",
   },
   {
     icon: "💾",
     title: "Backup e restauração",
     body:
-      "Exporta tudo pra Excel (lançamentos, resumo, projeção, clientes, catálogo). Importa pra restaurar ou migrar de dispositivo.",
+      "Exporta tudo pra Excel — lançamentos, resumo, projeção, clientes e catálogo. Importa de volta pra restaurar ou trocar de aparelho.",
   },
   {
     icon: "🎨",
     title: "Aparência",
     body:
-      "Tema claro ou escuro, 12 cores de destaque, instala como app no celular (PWA) — funciona como aplicativo nativo.",
+      "Tema claro ou escuro, 12 cores de destaque e instalação como app no celular (PWA) — abre e funciona feito aplicativo nativo.",
   },
   {
     icon: "🔔",
     title: "Lembretes",
     body:
-      "Lembrete in-app quando você abre o app sem lançar 24h. Email no 1º e último dia do mês com meta e resumo.",
+      "Aviso dentro do app se passar 24h sem lançar. E email no começo e no fim do mês com a meta e o resumo do período.",
   },
 ];
 
@@ -331,28 +343,39 @@ export function PricingPage() {
   const carouselRef = useRef<HTMLDivElement>(null);
   const [carouselIdx, setCarouselIdx] = useState(0);
 
-  const scrollToCarouselIdx = (idx: number) => {
+  // Avança/volta um card por clique via scrollBy. No desktop o
+  // container mostra 2-3 cards por vez, então navegar por offset
+  // absoluto travava perto do fim (os últimos cards nunca alinham à
+  // esquerda). Andar por "passo de card" funciona em qualquer largura.
+  const scrollByCard = (dir: -1 | 1) => {
     const container = carouselRef.current;
-    if (!container) return;
-    const card = container.children[idx] as HTMLElement | undefined;
-    if (!card) return;
-    container.scrollTo({
-      left: card.offsetLeft - container.offsetLeft,
-      behavior: "smooth",
-    });
+    if (!container || container.children.length < 1) return;
+    const first = container.children[0] as HTMLElement;
+    const second = container.children[1] as HTMLElement | undefined;
+    const step = second
+      ? second.offsetLeft - first.offsetLeft
+      : first.offsetWidth;
+    container.scrollBy({ left: dir * step, behavior: "smooth" });
   };
 
   useEffect(() => {
     const container = carouselRef.current;
     if (!container) return;
     // Atualiza o índice ativo conforme o usuário arrasta/swipa.
-    // Usa o card mais próximo do scrollLeft pra evitar saltos.
     let raf = 0;
     const onScroll = () => {
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(() => {
         const cards = Array.from(container.children) as HTMLElement[];
         if (cards.length === 0) return;
+        // No fim do scroll os últimos cards já estão visíveis, mas não
+        // dá pra alinhá-los à esquerda — marca o último pra contagem
+        // chegar a N/N (senão trava em "13/15" no desktop).
+        const maxScroll = container.scrollWidth - container.clientWidth;
+        if (maxScroll > 4 && container.scrollLeft >= maxScroll - 2) {
+          setCarouselIdx(cards.length - 1);
+          return;
+        }
         let closest = 0;
         let minDist = Infinity;
         for (let i = 0; i < cards.length; i += 1) {
@@ -551,9 +574,7 @@ export function PricingPage() {
               <button
                 type="button"
                 className={styles.carouselBtn}
-                onClick={() =>
-                  scrollToCarouselIdx(Math.max(0, carouselIdx - 1))
-                }
+                onClick={() => scrollByCard(-1)}
                 disabled={carouselIdx === 0}
                 aria-label="Funcionalidade anterior"
               >
@@ -573,11 +594,7 @@ export function PricingPage() {
               <button
                 type="button"
                 className={styles.carouselBtn}
-                onClick={() =>
-                  scrollToCarouselIdx(
-                    Math.min(APP_FEATURES.length - 1, carouselIdx + 1),
-                  )
-                }
+                onClick={() => scrollByCard(1)}
                 disabled={carouselIdx === APP_FEATURES.length - 1}
                 aria-label="Próxima funcionalidade"
               >
@@ -622,7 +639,9 @@ export function PricingPage() {
                       <span className={styles.featureDot} aria-hidden="true">
                         ✓
                       </span>
-                      <span className={styles.featureLabel}>
+                      <span
+                        className={`${styles.featureLabel} ${f.strong ? styles.featureStrong : ""}`}
+                      >
                         {f.label}
                         {f.soon && (
                           <span className={styles.soonTag}>Em breve</span>

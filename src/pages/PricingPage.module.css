@@ -291,6 +291,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  justify-self: center;
   width: 26px;
   height: 26px;
   border-radius: 50%;
@@ -298,7 +299,8 @@
   color: var(--accent);
   font-weight: 700;
   font-size: 14px;
-  line-height: 1;
+  line-height: 26px;
+  text-align: center;
 }
 
 .reliefText {
@@ -643,6 +645,20 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 6px;
+}
+
+.featureStrong {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.syncArrow {
+  display: inline-block;
+  vertical-align: middle;
+  font-size: 0.9em;
+  line-height: 1;
+  color: var(--accent);
+  transform: translateY(-0.05em);
 }
 
 .soonTag,
