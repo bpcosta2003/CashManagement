@@ -644,29 +644,38 @@ export function PricingPage() {
               {APP_FEATURES.map((f) => (
                 <article key={f.title} className={styles.appFeatureCard}>
                   {f.image && (
+                    <img
+                      className={styles.appFeatureBg}
+                      src={f.image}
+                      alt=""
+                      aria-hidden="true"
+                      loading="lazy"
+                      decoding="async"
+                      style={{ objectPosition: `50% ${f.focus ?? "50%"}` }}
+                    />
+                  )}
+                  <div className={styles.appFeatureContent}>
+                    <span className={styles.appFeatureIcon} aria-hidden="true">
+                      {f.icon}
+                    </span>
+                    <h3 className={styles.appFeatureTitle}>{f.title}</h3>
+                    <p className={styles.appFeatureBody}>{f.body}</p>
+                  </div>
+                  {f.image && (
                     <button
                       type="button"
-                      className={styles.appFeatureThumb}
+                      className={styles.appFeatureExpand}
                       onClick={() => setLightbox(f)}
                       aria-label={`Ver tela: ${f.title}`}
                     >
-                      <img
-                        src={f.image}
-                        alt={`Tela do app — ${f.title}`}
-                        loading="lazy"
-                        decoding="async"
-                        style={{ objectPosition: `50% ${f.focus ?? "50%"}` }}
-                      />
-                      <span className={styles.appFeatureThumbZoom} aria-hidden="true">
+                      <span
+                        className={styles.appFeatureExpandIcon}
+                        aria-hidden="true"
+                      >
                         ⤢
                       </span>
                     </button>
                   )}
-                  <span className={styles.appFeatureIcon} aria-hidden="true">
-                    {f.icon}
-                  </span>
-                  <h3 className={styles.appFeatureTitle}>{f.title}</h3>
-                  <p className={styles.appFeatureBody}>{f.body}</p>
                 </article>
               ))}
             </div>
