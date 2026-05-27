@@ -141,6 +141,8 @@ const APP_FEATURES: FeatureCard[] = [
     title: "Sincronização na nuvem",
     body:
       "Entra só com o email, sem senha. Lança offline e tudo sobe pra nuvem sozinho quando a conexão volta — celular e computador sempre iguais.",
+    image: "/features/sync.jpg",
+    focus: "36%",
   },
   {
     icon: "💳",
