@@ -476,16 +476,18 @@
 }
 
 .appFeatureCard {
-  position: relative;
-  overflow: hidden;
   flex: 0 0 auto;
   width: calc(100% - 48px);
-  max-width: 320px;
+  max-width: 360px;
   scroll-snap-align: start;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 14px;
   background: var(--surface);
   border: 1px solid var(--border-soft);
   border-radius: var(--radius-lg);
-  padding: 20px 20px 18px;
+  padding: 16px;
   box-shadow: var(--shadow-card);
   transition: border-color 0.18s var(--ease), transform 0.18s var(--ease);
 }
@@ -497,7 +499,7 @@
   }
 }
 
-@media (min-width: 900px) {
+@media (min-width: 1000px) {
   .appFeatureCard {
     width: calc(33.333% - 10px);
   }
@@ -508,75 +510,65 @@
   transform: translateY(-2px);
 }
 
-/* Print da tela como fundo: blur + opacidade baixa só pra dar a dica
-   de que tem uma tela ali pra expandir (o lightbox mostra inteira). */
-.appFeatureBg {
-  position: absolute;
-  inset: 0;
+/* Tela do celular inteira na lateral; o clique abre o lightbox. */
+.appFeatureShot {
+  appearance: none;
+  position: relative;
+  flex: 0 0 96px;
+  width: 96px;
+  aspect-ratio: 1440 / 3045;
+  padding: 0;
+  border: 1px solid var(--border-soft);
+  border-radius: 14px;
+  overflow: hidden;
+  background: #000;
+  cursor: pointer;
+  transition: border-color 0.18s var(--ease), transform 0.18s var(--ease);
+}
+
+.appFeatureShot img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: 0.14;
-  filter: blur(3px);
-  transform: scale(1.08);
-  pointer-events: none;
-  transition: opacity 0.18s var(--ease);
+  display: block;
 }
 
-.appFeatureCard:hover .appFeatureBg {
-  opacity: 0.26;
+.appFeatureShot:hover,
+.appFeatureShot:focus-visible {
+  border-color: var(--accent);
+  outline: none;
+  transform: scale(1.02);
 }
 
-.appFeatureContent {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-/* Alvo de clique cobrindo o card inteiro — abre o lightbox. */
-.appFeatureExpand {
+.appFeatureShotZoom {
   position: absolute;
-  inset: 0;
-  z-index: 2;
-  appearance: none;
-  padding: 0;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-}
-
-.appFeatureExpandIcon {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  width: 28px;
-  height: 28px;
+  top: 6px;
+  right: 6px;
+  width: 24px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 15px;
+  font-size: 13px;
   line-height: 1;
-  color: var(--text-muted);
-  background: var(--surface);
-  border: 1px solid var(--border-soft);
-  border-radius: 8px;
-  transition: color 0.18s var(--ease), border-color 0.18s var(--ease),
-    background 0.18s var(--ease);
-}
-
-.appFeatureExpand:hover .appFeatureExpandIcon,
-.appFeatureExpand:focus-visible .appFeatureExpandIcon {
   color: #fff;
-  background: var(--accent);
-  border-color: var(--accent);
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 7px;
+  backdrop-filter: blur(2px);
+  transition: background 0.18s var(--ease);
 }
 
-.appFeatureExpand:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: -2px;
-  border-radius: var(--radius-lg);
+.appFeatureShot:hover .appFeatureShotZoom,
+.appFeatureShot:focus-visible .appFeatureShotZoom {
+  background: var(--accent);
+}
+
+.appFeatureContent {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .appFeatureIcon {
