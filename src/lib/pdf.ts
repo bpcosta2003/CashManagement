@@ -14,6 +14,16 @@ interface ExportOpts {
   ano: number;
 }
 
+/** Rótulo da forma de pagamento pra tabelas do PDF. Em múltiplo, junta os
+ *  métodos (ou "Múltiplo" se forem muitos); senão, forma + parcelas. */
+function pdfFormaLabel(r: CalculatedRow): string {
+  if (r.pagamentos && r.pagamentos.length > 1) {
+    const fs = Array.from(new Set(r.pagamentos.map((p) => p.forma)));
+    return fs.length <= 2 ? fs.join(" + ") : "Múltiplo";
+  }
+  return r.forma === "Crédito" && r.parc > 1 ? `Crédito ${r.parc}x` : r.forma;
+}
+
 const PAY_COLORS: Record<string, [number, number, number]> = {
   Dinheiro: [90, 128, 98],
   Pix: [88, 123, 156],
@@ -156,8 +166,7 @@ export function exportMonthPdf({
       : `${String(date.getDate()).padStart(2, "0")}/${String(
           date.getMonth() + 1,
         ).padStart(2, "0")}`;
-    const formaLabel =
-      r.forma === "Crédito" && r.parc > 1 ? `Crédito ${r.parc}x` : r.forma;
+    const formaLabel = pdfFormaLabel(r);
     return [
       dateStr,
       r.cliente || "—",
@@ -585,8 +594,7 @@ export function exportYearPdf({ business, summary }: ExportYearOpts): void {
         : `${String(date.getDate()).padStart(2, "0")}/${String(
             date.getMonth() + 1,
           ).padStart(2, "0")}`;
-      const formaLabel =
-        r.forma === "Crédito" && r.parc > 1 ? `Crédito ${r.parc}x` : r.forma;
+      const formaLabel = pdfFormaLabel(r);
       return [
         dateStr,
         r.cliente || "—",

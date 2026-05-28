@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import type { CalculatedRow, Row } from "../types";
 import { MESES_SHORT } from "../constants";
-import { calcRow } from "../lib/calc";
+import { calcRow, rowParts } from "../lib/calc";
 
 export interface MonthBucket {
   m: number;
@@ -148,12 +148,15 @@ export function useAnnual(
           }
         }
 
-        const bd = paymentBreakdown[r.forma];
-        if (bd) {
+        // Por parte de pagamento: split distribui bruto/líquido entre as
+        // formas; forma única conta a Row inteira numa só.
+        rowParts(r).forEach((part) => {
+          const bd = paymentBreakdown[part.forma];
+          if (!bd) return;
           bd.count += 1;
-          bd.bruto += r.v;
-          bd.liq += r.liq;
-        }
+          bd.bruto += part.bruto;
+          bd.liq += part.liq;
+        });
 
         // Top serviços: em multi-mode, cada item entra separado (count
         // por item, não por lançamento) pra refletir o mix real.

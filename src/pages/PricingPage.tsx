@@ -113,6 +113,13 @@ interface FeatureCard {
   icon: string;
   title: string;
   body: string;
+  /** Print real da tela (em /public/features). Vira miniatura no card
+   *  e abre em tela cheia no lightbox. Features sem print ainda ficam
+   *  só com emoji + texto. */
+  image?: string;
+  /** object-position Y da miniatura — recorta a faixa relevante da
+   *  tela (vários cards compartilham o mesmo print). */
+  focus?: string;
 }
 
 /**
@@ -126,90 +133,120 @@ const APP_FEATURES: FeatureCard[] = [
     title: "Seu empreendimento",
     body:
       "Toca mais de um negócio? Cada um com caixa, clientes, catálogo e metas separados — e você troca entre eles em 1 toque.",
+    image: "/features/empreendimentos.jpg",
+    focus: "55%",
   },
   {
     icon: "☁️",
     title: "Sincronização na nuvem",
     body:
       "Entra só com o email, sem senha. Lança offline e tudo sobe pra nuvem sozinho quando a conexão volta — celular e computador sempre iguais.",
+    image: "/features/sync.jpg",
+    focus: "36%",
   },
   {
     icon: "💳",
     title: "Detalhamento de taxas",
     body:
       "Em cada atendimento desconta a taxa da maquininha, o repasse da casa (cadeira/comissão) e o auxiliar. Você vê na hora quanto sobrou de fato pra você.",
+    image: "/features/home.jpg",
+    focus: "16%",
   },
   {
     icon: "📅",
     title: "Mês e ano em foco",
     body:
       "Veja o mês em detalhe ou abra a visão anual: gráfico dos 12 meses, linha do tempo e comparação entre os seus negócios.",
+    image: "/features/ano.jpg",
+    focus: "40%",
   },
   {
     icon: "💰",
     title: "Resumo do mês",
     body:
       "Bruto, descontos, taxas e líquido em tempo real. Toque em cada card pra abrir clientes, formas de pagamento e os serviços que mais renderam.",
+    image: "/features/home.jpg",
+    focus: "44%",
   },
   {
     icon: "🎯",
     title: "Meta mensal",
     body:
       "Defina quanto quer faturar no mês. A barra vai de vermelho a dourado e mostra \"faltam R$ X\" ao vivo — sem abrir planilha.",
+    image: "/features/insights.jpg",
+    focus: "8%",
   },
   {
     icon: "💡",
     title: "Alertas automáticos",
     body:
       "O app avisa quando o faturamento cai, as pendências se acumulam ou um cliente concentra demais. Só o alerta que importa, sem ruído.",
+    image: "/features/insights.jpg",
+    focus: "46%",
   },
   {
     icon: "🤖",
     title: "Análise por IA",
     body:
       "Gere uma análise com IA quando quiser: o que mudou no mês, comparações e próximos passos práticos, explicados em português.",
+    image: "/features/insights.jpg",
+    focus: "82%",
   },
   {
     icon: "📝",
     title: "Lançamentos do mês",
     body:
       "Cada venda registrada: cliente, serviço, valor, forma de pagamento e status. As pendentes ficam destacadas pra você dar baixa rápido.",
+    image: "/features/lancamentos.jpg",
+    focus: "34%",
   },
   {
     icon: "📆",
     title: "Projeção futura",
     body:
       "Vendas no crédito, parceladas ou não, caem nos próximos meses. Veja quanto entra e em qual mês, sem fazer conta na mão.",
+    image: "/features/projecao.jpg",
+    focus: "38%",
   },
   {
     icon: "👥",
     title: "Clientes e LTV",
     body:
       "Todos os clientes com faturamento total, ticket médio, última visita e telefone. Veja num relance os melhores e quem sumiu.",
+    image: "/features/clientes.jpg",
+    focus: "40%",
   },
   {
     icon: "📚",
     title: "Catálogo de serviços",
     body:
       "Cadastre seus serviços com preço sugerido. No lançamento é só selecionar e o valor vem preenchido — menos digitação, menos erro.",
+    image: "/features/catalogo.jpg",
+    focus: "44%",
   },
   {
     icon: "💾",
     title: "Backup e restauração",
     body:
       "Exporta tudo pra Excel — lançamentos, resumo, projeção, clientes e catálogo. Importa de volta pra restaurar ou trocar de aparelho.",
+    image: "/features/backup.jpg",
+    focus: "32%",
   },
   {
     icon: "🎨",
     title: "Aparência",
     body:
       "Tema claro ou escuro, 12 cores de destaque e instalação como app no celular (PWA) — abre e funciona feito aplicativo nativo.",
+    image: "/features/preferencias.jpg",
+    focus: "22%",
   },
   {
     icon: "🔔",
     title: "Lembretes",
     body:
       "Aviso dentro do app se passar 24h sem lançar. E email no começo e no fim do mês com a meta e o resumo do período.",
+    image: "/features/preferencias.jpg",
+    focus: "90%",
   },
 ];
 
@@ -352,6 +389,19 @@ export function PricingPage() {
   // sincroniza o índice atual e move pra próxima feature ao clicar.
   const carouselRef = useRef<HTMLDivElement>(null);
   const [carouselIdx, setCarouselIdx] = useState(0);
+
+  // Print aberto em tela cheia (lightbox). A miniatura no card é só um
+  // teaser de uma faixa da tela; aqui o visitante vê o screenshot inteiro.
+  const [lightbox, setLightbox] = useState<FeatureCard | null>(null);
+
+  useEffect(() => {
+    if (!lightbox) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setLightbox(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [lightbox]);
 
   // Avança/volta um card por clique via scrollBy. No desktop o
   // container mostra 2-3 cards por vez, então navegar por offset
@@ -593,11 +643,36 @@ export function PricingPage() {
             >
               {APP_FEATURES.map((f) => (
                 <article key={f.title} className={styles.appFeatureCard}>
-                  <span className={styles.appFeatureIcon} aria-hidden="true">
-                    {f.icon}
-                  </span>
-                  <h3 className={styles.appFeatureTitle}>{f.title}</h3>
-                  <p className={styles.appFeatureBody}>{f.body}</p>
+                  {f.image && (
+                    <button
+                      type="button"
+                      className={styles.appFeatureShot}
+                      onClick={() => setLightbox(f)}
+                      aria-label={`Ver tela: ${f.title}`}
+                    >
+                      <img
+                        src={f.image}
+                        alt={`Tela do app — ${f.title}`}
+                        loading="lazy"
+                        decoding="async"
+                      />
+                      <span
+                        className={styles.appFeatureShotZoom}
+                        aria-hidden="true"
+                      >
+                        ⤢
+                      </span>
+                    </button>
+                  )}
+                  <div className={styles.appFeatureContent}>
+                    <div className={styles.appFeatureHead}>
+                      <h3 className={styles.appFeatureTitle}>{f.title}</h3>
+                      <span className={styles.appFeatureIcon} aria-hidden="true">
+                        {f.icon}
+                      </span>
+                    </div>
+                    <p className={styles.appFeatureBody}>{f.body}</p>
+                  </div>
                 </article>
               ))}
             </div>
@@ -852,6 +927,35 @@ export function PricingPage() {
                 </form>
               )}
             </div>
+          </div>
+        )}
+
+        {lightbox && lightbox.image && (
+          <div
+            className={styles.lightboxBackdrop}
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setLightbox(null);
+            }}
+            role="dialog"
+            aria-modal="true"
+            aria-label={lightbox.title}
+          >
+            <button
+              type="button"
+              className={styles.lightboxClose}
+              onClick={() => setLightbox(null)}
+              aria-label="Fechar"
+            >
+              ×
+            </button>
+            <img
+              className={styles.lightboxImg}
+              src={lightbox.image}
+              alt={`Tela do app — ${lightbox.title}`}
+            />
+            <span className={styles.lightboxCaption}>
+              {lightbox.icon} {lightbox.title}
+            </span>
           </div>
         )}
 

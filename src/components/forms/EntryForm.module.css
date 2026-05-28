@@ -701,3 +701,182 @@
   text-align: right;
 }
 
+/* ─── Múltiplas formas de pagamento ─── */
+.formaHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.multiPayToggle {
+  appearance: none;
+  border: 1px solid var(--border-soft);
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: var(--t-meta);
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.16s var(--ease);
+}
+
+.multiPayToggle:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.multiPayToggle[data-on="true"] {
+  background: var(--accent);
+  color: var(--accent-on);
+  border-color: var(--accent);
+}
+
+.splitBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+}
+
+.splitRow {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+}
+
+.splitTop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.splitFormaGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 3px;
+  flex: 1 1 auto;
+  padding: 3px;
+  background: var(--surface-2);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+}
+
+.splitFormaBtn {
+  border: none;
+  background: transparent;
+  padding: 7px 4px;
+  border-radius: calc(var(--radius-sm) - 4px);
+  font-size: var(--t-eyebrow);
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  color: var(--text-muted);
+  min-height: 32px;
+  transition: all 0.18s var(--ease);
+}
+
+.splitFormaBtn:hover {
+  color: var(--text);
+}
+
+.splitFormaBtn[data-active="true"] {
+  background: var(--accent);
+  color: var(--accent-on);
+}
+
+.splitRemove {
+  flex: 0 0 auto;
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 22px;
+  line-height: 1;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.16s var(--ease);
+}
+
+.splitRemove:hover {
+  color: var(--accent);
+  background: var(--surface-2);
+}
+
+.splitFields {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.splitField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1 1 130px;
+  min-width: 0;
+}
+
+.splitFieldNarrow {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1 1 116px;
+  min-width: 0;
+}
+
+.splitFieldLabel {
+  font-size: var(--t-eyebrow);
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.splitFoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.splitAdd {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--accent);
+  font-family: inherit;
+  font-size: var(--t-meta);
+  font-weight: 600;
+  padding: 4px 0;
+  cursor: pointer;
+}
+
+.splitAdd:hover {
+  text-decoration: underline;
+}
+
+.splitSum {
+  font-size: var(--t-meta);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+}
+
+.splitSum[data-ok="true"] {
+  color: #5a8062;
+}
+
