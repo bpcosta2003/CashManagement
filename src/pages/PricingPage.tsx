@@ -665,10 +665,12 @@ export function PricingPage() {
                     </button>
                   )}
                   <div className={styles.appFeatureContent}>
-                    <span className={styles.appFeatureIcon} aria-hidden="true">
-                      {f.icon}
-                    </span>
-                    <h3 className={styles.appFeatureTitle}>{f.title}</h3>
+                    <div className={styles.appFeatureHead}>
+                      <h3 className={styles.appFeatureTitle}>{f.title}</h3>
+                      <span className={styles.appFeatureIcon} aria-hidden="true">
+                        {f.icon}
+                      </span>
+                    </div>
                     <p className={styles.appFeatureBody}>{f.body}</p>
                   </div>
                 </article>
