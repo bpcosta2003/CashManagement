@@ -11,6 +11,7 @@ import { FORMAS_PAGAMENTO, STATUS_OPTIONS } from "../../constants";
 import {
   autoTaxa,
   calcRow,
+  cardFee,
   fmtBRL,
   fmtPct,
   joinItemNames,
@@ -222,6 +223,8 @@ export function EntryForm({
     () => !!(initial.pagamentos && initial.pagamentos.length > 0),
   );
   const [parts, setParts] = useState<PartDraft[]>(() => initParts(initial));
+  // Expande a quebra da taxa do cartão por forma no Resultado.
+  const [showFeeBreakdown, setShowFeeBreakdown] = useState(false);
 
   // Total que as partes precisam somar: em multi-item é a soma dos itens,
   // senão o valor singular.
@@ -463,11 +466,22 @@ export function EntryForm({
       setAuxiliarText(formatDecimalBR(entry.auxiliarPct ?? 0));
       setTaxaNegocioText(formatDecimalBR(histTaxaNeg));
       setTaxaTouched(true);
+      // Espelha a divisão de pagamento do histórico — sem isso, repetir um
+      // lançamento múltiplo perdia as formas/valores/taxas. Sem divisão,
+      // desliga o multi e limpa as partes.
+      if (entry.pagamentos && entry.pagamentos.length > 0) {
+        setMultiPay(true);
+        setParts(initParts(entry));
+      } else {
+        setMultiPay(false);
+        setParts([]);
+      }
       setErrors((prev) => {
         const next = { ...prev };
         delete next.valor;
         delete next.parc;
         delete next.taxa;
+        delete next.pagamentos;
         return next;
       });
     },
@@ -668,6 +682,24 @@ export function EntryForm({
     ...(itemList.length > 0 ? { valor: itemsTotal } : {}),
     pagamentos: multiPay ? buildPagamentos() : undefined,
   };
+
+  // Quebra da taxa do cartão por forma, pro Resultado expansível. Cada
+  // parte mostra valor × taxa = mordida (Pix/Dinheiro ficam em 0).
+  const feeBreakdown = multiPay
+    ? parts.map((p) => {
+        const valor = parseDecimalBR(p.valorText);
+        const taxa = parseDecimalBR(p.taxaText);
+        return {
+          key: p._key,
+          forma: p.forma,
+          parc: p.parc,
+          valor,
+          taxa,
+          taxaMode: p.taxaMode,
+          fee: cardFee({ forma: p.forma, valor, taxa, taxaMode: p.taxaMode }),
+        };
+      })
+    : [];
   // calcRow lê `taxaNegocio`/`taxaNegocioMode` da própria row (v3). O prop
   // `taxaFixaPct` é mantido como fallback de penúltimo recurso pra
   // lançamentos pré-snapshot — calcRow só recorre a ele se a row não tem
@@ -877,7 +909,7 @@ export function EntryForm({
       {clientHistory.length > 0 && (
         <div className={styles.history} aria-label="Histórico do cliente">
           <div className={styles.historyHead}>
-            <span className={styles.historyTitle}>Últimos atendimentos</span>
+            <span className={styles.historyTitle}>Últimos lançamentos</span>
             <span className={styles.historyHint}>
               toque pra repetir
             </span>
@@ -1319,33 +1351,35 @@ export function EntryForm({
                     />
                   </div>
                 )}
-                <div className={styles.splitFieldNarrow}>
-                  <span className={styles.splitFieldLabel}>
-                    Taxa ({p.taxaMode === "value" ? "R$" : "%"})
-                  </span>
-                  <div className={styles.taxaInputWrap}>
-                    <input
-                      className={`${styles.input} ${styles.taxaInput}`}
-                      type="text"
-                      inputMode="decimal"
-                      value={p.taxaText}
-                      onChange={(e) =>
-                        updatePart(p._key, {
-                          taxaText: sanitizeDecimalText(e.target.value),
-                        })
-                      }
-                      placeholder="0,00"
-                    />
-                    <button
-                      type="button"
-                      className={styles.taxaModeToggle}
-                      onClick={() => flipPartTaxaMode(p._key)}
-                      aria-label={`Modo atual: ${p.taxaMode === "value" ? "R$" : "porcentagem"}. Toque para alternar.`}
-                    >
-                      {p.taxaMode === "value" ? "R$" : "%"}
-                    </button>
+                {p.forma !== "Dinheiro" && p.forma !== "Pix" && (
+                  <div className={styles.splitFieldNarrow}>
+                    <span className={styles.splitFieldLabel}>
+                      Taxa ({p.taxaMode === "value" ? "R$" : "%"})
+                    </span>
+                    <div className={styles.taxaInputWrap}>
+                      <input
+                        className={`${styles.input} ${styles.taxaInput}`}
+                        type="text"
+                        inputMode="decimal"
+                        value={p.taxaText}
+                        onChange={(e) =>
+                          updatePart(p._key, {
+                            taxaText: sanitizeDecimalText(e.target.value),
+                          })
+                        }
+                        placeholder="0,00"
+                      />
+                      <button
+                        type="button"
+                        className={styles.taxaModeToggle}
+                        onClick={() => flipPartTaxaMode(p._key)}
+                        aria-label={`Modo atual: ${p.taxaMode === "value" ? "R$" : "porcentagem"}. Toque para alternar.`}
+                      >
+                        {p.taxaMode === "value" ? "R$" : "%"}
+                      </button>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           ))}
@@ -1523,7 +1557,7 @@ export function EntryForm({
             </span>
           </div>
         )}
-        {calc.taxaVal > 0 && (
+        {!multiPay && calc.taxaVal > 0 && (
           <div className={styles.previewRow}>
             <span className={styles.previewLabel}>
               {taxaMode === "value"
@@ -1534,6 +1568,47 @@ export function EntryForm({
               − {fmtBRL(calc.taxaVal)}
             </span>
           </div>
+        )}
+        {multiPay && calc.taxaVal > 0 && (
+          <>
+            <div className={styles.previewRow}>
+              <button
+                type="button"
+                className={styles.previewFeeToggle}
+                onClick={() => setShowFeeBreakdown((v) => !v)}
+                aria-expanded={showFeeBreakdown}
+              >
+                Taxa cartão{" "}
+                <span className={styles.previewFeeHint}>
+                  · divisão {showFeeBreakdown ? "▲" : "▼"}
+                </span>
+              </button>
+              <span className={styles.previewValue}>
+                − {fmtBRL(calc.taxaVal)}
+              </span>
+            </div>
+            {showFeeBreakdown && (
+              <div className={styles.previewFeeList}>
+                {feeBreakdown
+                  .filter((f) => f.fee > 0)
+                  .map((f) => (
+                    <div className={styles.previewFeeItem} key={f.key}>
+                      <span>
+                        {f.forma}
+                        {f.forma === "Crédito" && f.parc > 1
+                          ? ` ${f.parc}×`
+                          : ""}{" "}
+                        · {fmtBRL(f.valor)} ×{" "}
+                        {f.taxaMode === "value"
+                          ? fmtBRL(f.taxa)
+                          : `${formatDecimalBR(f.taxa)}%`}
+                      </span>
+                      <span>− {fmtBRL(f.fee)}</span>
+                    </div>
+                  ))}
+              </div>
+            )}
+          </>
         )}
         {calc.auxiliarVal > 0 && (
           <div className={styles.previewRow}>

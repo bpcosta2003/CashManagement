@@ -37,7 +37,7 @@ export function ClientCombobox({
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Lista filtrada — match case-insensitive em qualquer parte do nome
-  // ou telefone. Limita a 8 sugestões.
+  // ou telefone. Mostra todos os cadastrados (a lista rola).
   const query = value.trim().toLowerCase();
   const suggestions = clients
     .filter((c) => {
@@ -47,8 +47,7 @@ export function ClientCombobox({
         (c.phone ?? "").toLowerCase().includes(query)
       );
     })
-    .sort((a, b) => (a.lastUsedAt < b.lastUsedAt ? 1 : -1))
-    .slice(0, 8);
+    .sort((a, b) => (a.lastUsedAt < b.lastUsedAt ? 1 : -1));
 
   // Fecha ao clicar fora
   useEffect(() => {

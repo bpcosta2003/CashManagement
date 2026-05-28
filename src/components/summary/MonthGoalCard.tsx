@@ -100,30 +100,32 @@ export function MonthGoalCard({
               }}
               placeholder="Ex: 8000"
             />
-            <button
-              type="button"
-              className={styles.editorPrimary}
-              onClick={handleSave}
-            >
-              Salvar
-            </button>
-            <button
-              type="button"
-              className={styles.editorSecondary}
-              onClick={() => setEditing(false)}
-            >
-              Cancelar
-            </button>
-            {hasGoal && (
+            <div className={styles.editorButtons}>
               <button
                 type="button"
-                className={styles.editorDanger}
-                onClick={handleRemove}
-                title="Remover meta"
+                className={styles.editorPrimary}
+                onClick={handleSave}
               >
-                Remover
+                Salvar
               </button>
-            )}
+              <button
+                type="button"
+                className={styles.editorSecondary}
+                onClick={() => setEditing(false)}
+              >
+                Cancelar
+              </button>
+              {hasGoal && (
+                <button
+                  type="button"
+                  className={styles.editorDanger}
+                  onClick={handleRemove}
+                  title="Remover meta"
+                >
+                  Remover
+                </button>
+              )}
+            </div>
           </div>
           <span className={styles.editorHint}>
             Deixe em branco e salve pra remover. Pressione Enter pra

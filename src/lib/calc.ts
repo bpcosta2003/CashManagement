@@ -11,6 +11,19 @@ function feeOn(base: number, taxa: number, mode?: "percent" | "value"): number {
   return (b * Math.max(0, Math.min(100, taxa))) / 100;
 }
 
+/** Taxa do cartão de uma parte de pagamento — incide sobre o valor
+ *  específico daquela forma (não sobre uma fatia proporcional). Pix e
+ *  Dinheiro nunca têm taxa de cartão. */
+export function cardFee(p: {
+  forma: FormaPagamento;
+  valor: number;
+  taxa?: number;
+  taxaMode?: "percent" | "value";
+}): number {
+  if (p.forma === "Dinheiro" || p.forma === "Pix") return 0;
+  return feeOn(+(p.valor || 0), +(p.taxa ?? 0), p.taxaMode);
+}
+
 export function autoTaxa(forma: string, parc: number | string): number {
   if (!forma || forma === "Dinheiro" || forma === "Pix") return 0;
   if (forma === "Débito") return 1.5;
@@ -100,10 +113,10 @@ export function calcRow(
   //   - "percent" (default): % sobre subtotal pós taxa do negócio.
   let t = 0;
   if (r.pagamentos && r.pagamentos.length > 0) {
-    const total = r.pagamentos.reduce((s, p) => s + (+p.valor || 0), 0) || 1;
+    // A taxa de cada forma incide sobre o valor daquela forma específica
+    // (Pix/Dinheiro sem taxa). Somamos as mordidas e limitamos ao subtotal.
     for (const p of r.pagamentos) {
-      const base = Math.max(0, afterTaxaFixa) * ((+p.valor || 0) / total);
-      t += feeOn(base, +(p.taxa ?? 0), p.taxaMode);
+      t += cardFee(p);
     }
     t = Math.min(t, Math.max(0, afterTaxaFixa));
   } else if (r.taxaMode === "value") {
@@ -172,13 +185,13 @@ export function rowParts(r: CalculatedRow): RowPart[] {
     ];
   }
   const total = splits.reduce((s, p) => s + (+p.valor || 0), 0) || 1;
-  const afterTaxaFixa = Math.max(0, r.vef - r.taxaFixaVal);
   return splits.map((p) => {
     const frac = (+p.valor || 0) / total;
     const vefShare = r.vef * frac;
     const taxaFixaShare = r.taxaFixaVal * frac;
     const auxShare = r.auxiliarVal * frac;
-    const taxaVal = feeOn(afterTaxaFixa * frac, +(p.taxa ?? 0), p.taxaMode);
+    // Taxa do cartão sobre o valor da própria forma (não proporcional).
+    const taxaVal = cardFee(p);
     return {
       forma: p.forma,
       parc: Math.max(1, p.parc || 1),
