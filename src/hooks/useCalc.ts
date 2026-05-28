@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import type { CalculatedRow, ProjecaoMes, Row, Summary } from "../types";
-import { addMes, calcRow } from "../lib/calc";
+import { addMes, calcRow, rowParts } from "../lib/calc";
 import { MESES_FULL, MESES_SHORT } from "../constants";
 
 interface MonthLiq {
@@ -58,11 +58,11 @@ export function useCalc(
     let estesMes = 0;
     let futuro = 0;
     valid.forEach((r) => {
-      if (r.forma !== "Crédito") {
-        estesMes += r.liq;
-      } else {
-        futuro += r.liq;
-      }
+      // Por parte: a fatia no crédito é futuro; o resto é deste mês.
+      rowParts(r).forEach((part) => {
+        if (part.forma !== "Crédito") estesMes += part.liq;
+        else futuro += part.liq;
+      });
     });
 
     return { bruto, descontos, taxas, custos, liq, margem, estesMes, futuro };
@@ -131,9 +131,13 @@ export function useCalc(
     monthRows
       .filter((r) => r.v > 0)
       .forEach((r) => {
-        map[r.forma].count++;
-        map[r.forma].bruto += r.v;
-        map[r.forma].liq += r.liq;
+        rowParts(r).forEach((part) => {
+          const bucket = map[part.forma];
+          if (!bucket) return;
+          bucket.count++;
+          bucket.bruto += part.bruto;
+          bucket.liq += part.liq;
+        });
       });
     return map;
   }, [monthRows]);
@@ -142,39 +146,44 @@ export function useCalc(
     const buckets: Record<string, ProjecaoMes> = {};
 
     allCalc
-      .filter((r) => r.forma === "Crédito" && r.v > 0)
+      .filter((r) => r.v > 0)
       .forEach((r) => {
-        const n = Math.max(1, r.parc || 1);
-        for (let i = 1; i <= n; i++) {
-          const { m, y } = addMes(r.mes, r.ano, i);
-          if (y < ano || (y === ano && m < mes)) continue;
-          if (y === ano && m === mes) continue;
-          const key = `${y}-${String(m).padStart(2, "0")}`;
-          if (!buckets[key]) {
-            buckets[key] = {
-              m,
-              y,
-              lbl: `${MESES_FULL[m]}/${y}`,
-              bruto: 0,
-              taxa: 0,
-              liq: 0,
-              items: [],
-            };
+        // Só a parte no crédito projeta. Em forma única é a Row inteira;
+        // em múltiplo, apenas a fatia paga no crédito (com suas parcelas).
+        rowParts(r).forEach((part) => {
+          if (part.forma !== "Crédito") return;
+          const n = Math.max(1, part.parc || 1);
+          for (let i = 1; i <= n; i++) {
+            const { m, y } = addMes(r.mes, r.ano, i);
+            if (y < ano || (y === ano && m < mes)) continue;
+            if (y === ano && m === mes) continue;
+            const key = `${y}-${String(m).padStart(2, "0")}`;
+            if (!buckets[key]) {
+              buckets[key] = {
+                m,
+                y,
+                lbl: `${MESES_FULL[m]}/${y}`,
+                bruto: 0,
+                taxa: 0,
+                liq: 0,
+                items: [],
+              };
+            }
+            const bucket = buckets[key];
+            const bruto = part.vef / n;
+            const liq = part.liq / n;
+            bucket.bruto += bruto;
+            bucket.taxa += part.taxaVal / n;
+            bucket.liq += liq;
+            bucket.items.push({
+              cliente: r.cliente || "—",
+              servico: r.servico || "—",
+              bruto,
+              liq,
+              label: n === 1 ? "Crédito à vista" : `Parcela ${i}/${n}`,
+            });
           }
-          const bucket = buckets[key];
-          const bruto = r.vef / n;
-          const liq = r.liq / n;
-          bucket.bruto += bruto;
-          bucket.taxa += r.taxaVal / n;
-          bucket.liq += liq;
-          bucket.items.push({
-            cliente: r.cliente || "—",
-            servico: r.servico || "—",
-            bruto,
-            liq,
-            label: n === 1 ? "Crédito à vista" : `Parcela ${i}/${n}`,
-          });
-        }
+        });
       });
 
     return Object.values(buckets).sort((a, b) => {

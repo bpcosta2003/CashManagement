@@ -29,6 +29,10 @@ const FORMA_VAR: Record<string, string> = {
 };
 
 const formaLabel = (r: CalculatedRow) => {
+  if (r.pagamentos && r.pagamentos.length > 1) {
+    const formas = Array.from(new Set(r.pagamentos.map((p) => p.forma)));
+    return formas.length <= 2 ? formas.join(" + ") : "Múltiplo";
+  }
   if (r.forma === "Crédito" && r.parc > 1) return `Crédito ${r.parc}×`;
   return r.forma;
 };

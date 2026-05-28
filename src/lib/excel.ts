@@ -4,10 +4,11 @@ import type {
   CatalogItem,
   Client,
   FormaPagamento,
+  PagamentoSplit,
   Row,
   StatusPagamento,
 } from "../types";
-import { addMes, calcRow, uid } from "./calc";
+import { calcRow, recInfo, uid } from "./calc";
 import { MESES_FULL } from "../constants";
 
 export interface ImportResult {
@@ -73,6 +74,7 @@ export function exportToExcel(
     "Status",
     "Recebimento",
     "Itens (JSON)",
+    "Pagamentos (JSON)",
     "ID",
     "Criado Em",
   ];
@@ -81,8 +83,18 @@ export function exportToExcel(
     .filter((r) => +r.valor > 0)
     .map((r) => {
       const calc = calcRow(r, { taxaFixaPct: taxaFixaPctFallback });
-      const recLabel =
-        r.forma !== "Crédito"
+      // Múltiplas formas: rótulo resume os métodos; recebimento vira
+      // "Parcial futuro" quando alguma parte é crédito (projeta), senão
+      // "Este mês". Forma única mantém exatamente os rótulos de antes.
+      const isMulti = !!(r.pagamentos && r.pagamentos.length > 1);
+      const formaCol = isMulti
+        ? Array.from(new Set(r.pagamentos!.map((p) => p.forma))).join(" + ")
+        : r.forma;
+      const recLabel = isMulti
+        ? recInfo(calc).future.length > 0
+          ? "Parcial futuro"
+          : "Este mês"
+        : r.forma !== "Crédito"
           ? "Este mês"
           : r.parc <= 1
             ? "Próx. mês"
@@ -110,7 +122,7 @@ export function exportToExcel(
         calc.v,
         calc.descontoVal,
         calc.vef,
-        r.forma,
+        formaCol,
         r.parc,
         // Em modo "value", r.taxa é R$ absoluto, então a coluna "Taxa %"
         // sai como 0. Em modo "percent" (default), sai como fração
@@ -134,6 +146,11 @@ export function exportToExcel(
         // texto bruto; o import lê e reconstrói o array. Vazio quando
         // o lançamento é single-item (modo legado).
         r.items && r.items.length > 0 ? JSON.stringify(r.items) : "",
+        // Pagamentos[] preservado como JSON pra roundtrip do múltiplo.
+        // Vazio quando o lançamento é de forma única (modo legado).
+        r.pagamentos && r.pagamentos.length > 0
+          ? JSON.stringify(r.pagamentos)
+          : "",
         r.id,
         r.criadoEm,
       ];
@@ -161,6 +178,7 @@ export function exportToExcel(
     { wch: 10 },
     { wch: 10 },
     { wch: 16 },
+    { wch: 24 },
     { wch: 24 },
     { wch: 10 },
     { wch: 22 },
@@ -262,16 +280,15 @@ export function exportToExcel(
   ];
   const projData: (string | number)[][] = [];
   rows
-    .filter((r) => r.forma === "Crédito" && +r.valor > 0)
+    .filter((r) => +r.valor > 0)
     .map((r) => calcRow(r, { taxaFixaPct: taxaFixaPctFallback }))
     .forEach((r) => {
-      const n = Math.max(1, r.parc || 1);
-      for (let i = 1; i <= n; i++) {
-        const { m, y } = addMes(r.mes, r.ano, i);
-        const lbl = `${MESES_FULL[m]}/${y}`;
-        const desc = n === 1 ? "Crédito à vista" : `Parcela ${i}/${n}`;
-        projData.push([lbl, r.cliente, r.servico, desc, r.vef / n, r.liq / n]);
-      }
+      // recInfo já projeta só a parte no crédito (forma única ou cada
+      // fatia no crédito do múltiplo), com as parcelas certas.
+      recInfo(r).future.forEach((f) => {
+        const lbl = `${MESES_FULL[f.m]}/${f.y}`;
+        projData.push([lbl, r.cliente, r.servico, f.label, f.bruto, f.liq]);
+      });
     });
 
   const ws3 = XLSX.utils.aoa_to_sheet([projHeaders, ...projData]);
@@ -424,14 +441,63 @@ export function importFromExcel(file: File): Promise<ImportResult> {
             return;
           }
 
+          // pagamentos[] reconstruído da coluna "Pagamentos (JSON)" — antes
+          // da validação da forma, porque em múltiplo a coluna "Forma de
+          // Pagamento" traz um rótulo composto ("Pix + Crédito"), inválido
+          // como forma única. Parse tolerante: JSON inválido cai pro modo de
+          // forma única. Só aceita 2+ partes com valor > 0.
+          let pagamentos: PagamentoSplit[] | undefined;
+          const pagRaw = String(r["Pagamentos (JSON)"] ?? "").trim();
+          if (pagRaw && pagRaw.startsWith("[")) {
+            try {
+              const parsed = JSON.parse(pagRaw) as unknown;
+              if (Array.isArray(parsed) && parsed.length > 1) {
+                const out: PagamentoSplit[] = [];
+                for (const e of parsed.slice(0, 8)) {
+                  if (!e || typeof e !== "object") continue;
+                  const o = e as Record<string, unknown>;
+                  const pf = String(o.forma ?? "");
+                  if (!FORMAS_VALIDAS.includes(pf as FormaPagamento)) continue;
+                  const pv =
+                    typeof o.valor === "number"
+                      ? o.valor
+                      : parseFloat(String(o.valor ?? "0")) || 0;
+                  if (pv <= 0) continue;
+                  const part: PagamentoSplit = {
+                    forma: pf as FormaPagamento,
+                    valor: pv,
+                  };
+                  const pp = +(o.parc ?? 0);
+                  if (pp > 1) part.parc = Math.min(24, pp);
+                  const pt =
+                    typeof o.taxa === "number"
+                      ? o.taxa
+                      : parseFloat(String(o.taxa ?? "0")) || 0;
+                  if (pt > 0) part.taxa = pt;
+                  if (o.taxaMode === "value") part.taxaMode = "value";
+                  out.push(part);
+                }
+                if (out.length > 1) pagamentos = out;
+              }
+            } catch {
+              /* JSON corrompido — ignora, mantém forma única */
+            }
+          }
+
           const formaIn = String(r["Forma de Pagamento"] ?? "Pix");
-          const forma = formaIn as FormaPagamento;
+          let forma = formaIn as FormaPagamento;
           if (!FORMAS_VALIDAS.includes(forma)) {
-            errors.push(
-              `Linha ${idx + 2}: forma de pagamento inválida "${formaIn}".`,
-            );
-            skipped++;
-            return;
+            if (pagamentos && pagamentos.length > 1) {
+              // Rótulo composto — forma vira a maior parte (só pra display).
+              forma = [...pagamentos].sort((a, b) => b.valor - a.valor)[0]
+                .forma;
+            } else {
+              errors.push(
+                `Linha ${idx + 2}: forma de pagamento inválida "${formaIn}".`,
+              );
+              skipped++;
+              return;
+            }
           }
 
           // Detecção do modo da taxa:
@@ -554,6 +620,7 @@ export function importFromExcel(file: File): Promise<ImportResult> {
               ? { taxaFixaPctSnapshot }
               : {}),
             ...(items ? { items } : {}),
+            ...(pagamentos ? { pagamentos } : {}),
             status: (String(r["Status"] ?? "Pago") as StatusPagamento) || "Pago",
             mes,
             ano,

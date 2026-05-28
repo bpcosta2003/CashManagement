@@ -3,6 +3,7 @@ import type {
   CatalogItem,
   Client,
   FormaPagamento,
+  PagamentoSplit,
   Row,
   StatusPagamento,
 } from "../../types";
@@ -50,6 +51,31 @@ interface Errors {
   parc?: string;
   taxa?: string;
   items?: string;
+  pagamentos?: string;
+}
+
+/** Parte de pagamento no editor de múltiplas formas. Texto bruto pra
+ *  valor/taxa (mesmo motivo do itemList/taxaText: preservar "1," etc.). */
+interface PartDraft {
+  _key: string;
+  forma: FormaPagamento;
+  valorText: string;
+  parc: number;
+  taxaText: string;
+  taxaMode: "percent" | "value";
+}
+
+/** Constrói o estado inicial das partes a partir de uma Row. */
+function initParts(row: Row): PartDraft[] {
+  if (!row.pagamentos || row.pagamentos.length === 0) return [];
+  return row.pagamentos.map((p) => ({
+    _key: uid(),
+    forma: p.forma,
+    valorText: formatDecimalBR(p.valor || 0),
+    parc: Math.max(1, p.parc || 1),
+    taxaText: formatDecimalBR(p.taxa ?? 0),
+    taxaMode: p.taxaMode === "value" ? "value" : "percent",
+  }));
 }
 
 /** Item interno do form multi-item. `_key` é só pra estabilizar React
@@ -61,7 +87,13 @@ interface ItemDraft {
   catalogId?: string;
 }
 
-function validate(draft: Row, items: ItemDraft[]): Errors {
+function validate(
+  draft: Row,
+  items: ItemDraft[],
+  multiPay: boolean,
+  parts: PartDraft[],
+  effectiveTotal: number,
+): Errors {
   const errors: Errors = {};
   if (!draft.cliente.trim()) {
     errors.cliente = "Informe o nome do cliente";
@@ -84,16 +116,35 @@ function validate(draft: Row, items: ItemDraft[]): Errors {
       errors.valor = "Valor precisa ser maior que zero";
     }
   }
-  if (draft.forma === "Crédito") {
-    if (!draft.parc || draft.parc < 1) {
-      errors.parc = "Informe o número de parcelas";
+  if (multiPay) {
+    // Múltiplas formas: cada parte com valor > 0 e a soma batendo com o
+    // total do lançamento. Não validamos a taxa (pode ser 0, ex.: pix).
+    if (parts.length < 2) {
+      errors.pagamentos = "Adicione pelo menos 2 formas (ou desligue o múltiplo)";
+    } else if (parts.some((p) => !(parseDecimalBR(p.valorText) > 0))) {
+      errors.pagamentos = "Preencha o valor de cada forma";
+    } else if (
+      parts.some((p) => p.forma === "Crédito" && (!p.parc || p.parc < 1))
+    ) {
+      errors.pagamentos = "Informe as parcelas do crédito";
+    } else {
+      const sum = parts.reduce((s, p) => s + parseDecimalBR(p.valorText), 0);
+      if (Math.abs(sum - effectiveTotal) > 0.01) {
+        errors.pagamentos = `A soma das formas (${fmtBRL(sum)}) precisa bater com o total (${fmtBRL(effectiveTotal)})`;
+      }
     }
-    if (draft.taxa <= 0) {
+  } else {
+    if (draft.forma === "Crédito") {
+      if (!draft.parc || draft.parc < 1) {
+        errors.parc = "Informe o número de parcelas";
+      }
+      if (draft.taxa <= 0) {
+        errors.taxa = "Informe a taxa";
+      }
+    }
+    if (draft.forma === "Débito" && draft.taxa <= 0) {
       errors.taxa = "Informe a taxa";
     }
-  }
-  if (draft.forma === "Débito" && draft.taxa <= 0) {
-    errors.taxa = "Informe a taxa";
   }
   return errors;
 }
@@ -161,6 +212,137 @@ export function EntryForm({
   const itemsTotal = useMemo(
     () => itemList.reduce((s, it) => s + (+it.valor || 0), 0),
     [itemList],
+  );
+
+  // ─── Múltiplas formas de pagamento ──────────────────────────────────
+  // Quando ligado, o valor do lançamento é dividido entre várias formas
+  // (cada uma com sua taxa e, no crédito, suas parcelas). Desligado, é o
+  // modo de forma única de sempre — Row sem `pagamentos`.
+  const [multiPay, setMultiPay] = useState<boolean>(
+    () => !!(initial.pagamentos && initial.pagamentos.length > 0),
+  );
+  const [parts, setParts] = useState<PartDraft[]>(() => initParts(initial));
+
+  // Total que as partes precisam somar: em multi-item é a soma dos itens,
+  // senão o valor singular.
+  const effectiveTotal =
+    itemList.length > 0
+      ? itemsTotal
+      : typeof draft.valor === "number"
+        ? draft.valor
+        : 0;
+  const partsSum = useMemo(
+    () => parts.reduce((s, p) => s + parseDecimalBR(p.valorText), 0),
+    [parts],
+  );
+  const partsRemaining = effectiveTotal - partsSum;
+
+  const clearPagamentosError = () => {
+    if (!submitted) return;
+    setErrors((prev) => {
+      if (!prev.pagamentos) return prev;
+      const next = { ...prev };
+      delete next.pagamentos;
+      return next;
+    });
+  };
+
+  const toggleMultiPay = () => {
+    setMultiPay((on) => {
+      const next = !on;
+      if (next && parts.length === 0) {
+        // Semeia com a forma atual cobrindo o total + uma parte vazia, pra
+        // o usuário "fatiar" reduzindo a primeira e preenchendo a segunda.
+        setParts([
+          {
+            _key: uid(),
+            forma: draft.forma,
+            valorText: effectiveTotal > 0 ? formatDecimalBR(effectiveTotal) : "",
+            parc: Math.max(1, draft.parc || 1),
+            taxaText: formatDecimalBR(autoTaxa(draft.forma, draft.parc)),
+            taxaMode: "percent",
+          },
+          {
+            _key: uid(),
+            forma: draft.forma === "Pix" ? "Dinheiro" : "Pix",
+            valorText: "",
+            parc: 1,
+            taxaText: "0",
+            taxaMode: "percent",
+          },
+        ]);
+      }
+      return next;
+    });
+    clearPagamentosError();
+  };
+
+  const updatePart = (
+    key: string,
+    patch: Partial<Omit<PartDraft, "_key">>,
+  ) => {
+    setParts((list) =>
+      list.map((p) => {
+        if (p._key !== key) return p;
+        const np: PartDraft = { ...p, ...patch };
+        // Trocar de forma → re-sugere a taxa automática (editável) e some
+        // com parcelas fora do crédito.
+        if (patch.forma !== undefined) {
+          if (patch.forma !== "Crédito") np.parc = 1;
+          np.taxaMode = "percent";
+          np.taxaText = formatDecimalBR(autoTaxa(np.forma, np.parc));
+        }
+        // Trocar parcelas no crédito (modo %) → re-sugere a taxa por faixa.
+        if (
+          patch.parc !== undefined &&
+          np.forma === "Crédito" &&
+          np.taxaMode === "percent"
+        ) {
+          np.taxaText = formatDecimalBR(autoTaxa("Crédito", np.parc));
+        }
+        return np;
+      }),
+    );
+    clearPagamentosError();
+  };
+
+  const addPart = () => {
+    setParts((list) => [
+      ...list,
+      { _key: uid(), forma: "Pix", valorText: "", parc: 1, taxaText: "0", taxaMode: "percent" },
+    ]);
+    clearPagamentosError();
+  };
+
+  const removePart = (key: string) => {
+    setParts((list) => list.filter((p) => p._key !== key));
+    clearPagamentosError();
+  };
+
+  const flipPartTaxaMode = (key: string) => {
+    setParts((list) =>
+      list.map((p) =>
+        p._key === key
+          ? {
+              ...p,
+              taxaMode: p.taxaMode === "value" ? "percent" : "value",
+              taxaText: "",
+            }
+          : p,
+      ),
+    );
+  };
+
+  const buildPagamentos = useCallback(
+    (): PagamentoSplit[] =>
+      parts.map((p) => ({
+        forma: p.forma,
+        valor: parseDecimalBR(p.valorText),
+        ...(p.forma === "Crédito" ? { parc: Math.max(1, p.parc || 1) } : {}),
+        taxa: parseDecimalBR(p.taxaText),
+        taxaMode: p.taxaMode,
+      })),
+    [parts],
   );
 
   // Cliente conhecido = casamento exato (case-insensitive) com a base
@@ -329,6 +511,8 @@ export function EntryForm({
           }))
         : [],
     );
+    setMultiPay(!!(initial.pagamentos && initial.pagamentos.length > 0));
+    setParts(initParts(initial));
     // Telefone: se o cliente já está cadastrado, prefilla. Senão, vazio.
     const found = findClient(clients, initial.cliente);
     setPhone(formatPhoneBR(found?.phone ?? ""));
@@ -479,8 +663,11 @@ export function EntryForm({
   // não o draft.valor (que pode ficar dessincronizado quando o usuário
   // toca em histórico ou edita campos durante o multi). Construímos a
   // Row efetiva pra TODOS os cálculos (preview, validação, save).
-  const effectiveDraft: Row =
-    itemList.length > 0 ? { ...draft, valor: itemsTotal } : draft;
+  const effectiveDraft: Row = {
+    ...draft,
+    ...(itemList.length > 0 ? { valor: itemsTotal } : {}),
+    pagamentos: multiPay ? buildPagamentos() : undefined,
+  };
   // calcRow lê `taxaNegocio`/`taxaNegocioMode` da própria row (v3). O prop
   // `taxaFixaPct` é mantido como fallback de penúltimo recurso pra
   // lançamentos pré-snapshot — calcRow só recorre a ele se a row não tem
@@ -545,7 +732,7 @@ export function EntryForm({
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
-    const v = validate(draft, itemList);
+    const v = validate(draft, itemList, multiPay, parts, effectiveTotal);
     setErrors(v);
     if (Object.keys(v).length > 0) {
       const order: Array<keyof Errors> = [
@@ -554,9 +741,10 @@ export function EntryForm({
         "valor",
         "parc",
         "taxa",
+        "pagamentos",
       ];
       const first = order.find((k) => v[k]);
-      if (first && first !== "items") {
+      if (first && first !== "items" && first !== "pagamentos") {
         const el = document.getElementById(`ef-${first}`);
         el?.focus();
       }
@@ -584,6 +772,24 @@ export function EntryForm({
       // voltou pra single removendo todos).
       const { items: _drop, ...rest } = draft;
       rowToSave = rest as Row;
+    }
+    // Pagamentos: liga/desliga o split. Quando ligado, `forma`/`parc`/`taxa`
+    // viram só um resumo pra display (maior parte); o cálculo usa
+    // `pagamentos[]`. Quando desligado, garante que não sobra split antigo.
+    if (multiPay) {
+      const pags = buildPagamentos();
+      const dominant = [...pags].sort((a, b) => b.valor - a.valor)[0];
+      rowToSave = {
+        ...rowToSave,
+        pagamentos: pags,
+        forma: dominant ? dominant.forma : rowToSave.forma,
+        parc: dominant && dominant.parc ? dominant.parc : 1,
+        taxa: 0,
+        taxaMode: "percent",
+      };
+    } else if (rowToSave.pagamentos) {
+      const { pagamentos: _dropPag, ...restNoPag } = rowToSave;
+      rowToSave = restNoPag as Row;
     }
     onSave(rowToSave, phone.trim() || undefined);
   };
@@ -896,26 +1102,39 @@ export function EntryForm({
       </div>
 
       <div className={styles.field}>
-        <label className={styles.label}>Forma de pagamento</label>
-        <div className={styles.formaGrid}>
-          {FORMAS_PAGAMENTO.map((f) => {
-            const active = draft.forma === f;
-            return (
-              <button
-                type="button"
-                key={f}
-                data-active={active}
-                className={styles.formaBtn}
-                onClick={() => update("forma", f as FormaPagamento)}
-              >
-                {f}
-              </button>
-            );
-          })}
+        <div className={styles.formaHead}>
+          <label className={styles.label}>Forma de pagamento</label>
+          <button
+            type="button"
+            className={styles.multiPayToggle}
+            data-on={multiPay}
+            aria-pressed={multiPay}
+            onClick={toggleMultiPay}
+          >
+            {multiPay ? "Múltiplo ✓" : "+ Dividir"}
+          </button>
         </div>
+        {!multiPay && (
+          <div className={styles.formaGrid}>
+            {FORMAS_PAGAMENTO.map((f) => {
+              const active = draft.forma === f;
+              return (
+                <button
+                  type="button"
+                  key={f}
+                  data-active={active}
+                  className={styles.formaBtn}
+                  onClick={() => update("forma", f as FormaPagamento)}
+                >
+                  {f}
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
-      {draft.forma === "Crédito" && (
+      {!multiPay && draft.forma === "Crédito" && (
         <div className={styles.row}>
           <div className={styles.field}>
             <label className={styles.label}>
@@ -985,7 +1204,7 @@ export function EntryForm({
         </div>
       )}
 
-      {draft.forma === "Débito" && (
+      {!multiPay && draft.forma === "Débito" && (
         // Débito: só Taxa (Custo já está no topo, junto do Desconto).
         // Taxa fica sozinha na linha pra acomodar o toggle %/R$ confortável.
         <div className={styles.field}>
@@ -1030,6 +1249,127 @@ export function EntryForm({
           </div>
           {errors.taxa && (
             <span className={styles.errorMsg}>{errors.taxa}</span>
+          )}
+        </div>
+      )}
+
+      {multiPay && (
+        <div className={styles.splitBlock}>
+          {parts.map((p) => (
+            <div className={styles.splitRow} key={p._key}>
+              <div className={styles.splitTop}>
+                <div className={styles.splitFormaGrid}>
+                  {FORMAS_PAGAMENTO.map((f) => (
+                    <button
+                      type="button"
+                      key={f}
+                      data-active={p.forma === f}
+                      className={styles.splitFormaBtn}
+                      onClick={() =>
+                        updatePart(p._key, { forma: f as FormaPagamento })
+                      }
+                    >
+                      {f}
+                    </button>
+                  ))}
+                </div>
+                {parts.length > 1 && (
+                  <button
+                    type="button"
+                    className={styles.splitRemove}
+                    onClick={() => removePart(p._key)}
+                    aria-label="Remover forma"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+              <div className={styles.splitFields}>
+                <div className={styles.splitField}>
+                  <span className={styles.splitFieldLabel}>Valor (R$)</span>
+                  <input
+                    className={styles.input}
+                    type="text"
+                    inputMode="decimal"
+                    value={p.valorText}
+                    onChange={(e) =>
+                      updatePart(p._key, {
+                        valorText: sanitizeDecimalText(e.target.value),
+                      })
+                    }
+                    placeholder="0,00"
+                  />
+                </div>
+                {p.forma === "Crédito" && (
+                  <div className={styles.splitFieldNarrow}>
+                    <span className={styles.splitFieldLabel}>Parc.</span>
+                    <input
+                      className={styles.input}
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      value={p.parc === 0 ? "" : String(p.parc)}
+                      onChange={(e) => {
+                        const raw = e.target.value.replace(/\D/g, "");
+                        updatePart(p._key, {
+                          parc: raw === "" ? 0 : Math.min(24, +raw),
+                        });
+                      }}
+                      placeholder="1"
+                    />
+                  </div>
+                )}
+                <div className={styles.splitFieldNarrow}>
+                  <span className={styles.splitFieldLabel}>
+                    Taxa ({p.taxaMode === "value" ? "R$" : "%"})
+                  </span>
+                  <div className={styles.taxaInputWrap}>
+                    <input
+                      className={`${styles.input} ${styles.taxaInput}`}
+                      type="text"
+                      inputMode="decimal"
+                      value={p.taxaText}
+                      onChange={(e) =>
+                        updatePart(p._key, {
+                          taxaText: sanitizeDecimalText(e.target.value),
+                        })
+                      }
+                      placeholder="0,00"
+                    />
+                    <button
+                      type="button"
+                      className={styles.taxaModeToggle}
+                      onClick={() => flipPartTaxaMode(p._key)}
+                      aria-label={`Modo atual: ${p.taxaMode === "value" ? "R$" : "porcentagem"}. Toque para alternar.`}
+                    >
+                      {p.taxaMode === "value" ? "R$" : "%"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+          <div className={styles.splitFoot}>
+            <button
+              type="button"
+              className={styles.splitAdd}
+              onClick={addPart}
+            >
+              + Adicionar forma
+            </button>
+            <span
+              className={styles.splitSum}
+              data-ok={Math.abs(partsRemaining) < 0.01}
+            >
+              {Math.abs(partsRemaining) < 0.01
+                ? `Soma bate · ${fmtBRL(partsSum)}`
+                : partsRemaining > 0
+                  ? `Faltam ${fmtBRL(partsRemaining)}`
+                  : `Sobram ${fmtBRL(-partsRemaining)}`}
+            </span>
+          </div>
+          {errors.pagamentos && (
+            <span className={styles.errorMsg}>{errors.pagamentos}</span>
           )}
         </div>
       )}

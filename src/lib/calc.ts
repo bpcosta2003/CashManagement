@@ -1,6 +1,15 @@
-import type { CalculatedRow, Row } from "../types";
+import type { CalculatedRow, FormaPagamento, Row } from "../types";
 
 export const uid = () => Math.random().toString(36).slice(2, 9);
+
+/** Mordida de uma forma de pagamento sobre uma base R$ (já pós taxa do
+ *  negócio). "value" = R$ absoluto, clampado em [0, base]; "percent"
+ *  (default) = % da base. Espelha exatamente a regra da taxa única. */
+function feeOn(base: number, taxa: number, mode?: "percent" | "value"): number {
+  const b = Math.max(0, base);
+  if (mode === "value") return Math.min(Math.max(0, taxa), b);
+  return (b * Math.max(0, Math.min(100, taxa))) / 100;
+}
 
 export function autoTaxa(forma: string, parc: number | string): number {
   if (!forma || forma === "Dinheiro" || forma === "Pix") return 0;
@@ -84,11 +93,20 @@ export function calcRow(
   }
   const afterTaxaFixa = vef - taxaFixaVal;
 
-  // Taxa do cartão. Modos:
+  // Taxa do cartão. Três caminhos:
+  //   - Múltiplos pagamentos: cada parte tem sua taxa sobre a sua fatia
+  //     do subtotal pós taxa do negócio; somamos as mordidas.
   //   - "value": R$ absoluto retido pelo cartão. Clamp em [0, afterTaxaFixa].
   //   - "percent" (default): % sobre subtotal pós taxa do negócio.
   let t = 0;
-  if (r.taxaMode === "value") {
+  if (r.pagamentos && r.pagamentos.length > 0) {
+    const total = r.pagamentos.reduce((s, p) => s + (+p.valor || 0), 0) || 1;
+    for (const p of r.pagamentos) {
+      const base = Math.max(0, afterTaxaFixa) * ((+p.valor || 0) / total);
+      t += feeOn(base, +(p.taxa ?? 0), p.taxaMode);
+    }
+    t = Math.min(t, Math.max(0, afterTaxaFixa));
+  } else if (r.taxaMode === "value") {
     const raw = Math.max(0, +r.taxa || 0);
     t = Math.min(raw, Math.max(0, afterTaxaFixa));
   } else {
@@ -122,6 +140,54 @@ export function calcRow(
     liq,
     mar: v ? (liq / v) * 100 : 0,
   };
+}
+
+export interface RowPart {
+  forma: FormaPagamento;
+  parc: number;
+  bruto: number;
+  vef: number;
+  taxaVal: number;
+  liq: number;
+}
+
+/** Decompõe um lançamento calculado nas suas partes de pagamento.
+ *  Forma única → uma parte com a Row inteira. Múltiplo → uma parte por
+ *  split, com bruto/vef/líquido proporcionais e a taxa real de cada
+ *  método. A soma das partes reconstrói exatamente os totais da Row, então
+ *  qualquer consumidor (resumo, composição, projeção) pode iterar partes
+ *  sem mudar os números do modo de forma única. */
+export function rowParts(r: CalculatedRow): RowPart[] {
+  const splits = r.pagamentos;
+  if (!splits || splits.length === 0) {
+    return [
+      {
+        forma: r.forma,
+        parc: Math.max(1, r.parc || 1),
+        bruto: r.v,
+        vef: r.vef,
+        taxaVal: r.taxaVal,
+        liq: r.liq,
+      },
+    ];
+  }
+  const total = splits.reduce((s, p) => s + (+p.valor || 0), 0) || 1;
+  const afterTaxaFixa = Math.max(0, r.vef - r.taxaFixaVal);
+  return splits.map((p) => {
+    const frac = (+p.valor || 0) / total;
+    const vefShare = r.vef * frac;
+    const taxaFixaShare = r.taxaFixaVal * frac;
+    const auxShare = r.auxiliarVal * frac;
+    const taxaVal = feeOn(afterTaxaFixa * frac, +(p.taxa ?? 0), p.taxaMode);
+    return {
+      forma: p.forma,
+      parc: Math.max(1, p.parc || 1),
+      bruto: r.v * frac,
+      vef: vefShare,
+      taxaVal,
+      liq: vefShare - taxaFixaShare - taxaVal - auxShare,
+    };
+  });
 }
 
 export function fmtBRL(n: number): string {
@@ -160,27 +226,33 @@ export interface RecInfo {
 }
 
 export function recInfo(r: CalculatedRow): RecInfo {
-  if (r.forma !== "Crédito") {
-    return { thisMonth: r.liq, future: [] };
+  // Itera as partes de pagamento: o que não for crédito cai no mês; cada
+  // parte no crédito projeta sua fatia pros meses seguintes conforme as
+  // próprias parcelas. Forma única reduz exatamente ao comportamento antigo.
+  const parts = rowParts(r);
+  let thisMonth = 0;
+  const future: RecInfo["future"] = [];
+  for (const part of parts) {
+    if (part.forma !== "Crédito") {
+      thisMonth += part.liq;
+      continue;
+    }
+    const n = Math.max(1, part.parc || 1);
+    if (n === 1) {
+      const { m, y } = addMes(r.mes, r.ano, 1);
+      future.push({ m, y, bruto: part.vef, liq: part.liq, label: "Crédito à vista" });
+      continue;
+    }
+    for (let i = 1; i <= n; i++) {
+      const { m, y } = addMes(r.mes, r.ano, i);
+      future.push({
+        m,
+        y,
+        bruto: part.vef / n,
+        liq: part.liq / n,
+        label: `Parcela ${i}/${n}`,
+      });
+    }
   }
-  const n = Math.max(1, r.parc || 1);
-  if (n === 1) {
-    const { m, y } = addMes(r.mes, r.ano, 1);
-    return {
-      thisMonth: 0,
-      future: [{ m, y, bruto: r.vef, liq: r.liq, label: "Crédito à vista" }],
-    };
-  }
-  const future = [];
-  for (let i = 1; i <= n; i++) {
-    const { m, y } = addMes(r.mes, r.ano, i);
-    future.push({
-      m,
-      y,
-      bruto: r.vef / n,
-      liq: r.liq / n,
-      label: `Parcela ${i}/${n}`,
-    });
-  }
-  return { thisMonth: 0, future };
+  return { thisMonth, future };
 }

@@ -75,6 +75,23 @@ export interface MonthGoal {
   updatedAt: string;
 }
 
+/** Parte de um lançamento pago em mais de uma forma.
+ *  Quando uma Row tem `pagamentos[]` (2+ partes), o `valor` bruto foi
+ *  dividido entre vários métodos — a soma de `pagamentos[].valor` bate
+ *  com o `valor` da Row. Cada parte carrega sua própria taxa (e parcelas,
+ *  no crédito), porque a mordida do cartão difere por método. */
+export interface PagamentoSplit {
+  forma: FormaPagamento;
+  /** Porção do valor bruto paga nesta forma (R$). */
+  valor: number;
+  /** Parcelas — só relevante no Crédito. Default 1. */
+  parc?: number;
+  /** Taxa desta parte (% ou R$, conforme `taxaMode`). Default 0. */
+  taxa?: number;
+  /** Como interpretar `taxa`: "percent" (default) ou "value". */
+  taxaMode?: "percent" | "value";
+}
+
 /** Item individual de um lançamento com múltiplos serviços/produtos.
  *  Quando uma Row tem `items[]`, o `valor` da Row é a soma dos items e
  *  `servico` é a concatenação dos nomes pra display. */
@@ -140,6 +157,12 @@ export interface Row {
    *    - `servico` é a concatenação dos nomes (display only)
    *  Quando ausente, modo legado: `servico` e `valor` singulares. */
   items?: RowItem[];
+  /** Pagamento dividido em várias formas. Quando presente (2+ partes), a
+   *  taxa do cartão e a projeção passam a olhar cada parte; a soma dos
+   *  `valor` bate com o `valor` bruto. Os campos `forma`/`parc`/`taxa`
+   *  da Row viram só um resumo pra display. Quando ausente, modo legado
+   *  de forma única — comportamento 100% inalterado. */
+  pagamentos?: PagamentoSplit[];
   status: StatusPagamento;
   mes: number;
   ano: number;
