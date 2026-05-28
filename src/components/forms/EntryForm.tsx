@@ -58,6 +58,7 @@ interface Errors {
   items?: string;
   pagamentos?: string;
   data?: string;
+  mesAck?: string;
 }
 
 /** Zera o horário pra comparar datas por dia de calendário (local). */
@@ -244,6 +245,9 @@ export function EntryForm({
   const [parts, setParts] = useState<PartDraft[]>(() => initParts(initial));
   // Expande a quebra da taxa do cartão por forma no Resultado.
   const [showFeeBreakdown, setShowFeeBreakdown] = useState(false);
+  // Confirmação consciente de que a data cai num mês diferente do que está
+  // sendo visualizado. Sem o check (ou sem ajustar a data), o salvar trava.
+  const [monthAck, setMonthAck] = useState(false);
 
   // Total que as partes precisam somar: em multi-item é a soma dos itens,
   // senão o valor singular.
@@ -546,6 +550,7 @@ export function EntryForm({
     );
     setMultiPay(!!(initial.pagamentos && initial.pagamentos.length > 0));
     setParts(initParts(initial));
+    setMonthAck(false);
     // Telefone: se o cliente já está cadastrado, prefilla. Senão, vazio.
     const found = findClient(clients, initial.cliente);
     setPhone(formatPhoneBR(found?.phone ?? ""));
@@ -648,11 +653,14 @@ export function EntryForm({
       mes: next.getMonth(),
       ano: next.getFullYear(),
     }));
-    // Mudou a data → reavalia o bloqueio de data futura na hora.
+    // Mudou a data → o mês-alvo mudou, então pede confirmação de novo e
+    // reavalia os bloqueios de data (futuro / divergência de mês) na hora.
+    setMonthAck(false);
     setErrors((prev) => {
-      if (!prev.data) return prev;
+      if (!prev.data && !prev.mesAck) return prev;
       const nx = { ...prev };
       delete nx.data;
+      delete nx.mesAck;
       return nx;
     });
   };
@@ -815,6 +823,10 @@ export function EntryForm({
     // Data no futuro bloqueia o salvar — o usuário precisa ajustar a data.
     if (dateIsFuture) {
       v.data = "Não é possível lançar no futuro. Ajuste a data para salvar.";
+    } else if (monthMismatch && !monthAck) {
+      // Divergência de mês: bloqueia até o usuário confirmar (ou ajustar a
+      // data pra cair no mês que está visualizando).
+      v.mesAck = "Confirme o mês deste lançamento ou ajuste a data para salvar.";
     }
     setErrors(v);
     if (Object.keys(v).length > 0) {
@@ -826,9 +838,10 @@ export function EntryForm({
         "taxa",
         "pagamentos",
         "data",
+        "mesAck",
       ];
       const first = order.find((k) => v[k]);
-      if (first && first !== "items" && first !== "pagamentos") {
+      if (first && first !== "items" && first !== "pagamentos" && first !== "mesAck") {
         const el = document.getElementById(`ef-${first}`);
         el?.focus();
       }
@@ -978,15 +991,46 @@ export function EntryForm({
       )}
 
       {!dateIsFuture && monthMismatch && dateValid && (
-        <div className={styles.dateNotice} role="status">
-          <span aria-hidden="true">📅</span>
-          <span>
-            Você está vendo{" "}
-            <strong>{fmtMonth(viewMes!, viewAno!)}</strong>, mas este
-            lançamento será registrado em{" "}
-            <strong>{fmtMonth(dateObj.getMonth(), dateObj.getFullYear())}</strong>{" "}
-            (data escolhida). Ajuste a data se quiser mudar o mês.
-          </span>
+        <div
+          className={`${styles.dateNotice} ${errors.mesAck ? styles.dateNoticeError : ""}`}
+          role="alert"
+        >
+          <div className={styles.dateNoticeHead}>
+            <span aria-hidden="true">⚠</span>
+            <span>
+              Você está vendo{" "}
+              <strong>{fmtMonth(viewMes!, viewAno!)}</strong>, mas este
+              lançamento vai para{" "}
+              <strong>
+                {fmtMonth(dateObj.getMonth(), dateObj.getFullYear())}
+              </strong>{" "}
+              (data escolhida). Ajuste a data ou confirme abaixo para salvar.
+            </span>
+          </div>
+          <label className={styles.dateNoticeCheck}>
+            <input
+              type="checkbox"
+              checked={monthAck}
+              onChange={(e) => {
+                setMonthAck(e.target.checked);
+                if (e.target.checked) {
+                  setErrors((prev) => {
+                    if (!prev.mesAck) return prev;
+                    const nx = { ...prev };
+                    delete nx.mesAck;
+                    return nx;
+                  });
+                }
+              }}
+            />
+            <span>
+              Registrar mesmo assim em{" "}
+              {fmtMonth(dateObj.getMonth(), dateObj.getFullYear())}
+            </span>
+          </label>
+          {errors.mesAck && (
+            <span className={styles.errorMsg}>{errors.mesAck}</span>
+          )}
         </div>
       )}
 

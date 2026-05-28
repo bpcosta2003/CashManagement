@@ -130,24 +130,59 @@
   line-height: 1.45;
 }
 
-/* Aviso informativo: data cai em mês diferente do visualizado. */
+/* Aviso bloqueante: data cai em mês diferente do visualizado. Exige
+   ajustar a data ou marcar a confirmação pra liberar o salvar. */
 .dateNotice {
   display: flex;
-  align-items: flex-start;
+  flex-direction: column;
   gap: 8px;
   margin-top: -8px;
   padding: 10px 12px;
   border-radius: var(--radius-sm);
-  border: 1px solid var(--border-soft);
-  background: var(--surface-2);
+  border: 1px solid var(--warning);
+  background: rgba(212, 160, 75, 0.08);
   color: var(--text-muted);
   font-size: var(--t-caption);
   line-height: 1.45;
 }
 
+.dateNoticeHead {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: var(--warning);
+}
+
 .dateNotice strong {
   color: var(--text);
   font-weight: 600;
+}
+
+.dateNoticeCheck {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  color: var(--text);
+  font-weight: 500;
+  user-select: none;
+}
+
+.dateNoticeCheck input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.dateNoticeError {
+  border-color: var(--negative);
+  background: rgba(201, 107, 107, 0.08);
+}
+
+.dateNoticeError .dateNoticeHead {
+  color: var(--negative);
 }
 
 .input,
