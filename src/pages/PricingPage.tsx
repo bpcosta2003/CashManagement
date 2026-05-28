@@ -245,7 +245,7 @@ const APP_FEATURES: FeatureCard[] = [
     title: "Lembretes",
     body:
       "Aviso dentro do app se passar 24h sem lançar. E email no começo e no fim do mês com a meta e o resumo do período.",
-    image: "/features/preferencias.jpg",
+    image: "/features/lembretes.jpg",
     focus: "90%",
   },
 ];

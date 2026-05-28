@@ -38,8 +38,7 @@ export function ServicoCombobox({
   const query = value.trim().toLowerCase();
   const suggestions = catalog
     .filter((c) => !query || c.name.toLowerCase().includes(query))
-    .sort((a, b) => (a.lastUsedAt < b.lastUsedAt ? 1 : -1))
-    .slice(0, 8);
+    .sort((a, b) => (a.lastUsedAt < b.lastUsedAt ? 1 : -1));
 
   // Match exato → mostra um selo "· catálogo" no input
   const matched = catalog.find(

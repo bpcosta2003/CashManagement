@@ -114,6 +114,77 @@
   margin-top: 2px;
 }
 
+/* Aviso bloqueante de data (futuro) — vermelho, chama atenção. */
+.dateAlert {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: -8px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(201, 107, 107, 0.35);
+  background: rgba(201, 107, 107, 0.08);
+  color: var(--negative);
+  font-size: var(--t-caption);
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+/* Aviso bloqueante: data cai em mês diferente do visualizado. Exige
+   ajustar a data ou marcar a confirmação pra liberar o salvar. */
+.dateNotice {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: -8px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--warning);
+  background: rgba(212, 160, 75, 0.08);
+  color: var(--text-muted);
+  font-size: var(--t-caption);
+  line-height: 1.45;
+}
+
+.dateNoticeHead {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: var(--warning);
+}
+
+.dateNotice strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.dateNoticeCheck {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  color: var(--text);
+  font-weight: 500;
+  user-select: none;
+}
+
+.dateNoticeCheck input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.dateNoticeError {
+  border-color: var(--negative);
+  background: rgba(201, 107, 107, 0.08);
+}
+
+.dateNoticeError .dateNoticeHead {
+  color: var(--negative);
+}
+
 .input,
 .select {
   appearance: none;
@@ -458,6 +529,48 @@
   font-weight: 500;
   color: var(--hero-fg);
   font-variant-numeric: tabular-nums;
+}
+
+.previewFeeToggle {
+  appearance: none;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font-family: inherit;
+  font-size: var(--t-meta);
+  color: var(--hero-muted);
+  cursor: pointer;
+  text-align: left;
+}
+
+.previewFeeHint {
+  color: var(--champagne);
+  font-size: var(--t-eyebrow);
+}
+
+.previewFeeList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 2px 0 2px 4px;
+  padding-left: 10px;
+  border-left: 2px solid var(--hero-line);
+}
+
+.previewFeeItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  font-size: var(--t-eyebrow);
+  color: var(--hero-muted);
+}
+
+.previewFeeItem span:last-child {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .previewDivider {

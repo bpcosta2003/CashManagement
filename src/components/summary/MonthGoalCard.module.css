@@ -265,13 +265,24 @@
 
 .editorRow {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 8px;
   align-items: stretch;
 }
 
+.editorButtons {
+  display: flex;
+  gap: 8px;
+}
+
+/* Botões dividem a largura igualmente embaixo do input — no mobile não
+   quebram mais a linha; no desktop seguem proporcionais sem cortar. */
+.editorButtons > button {
+  flex: 1 1 0;
+}
+
 .editorInput {
-  flex: 1 1 140px;
+  width: 100%;
   min-width: 0;
   appearance: none;
   border: 1px solid var(--input-border);

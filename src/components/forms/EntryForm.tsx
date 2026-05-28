@@ -11,6 +11,7 @@ import { FORMAS_PAGAMENTO, STATUS_OPTIONS } from "../../constants";
 import {
   autoTaxa,
   calcRow,
+  cardFee,
   fmtBRL,
   fmtPct,
   joinItemNames,
@@ -31,6 +32,10 @@ interface Props {
   initial: Row;
   /** true quando o sheet está criando um lançamento novo (não persistido ainda) */
   isNew?: boolean;
+  /** Mês/ano sendo visualizados na tela — usados só pra avisar quando a
+   *  data do lançamento cai num mês diferente do que está sendo visto. */
+  viewMes?: number;
+  viewAno?: number;
   /** Clientes do empreendimento ativo — usados pra autocomplete. */
   clients: Client[];
   /** Catálogo de serviços/produtos do empreendimento ativo. */
@@ -52,6 +57,20 @@ interface Errors {
   taxa?: string;
   items?: string;
   pagamentos?: string;
+  data?: string;
+  mesAck?: string;
+}
+
+/** Zera o horário pra comparar datas por dia de calendário (local). */
+function startOfDay(d: Date): number {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+}
+
+/** true se `iso` cai num dia de calendário posterior a hoje. */
+function isFutureDay(iso: string): boolean {
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return false;
+  return startOfDay(d) > startOfDay(new Date());
 }
 
 /** Parte de pagamento no editor de múltiplas formas. Texto bruto pra
@@ -159,6 +178,8 @@ function findClient(clients: Client[], name: string): Client | undefined {
 export function EntryForm({
   initial,
   isNew = false,
+  viewMes,
+  viewAno,
   clients,
   catalog,
   allRows = [],
@@ -222,6 +243,11 @@ export function EntryForm({
     () => !!(initial.pagamentos && initial.pagamentos.length > 0),
   );
   const [parts, setParts] = useState<PartDraft[]>(() => initParts(initial));
+  // Expande a quebra da taxa do cartão por forma no Resultado.
+  const [showFeeBreakdown, setShowFeeBreakdown] = useState(false);
+  // Confirmação consciente de que a data cai num mês diferente do que está
+  // sendo visualizado. Sem o check (ou sem ajustar a data), o salvar trava.
+  const [monthAck, setMonthAck] = useState(false);
 
   // Total que as partes precisam somar: em multi-item é a soma dos itens,
   // senão o valor singular.
@@ -463,11 +489,22 @@ export function EntryForm({
       setAuxiliarText(formatDecimalBR(entry.auxiliarPct ?? 0));
       setTaxaNegocioText(formatDecimalBR(histTaxaNeg));
       setTaxaTouched(true);
+      // Espelha a divisão de pagamento do histórico — sem isso, repetir um
+      // lançamento múltiplo perdia as formas/valores/taxas. Sem divisão,
+      // desliga o multi e limpa as partes.
+      if (entry.pagamentos && entry.pagamentos.length > 0) {
+        setMultiPay(true);
+        setParts(initParts(entry));
+      } else {
+        setMultiPay(false);
+        setParts([]);
+      }
       setErrors((prev) => {
         const next = { ...prev };
         delete next.valor;
         delete next.parc;
         delete next.taxa;
+        delete next.pagamentos;
         return next;
       });
     },
@@ -513,6 +550,7 @@ export function EntryForm({
     );
     setMultiPay(!!(initial.pagamentos && initial.pagamentos.length > 0));
     setParts(initParts(initial));
+    setMonthAck(false);
     // Telefone: se o cliente já está cadastrado, prefilla. Senão, vazio.
     const found = findClient(clients, initial.cliente);
     setPhone(formatPhoneBR(found?.phone ?? ""));
@@ -615,7 +653,38 @@ export function EntryForm({
       mes: next.getMonth(),
       ano: next.getFullYear(),
     }));
+    // Mudou a data → o mês-alvo mudou, então pede confirmação de novo e
+    // reavalia os bloqueios de data (futuro / divergência de mês) na hora.
+    setMonthAck(false);
+    setErrors((prev) => {
+      if (!prev.data && !prev.mesAck) return prev;
+      const nx = { ...prev };
+      delete nx.data;
+      delete nx.mesAck;
+      return nx;
+    });
   };
+
+  // ── Regras de data ──────────────────────────────────────────────────
+  // 1. O mês do lançamento (mes/ano) SEMPRE acompanha a data do campo —
+  //    `setDate` mantém isso sincronizado e o submit normaliza por garantia.
+  // 2. Data no futuro é proibida (bloqueia o salvar).
+  // 3. Quando a data cai num mês diferente do que está sendo visualizado,
+  //    mostra um aviso (não bloqueia) pra deixar claro onde o lançamento
+  //    vai cair — caso clássico: abrir "novo" vendo junho com a data em maio.
+  const dateIsFuture = isFutureDay(draft.criadoEm);
+  const dateObj = new Date(draft.criadoEm);
+  const dateValid = !isNaN(dateObj.getTime());
+  const monthMismatch =
+    dateValid &&
+    viewMes !== undefined &&
+    viewAno !== undefined &&
+    (dateObj.getMonth() !== viewMes || dateObj.getFullYear() !== viewAno);
+  const fmtMonth = (mes: number, ano: number) =>
+    new Date(ano, mes, 1).toLocaleDateString("pt-BR", {
+      month: "long",
+      year: "numeric",
+    });
 
   const update = <K extends keyof Row>(field: K, value: Row[K]) => {
     setDraft((prev) => {
@@ -668,6 +737,24 @@ export function EntryForm({
     ...(itemList.length > 0 ? { valor: itemsTotal } : {}),
     pagamentos: multiPay ? buildPagamentos() : undefined,
   };
+
+  // Quebra da taxa do cartão por forma, pro Resultado expansível. Cada
+  // parte mostra valor × taxa = mordida (Pix/Dinheiro ficam em 0).
+  const feeBreakdown = multiPay
+    ? parts.map((p) => {
+        const valor = parseDecimalBR(p.valorText);
+        const taxa = parseDecimalBR(p.taxaText);
+        return {
+          key: p._key,
+          forma: p.forma,
+          parc: p.parc,
+          valor,
+          taxa,
+          taxaMode: p.taxaMode,
+          fee: cardFee({ forma: p.forma, valor, taxa, taxaMode: p.taxaMode }),
+        };
+      })
+    : [];
   // calcRow lê `taxaNegocio`/`taxaNegocioMode` da própria row (v3). O prop
   // `taxaFixaPct` é mantido como fallback de penúltimo recurso pra
   // lançamentos pré-snapshot — calcRow só recorre a ele se a row não tem
@@ -733,6 +820,14 @@ export function EntryForm({
     e.preventDefault();
     setSubmitted(true);
     const v = validate(draft, itemList, multiPay, parts, effectiveTotal);
+    // Data no futuro bloqueia o salvar — o usuário precisa ajustar a data.
+    if (dateIsFuture) {
+      v.data = "Não é possível lançar no futuro. Ajuste a data para salvar.";
+    } else if (monthMismatch && !monthAck) {
+      // Divergência de mês: bloqueia até o usuário confirmar (ou ajustar a
+      // data pra cair no mês que está visualizando).
+      v.mesAck = "Confirme o mês deste lançamento ou ajuste a data para salvar.";
+    }
     setErrors(v);
     if (Object.keys(v).length > 0) {
       const order: Array<keyof Errors> = [
@@ -742,9 +837,11 @@ export function EntryForm({
         "parc",
         "taxa",
         "pagamentos",
+        "data",
+        "mesAck",
       ];
       const first = order.find((k) => v[k]);
-      if (first && first !== "items" && first !== "pagamentos") {
+      if (first && first !== "items" && first !== "pagamentos" && first !== "mesAck") {
         const el = document.getElementById(`ef-${first}`);
         el?.focus();
       }
@@ -790,6 +887,13 @@ export function EntryForm({
     } else if (rowToSave.pagamentos) {
       const { pagamentos: _dropPag, ...restNoPag } = rowToSave;
       rowToSave = restNoPag as Row;
+    }
+    // Invariante final: mês/ano do lançamento = mês/ano da data do campo.
+    // Blinda contra rows legados que tinham mes/ano dessincronizados de
+    // `criadoEm` (bug antigo onde o lançamento herdava o mês visualizado).
+    const dn = new Date(rowToSave.criadoEm);
+    if (!isNaN(dn.getTime())) {
+      rowToSave = { ...rowToSave, mes: dn.getMonth(), ano: dn.getFullYear() };
     }
     onSave(rowToSave, phone.trim() || undefined);
   };
@@ -859,10 +963,12 @@ export function EntryForm({
           </label>
           <input
             id="ef-data"
-            className={styles.input}
+            className={`${styles.input} ${errors.data ? styles.inputError : ""}`}
             type="date"
             value={dateInputValue}
             onChange={(e) => setDate(e.target.value)}
+            aria-invalid={!!errors.data}
+            aria-describedby={errors.data ? "ef-data-err" : undefined}
             max={(() => {
               // Permite escolher datas passadas livremente, mas trava no
               // futuro pra evitar registro errado (ex: dedo escorregou
@@ -874,10 +980,64 @@ export function EntryForm({
         </div>
       </div>
 
+      {(errors.data || dateIsFuture) && (
+        <div id="ef-data-err" className={styles.dateAlert} role="alert">
+          <span aria-hidden="true">⚠</span>
+          <span>
+            {errors.data ??
+              "Não é possível lançar no futuro. Ajuste a data para salvar."}
+          </span>
+        </div>
+      )}
+
+      {!dateIsFuture && monthMismatch && dateValid && (
+        <div
+          className={`${styles.dateNotice} ${errors.mesAck ? styles.dateNoticeError : ""}`}
+          role="alert"
+        >
+          <div className={styles.dateNoticeHead}>
+            <span aria-hidden="true">⚠</span>
+            <span>
+              Você está vendo{" "}
+              <strong>{fmtMonth(viewMes!, viewAno!)}</strong>, mas este
+              lançamento vai para{" "}
+              <strong>
+                {fmtMonth(dateObj.getMonth(), dateObj.getFullYear())}
+              </strong>{" "}
+              (data escolhida). Ajuste a data ou confirme abaixo para salvar.
+            </span>
+          </div>
+          <label className={styles.dateNoticeCheck}>
+            <input
+              type="checkbox"
+              checked={monthAck}
+              onChange={(e) => {
+                setMonthAck(e.target.checked);
+                if (e.target.checked) {
+                  setErrors((prev) => {
+                    if (!prev.mesAck) return prev;
+                    const nx = { ...prev };
+                    delete nx.mesAck;
+                    return nx;
+                  });
+                }
+              }}
+            />
+            <span>
+              Registrar mesmo assim em{" "}
+              {fmtMonth(dateObj.getMonth(), dateObj.getFullYear())}
+            </span>
+          </label>
+          {errors.mesAck && (
+            <span className={styles.errorMsg}>{errors.mesAck}</span>
+          )}
+        </div>
+      )}
+
       {clientHistory.length > 0 && (
         <div className={styles.history} aria-label="Histórico do cliente">
           <div className={styles.historyHead}>
-            <span className={styles.historyTitle}>Últimos atendimentos</span>
+            <span className={styles.historyTitle}>Últimos lançamentos</span>
             <span className={styles.historyHint}>
               toque pra repetir
             </span>
@@ -1319,33 +1479,35 @@ export function EntryForm({
                     />
                   </div>
                 )}
-                <div className={styles.splitFieldNarrow}>
-                  <span className={styles.splitFieldLabel}>
-                    Taxa ({p.taxaMode === "value" ? "R$" : "%"})
-                  </span>
-                  <div className={styles.taxaInputWrap}>
-                    <input
-                      className={`${styles.input} ${styles.taxaInput}`}
-                      type="text"
-                      inputMode="decimal"
-                      value={p.taxaText}
-                      onChange={(e) =>
-                        updatePart(p._key, {
-                          taxaText: sanitizeDecimalText(e.target.value),
-                        })
-                      }
-                      placeholder="0,00"
-                    />
-                    <button
-                      type="button"
-                      className={styles.taxaModeToggle}
-                      onClick={() => flipPartTaxaMode(p._key)}
-                      aria-label={`Modo atual: ${p.taxaMode === "value" ? "R$" : "porcentagem"}. Toque para alternar.`}
-                    >
-                      {p.taxaMode === "value" ? "R$" : "%"}
-                    </button>
+                {p.forma !== "Dinheiro" && p.forma !== "Pix" && (
+                  <div className={styles.splitFieldNarrow}>
+                    <span className={styles.splitFieldLabel}>
+                      Taxa ({p.taxaMode === "value" ? "R$" : "%"})
+                    </span>
+                    <div className={styles.taxaInputWrap}>
+                      <input
+                        className={`${styles.input} ${styles.taxaInput}`}
+                        type="text"
+                        inputMode="decimal"
+                        value={p.taxaText}
+                        onChange={(e) =>
+                          updatePart(p._key, {
+                            taxaText: sanitizeDecimalText(e.target.value),
+                          })
+                        }
+                        placeholder="0,00"
+                      />
+                      <button
+                        type="button"
+                        className={styles.taxaModeToggle}
+                        onClick={() => flipPartTaxaMode(p._key)}
+                        aria-label={`Modo atual: ${p.taxaMode === "value" ? "R$" : "porcentagem"}. Toque para alternar.`}
+                      >
+                        {p.taxaMode === "value" ? "R$" : "%"}
+                      </button>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           ))}
@@ -1523,7 +1685,7 @@ export function EntryForm({
             </span>
           </div>
         )}
-        {calc.taxaVal > 0 && (
+        {!multiPay && calc.taxaVal > 0 && (
           <div className={styles.previewRow}>
             <span className={styles.previewLabel}>
               {taxaMode === "value"
@@ -1534,6 +1696,47 @@ export function EntryForm({
               − {fmtBRL(calc.taxaVal)}
             </span>
           </div>
+        )}
+        {multiPay && calc.taxaVal > 0 && (
+          <>
+            <div className={styles.previewRow}>
+              <button
+                type="button"
+                className={styles.previewFeeToggle}
+                onClick={() => setShowFeeBreakdown((v) => !v)}
+                aria-expanded={showFeeBreakdown}
+              >
+                Taxa cartão{" "}
+                <span className={styles.previewFeeHint}>
+                  · divisão {showFeeBreakdown ? "▲" : "▼"}
+                </span>
+              </button>
+              <span className={styles.previewValue}>
+                − {fmtBRL(calc.taxaVal)}
+              </span>
+            </div>
+            {showFeeBreakdown && (
+              <div className={styles.previewFeeList}>
+                {feeBreakdown
+                  .filter((f) => f.fee > 0)
+                  .map((f) => (
+                    <div className={styles.previewFeeItem} key={f.key}>
+                      <span>
+                        {f.forma}
+                        {f.forma === "Crédito" && f.parc > 1
+                          ? ` ${f.parc}×`
+                          : ""}{" "}
+                        · {fmtBRL(f.valor)} ×{" "}
+                        {f.taxaMode === "value"
+                          ? fmtBRL(f.taxa)
+                          : `${formatDecimalBR(f.taxa)}%`}
+                      </span>
+                      <span>− {fmtBRL(f.fee)}</span>
+                    </div>
+                  ))}
+              </div>
+            )}
+          </>
         )}
         {calc.auxiliarVal > 0 && (
           <div className={styles.previewRow}>

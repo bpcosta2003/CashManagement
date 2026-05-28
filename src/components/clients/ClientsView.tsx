@@ -25,11 +25,17 @@ interface Props {
 
 function formatRelativeDate(iso: string | null): string {
   if (!iso) return "—";
-  const now = Date.now();
-  const then = new Date(iso).getTime();
-  if (Number.isNaN(then)) return "—";
-  const days = Math.floor((now - then) / (1000 * 60 * 60 * 24));
-  if (days === 0) return "hoje";
+  const then = new Date(iso);
+  if (Number.isNaN(then.getTime())) return "—";
+  // Diferença em DIAS DE CALENDÁRIO (meia-noite a meia-noite), não em
+  // janelas de 24h. Sem isso, um lançamento de 26/05 às 23h apareceria como
+  // "ontem" em 28/05 de manhã (≈1,4 dias corridos) em vez de "há 2 dias".
+  const startOfDay = (d: Date) =>
+    new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  const days = Math.round(
+    (startOfDay(new Date()) - startOfDay(then)) / (1000 * 60 * 60 * 24),
+  );
+  if (days <= 0) return "hoje";
   if (days === 1) return "ontem";
   if (days < 30) return `há ${days} dias`;
   const months = Math.floor(days / 30);
