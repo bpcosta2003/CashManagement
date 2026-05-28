@@ -114,6 +114,42 @@
   margin-top: 2px;
 }
 
+/* Aviso bloqueante de data (futuro) — vermelho, chama atenção. */
+.dateAlert {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: -8px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(201, 107, 107, 0.35);
+  background: rgba(201, 107, 107, 0.08);
+  color: var(--negative);
+  font-size: var(--t-caption);
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+/* Aviso informativo: data cai em mês diferente do visualizado. */
+.dateNotice {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: -8px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-soft);
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-size: var(--t-caption);
+  line-height: 1.45;
+}
+
+.dateNotice strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
 .input,
 .select {
   appearance: none;

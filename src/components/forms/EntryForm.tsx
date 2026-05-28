@@ -32,6 +32,10 @@ interface Props {
   initial: Row;
   /** true quando o sheet está criando um lançamento novo (não persistido ainda) */
   isNew?: boolean;
+  /** Mês/ano sendo visualizados na tela — usados só pra avisar quando a
+   *  data do lançamento cai num mês diferente do que está sendo visto. */
+  viewMes?: number;
+  viewAno?: number;
   /** Clientes do empreendimento ativo — usados pra autocomplete. */
   clients: Client[];
   /** Catálogo de serviços/produtos do empreendimento ativo. */
@@ -53,6 +57,19 @@ interface Errors {
   taxa?: string;
   items?: string;
   pagamentos?: string;
+  data?: string;
+}
+
+/** Zera o horário pra comparar datas por dia de calendário (local). */
+function startOfDay(d: Date): number {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+}
+
+/** true se `iso` cai num dia de calendário posterior a hoje. */
+function isFutureDay(iso: string): boolean {
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return false;
+  return startOfDay(d) > startOfDay(new Date());
 }
 
 /** Parte de pagamento no editor de múltiplas formas. Texto bruto pra
@@ -160,6 +177,8 @@ function findClient(clients: Client[], name: string): Client | undefined {
 export function EntryForm({
   initial,
   isNew = false,
+  viewMes,
+  viewAno,
   clients,
   catalog,
   allRows = [],
@@ -629,7 +648,35 @@ export function EntryForm({
       mes: next.getMonth(),
       ano: next.getFullYear(),
     }));
+    // Mudou a data → reavalia o bloqueio de data futura na hora.
+    setErrors((prev) => {
+      if (!prev.data) return prev;
+      const nx = { ...prev };
+      delete nx.data;
+      return nx;
+    });
   };
+
+  // ── Regras de data ──────────────────────────────────────────────────
+  // 1. O mês do lançamento (mes/ano) SEMPRE acompanha a data do campo —
+  //    `setDate` mantém isso sincronizado e o submit normaliza por garantia.
+  // 2. Data no futuro é proibida (bloqueia o salvar).
+  // 3. Quando a data cai num mês diferente do que está sendo visualizado,
+  //    mostra um aviso (não bloqueia) pra deixar claro onde o lançamento
+  //    vai cair — caso clássico: abrir "novo" vendo junho com a data em maio.
+  const dateIsFuture = isFutureDay(draft.criadoEm);
+  const dateObj = new Date(draft.criadoEm);
+  const dateValid = !isNaN(dateObj.getTime());
+  const monthMismatch =
+    dateValid &&
+    viewMes !== undefined &&
+    viewAno !== undefined &&
+    (dateObj.getMonth() !== viewMes || dateObj.getFullYear() !== viewAno);
+  const fmtMonth = (mes: number, ano: number) =>
+    new Date(ano, mes, 1).toLocaleDateString("pt-BR", {
+      month: "long",
+      year: "numeric",
+    });
 
   const update = <K extends keyof Row>(field: K, value: Row[K]) => {
     setDraft((prev) => {
@@ -765,6 +812,10 @@ export function EntryForm({
     e.preventDefault();
     setSubmitted(true);
     const v = validate(draft, itemList, multiPay, parts, effectiveTotal);
+    // Data no futuro bloqueia o salvar — o usuário precisa ajustar a data.
+    if (dateIsFuture) {
+      v.data = "Não é possível lançar no futuro. Ajuste a data para salvar.";
+    }
     setErrors(v);
     if (Object.keys(v).length > 0) {
       const order: Array<keyof Errors> = [
@@ -774,6 +825,7 @@ export function EntryForm({
         "parc",
         "taxa",
         "pagamentos",
+        "data",
       ];
       const first = order.find((k) => v[k]);
       if (first && first !== "items" && first !== "pagamentos") {
@@ -822,6 +874,13 @@ export function EntryForm({
     } else if (rowToSave.pagamentos) {
       const { pagamentos: _dropPag, ...restNoPag } = rowToSave;
       rowToSave = restNoPag as Row;
+    }
+    // Invariante final: mês/ano do lançamento = mês/ano da data do campo.
+    // Blinda contra rows legados que tinham mes/ano dessincronizados de
+    // `criadoEm` (bug antigo onde o lançamento herdava o mês visualizado).
+    const dn = new Date(rowToSave.criadoEm);
+    if (!isNaN(dn.getTime())) {
+      rowToSave = { ...rowToSave, mes: dn.getMonth(), ano: dn.getFullYear() };
     }
     onSave(rowToSave, phone.trim() || undefined);
   };
@@ -891,10 +950,12 @@ export function EntryForm({
           </label>
           <input
             id="ef-data"
-            className={styles.input}
+            className={`${styles.input} ${errors.data ? styles.inputError : ""}`}
             type="date"
             value={dateInputValue}
             onChange={(e) => setDate(e.target.value)}
+            aria-invalid={!!errors.data}
+            aria-describedby={errors.data ? "ef-data-err" : undefined}
             max={(() => {
               // Permite escolher datas passadas livremente, mas trava no
               // futuro pra evitar registro errado (ex: dedo escorregou
@@ -905,6 +966,29 @@ export function EntryForm({
           />
         </div>
       </div>
+
+      {(errors.data || dateIsFuture) && (
+        <div id="ef-data-err" className={styles.dateAlert} role="alert">
+          <span aria-hidden="true">⚠</span>
+          <span>
+            {errors.data ??
+              "Não é possível lançar no futuro. Ajuste a data para salvar."}
+          </span>
+        </div>
+      )}
+
+      {!dateIsFuture && monthMismatch && dateValid && (
+        <div className={styles.dateNotice} role="status">
+          <span aria-hidden="true">📅</span>
+          <span>
+            Você está vendo{" "}
+            <strong>{fmtMonth(viewMes!, viewAno!)}</strong>, mas este
+            lançamento será registrado em{" "}
+            <strong>{fmtMonth(dateObj.getMonth(), dateObj.getFullYear())}</strong>{" "}
+            (data escolhida). Ajuste a data se quiser mudar o mês.
+          </span>
+        </div>
+      )}
 
       {clientHistory.length > 0 && (
         <div className={styles.history} aria-label="Histórico do cliente">

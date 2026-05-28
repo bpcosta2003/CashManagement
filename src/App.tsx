@@ -47,7 +47,13 @@ type SheetMode =
   | { kind: "edit"; id: string }
   | null;
 
-function makeBlankRow(mes: number, ano: number, businessId: string): Row {
+function makeBlankRow(businessId: string): Row {
+  // Lançamento novo sempre nasce na data real de hoje (mês/ano coerentes
+  // com `criadoEm`). Não herda o mês que está sendo visualizado — assim o
+  // lançamento cai no mês atual por padrão e, pra registrar no passado, o
+  // usuário muda a data do campo (o EntryForm avisa quando a data difere
+  // do mês visualizado e bloqueia datas no futuro).
+  const now = new Date();
   return {
     id: uid(),
     businessId,
@@ -60,9 +66,9 @@ function makeBlankRow(mes: number, ano: number, businessId: string): Row {
     custo: "",
     desconto: "",
     status: "Pago",
-    mes,
-    ano,
-    criadoEm: new Date().toISOString(),
+    mes: now.getMonth(),
+    ano: now.getFullYear(),
+    criadoEm: now.toISOString(),
   };
 }
 
@@ -308,9 +314,9 @@ export default function App() {
     }
     setSheetMode({
       kind: "create",
-      draft: makeBlankRow(mes, ano, activeBusinessId),
+      draft: makeBlankRow(activeBusinessId),
     });
-  }, [mes, ano, activeBusinessId]);
+  }, [activeBusinessId]);
 
   const handleEditSheet = useCallback((id: string) => {
     setSheetMode({ kind: "edit", id });
@@ -582,6 +588,8 @@ export default function App() {
           <EntryForm
             initial={editingRow}
             isNew={sheetMode?.kind === "create"}
+            viewMes={mes}
+            viewAno={ano}
             clients={activeClients}
             catalog={activeCatalog}
             allRows={state.rows.filter(
