@@ -574,14 +574,7 @@
 .appFeatureHead {
   display: flex;
   align-items: flex-start;
-  justify-content: space-between;
   gap: 10px;
-}
-
-.appFeatureIcon {
-  flex: 0 0 auto;
-  font-size: 24px;
-  line-height: 1;
 }
 
 .appFeatureTitle {
@@ -589,7 +582,7 @@
   min-width: 0;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: var(--t-h3);
+  font-size: var(--t-h2);
   line-height: 1.2;
   letter-spacing: -0.01em;
   margin: 0;
@@ -598,7 +591,7 @@
 
 .appFeatureBody {
   margin: 0;
-  font-size: var(--t-body);
+  font-size: var(--t-body-lg);
   line-height: 1.55;
   color: var(--text-muted);
 }

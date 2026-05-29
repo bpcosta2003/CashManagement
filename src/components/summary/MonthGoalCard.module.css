@@ -266,19 +266,25 @@
 .editorRow {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   align-items: stretch;
 }
 
 .editorButtons {
   display: flex;
-  gap: 8px;
+  gap: 10px;
 }
 
-/* Botões dividem a largura igualmente embaixo do input — no mobile não
-   quebram mais a linha; no desktop seguem proporcionais sem cortar. */
-.editorButtons > button {
+/* Mesma disposição da barra de ações do lançamento: Cancelar (neutro),
+   Excluir (perigo, mais estreito) e Salvar (primário, mais largo). */
+.editorSecondary {
   flex: 1 1 0;
+}
+.editorDanger {
+  flex: 0 0 auto;
+}
+.editorPrimary {
+  flex: 1.5 1 0;
 }
 
 .editorInput {

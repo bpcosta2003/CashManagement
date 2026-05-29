@@ -56,7 +56,7 @@ const PLANS: Plan[] = [
     features: [
       { label: "Lançamentos ilimitados, mesmo offline" },
       { label: "Sincroniza os dados do celular para o computador e vice-versa" },
-      { label: "Detalhamento de taxas" },
+      { label: "Visualização completa e detalhada de todas as taxas pagas" },
       { label: "Detalhamento mensal e anual completo" },
       { label: "Projeção de recebimentos futuros mês a mês" },
       { label: "Alertas automáticos do que muda no caixa" },
@@ -667,9 +667,6 @@ export function PricingPage() {
                   <div className={styles.appFeatureContent}>
                     <div className={styles.appFeatureHead}>
                       <h3 className={styles.appFeatureTitle}>{f.title}</h3>
-                      <span className={styles.appFeatureIcon} aria-hidden="true">
-                        {f.icon}
-                      </span>
                     </div>
                     <p className={styles.appFeatureBody}>{f.body}</p>
                   </div>
