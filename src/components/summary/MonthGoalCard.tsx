@@ -67,8 +67,8 @@ export function MonthGoalCard({
       return;
     }
     const ok = await confirm({
-      title: `Remover a meta de ${monthLabel}?`,
-      confirmText: "Remover",
+      title: `Excluir a meta de ${monthLabel}?`,
+      confirmText: "Excluir",
       danger: true,
     });
     if (ok) {
@@ -103,13 +103,6 @@ export function MonthGoalCard({
             <div className={styles.editorButtons}>
               <button
                 type="button"
-                className={styles.editorPrimary}
-                onClick={handleSave}
-              >
-                Salvar
-              </button>
-              <button
-                type="button"
                 className={styles.editorSecondary}
                 onClick={() => setEditing(false)}
               >
@@ -120,15 +113,22 @@ export function MonthGoalCard({
                   type="button"
                   className={styles.editorDanger}
                   onClick={handleRemove}
-                  title="Remover meta"
+                  title="Excluir meta"
                 >
-                  Remover
+                  Excluir
                 </button>
               )}
+              <button
+                type="button"
+                className={styles.editorPrimary}
+                onClick={handleSave}
+              >
+                Salvar
+              </button>
             </div>
           </div>
           <span className={styles.editorHint}>
-            Deixe em branco e salve pra remover. Pressione Enter pra
+            Deixe em branco e salve pra excluir. Pressione Enter pra
             confirmar.
           </span>
         </div>

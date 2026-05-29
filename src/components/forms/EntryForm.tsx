@@ -243,8 +243,6 @@ export function EntryForm({
     () => !!(initial.pagamentos && initial.pagamentos.length > 0),
   );
   const [parts, setParts] = useState<PartDraft[]>(() => initParts(initial));
-  // Expande a quebra da taxa do cartão por forma no Resultado.
-  const [showFeeBreakdown, setShowFeeBreakdown] = useState(false);
   // Confirmação consciente de que a data cai num mês diferente do que está
   // sendo visualizado. Sem o check (ou sem ajustar a data), o salvar trava.
   const [monthAck, setMonthAck] = useState(false);
@@ -1700,42 +1698,33 @@ export function EntryForm({
         {multiPay && calc.taxaVal > 0 && (
           <>
             <div className={styles.previewRow}>
-              <button
-                type="button"
-                className={styles.previewFeeToggle}
-                onClick={() => setShowFeeBreakdown((v) => !v)}
-                aria-expanded={showFeeBreakdown}
-              >
+              <span className={styles.previewLabel}>
                 Taxa cartão{" "}
-                <span className={styles.previewFeeHint}>
-                  · divisão {showFeeBreakdown ? "▲" : "▼"}
-                </span>
-              </button>
+                <span className={styles.previewFeeHint}>· Divisão</span>
+              </span>
               <span className={styles.previewValue}>
                 − {fmtBRL(calc.taxaVal)}
               </span>
             </div>
-            {showFeeBreakdown && (
-              <div className={styles.previewFeeList}>
-                {feeBreakdown
-                  .filter((f) => f.fee > 0)
-                  .map((f) => (
-                    <div className={styles.previewFeeItem} key={f.key}>
-                      <span>
-                        {f.forma}
-                        {f.forma === "Crédito" && f.parc > 1
-                          ? ` ${f.parc}×`
-                          : ""}{" "}
-                        · {fmtBRL(f.valor)} ×{" "}
-                        {f.taxaMode === "value"
-                          ? fmtBRL(f.taxa)
-                          : `${formatDecimalBR(f.taxa)}%`}
-                      </span>
-                      <span>− {fmtBRL(f.fee)}</span>
-                    </div>
-                  ))}
-              </div>
-            )}
+            <div className={styles.previewFeeList}>
+              {feeBreakdown
+                .filter((f) => f.fee > 0)
+                .map((f) => (
+                  <div className={styles.previewFeeItem} key={f.key}>
+                    <span>
+                      {f.forma}
+                      {f.forma === "Crédito" && f.parc > 1
+                        ? ` ${f.parc}×`
+                        : ""}{" "}
+                      · {fmtBRL(f.valor)} ×{" "}
+                      {f.taxaMode === "value"
+                        ? fmtBRL(f.taxa)
+                        : `${formatDecimalBR(f.taxa)}%`}
+                    </span>
+                    <span>− {fmtBRL(f.fee)}</span>
+                  </div>
+                ))}
+            </div>
           </>
         )}
         {calc.auxiliarVal > 0 && (
