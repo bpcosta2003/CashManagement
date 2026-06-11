@@ -1,0 +1,40 @@
+name: Supabase keepalive
+
+# O Free tier do Supabase pausa o projeto após 7 dias sem atividade no
+# banco. Este workflow faz um SELECT trivial na tabela `cash_state` a
+# cada 3 dias, reinicia o timer e mantém o projeto vivo.
+#
+# Pré-requisito: configurar dois secrets no repo (Settings → Secrets and
+# variables → Actions):
+#   - SUPABASE_URL       (ex.: https://abcd1234.supabase.co)
+#   - SUPABASE_ANON_KEY  (a anon/public key do projeto)
+
+on:
+  schedule:
+    # A cada 3 dias, 12:00 UTC (09:00 BRT). Margem confortável dos 7 dias.
+    - cron: "0 12 */3 * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: SELECT trivial em cash_state
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${SUPABASE_URL}" ] || [ -z "${SUPABASE_ANON_KEY}" ]; then
+            echo "::error::Defina os secrets SUPABASE_URL e SUPABASE_ANON_KEY."
+            exit 1
+          fi
+          # -f faz o curl retornar erro em 4xx/5xx; -sS silencia progresso
+          # mas mostra erro. Resposta com RLS ligado vem como [] — o que
+          # importa é o request bater no banco.
+          curl -fsS \
+            -H "apikey: ${SUPABASE_ANON_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
+            "${SUPABASE_URL}/rest/v1/cash_state?select=user_id&limit=1" \
+            > /dev/null
+          echo "Ping OK."
